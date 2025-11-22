@@ -113,6 +113,7 @@ namespace NetFabric.Hyperlinq.SourceGenerator
                 var line = lineSpan.StartLinePosition.Line + 1;
                 var character = lineSpan.StartLinePosition.Character + 1;
 
+                var suffix = $"_{line}_{character}";
                 sb.AppendLine($"        [InterceptsLocation(@\"{filePath}\", {line}, {character})]");
                 
                 switch (invocation.MethodName)
@@ -120,14 +121,14 @@ namespace NetFabric.Hyperlinq.SourceGenerator
                     case "Any":
                         if (invocation.IsCollection)
                         {
-                            sb.AppendLine($"        public static bool Any<T>(this IEnumerable<T> source)");
+                            sb.AppendLine($"        public static bool Any{suffix}<T>(this IEnumerable<T> source)");
                             sb.AppendLine("        {");
                             sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Any((ICollection<T>)source);");
                             sb.AppendLine("        }");
                         }
                         else
                         {
-                            sb.AppendLine($"        public static bool Any<T>(this IEnumerable<T> source)");
+                            sb.AppendLine($"        public static bool Any{suffix}<T>(this IEnumerable<T> source)");
                             sb.AppendLine("        {");
                             sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Any(source);");
                             sb.AppendLine("        }");
@@ -136,39 +137,39 @@ namespace NetFabric.Hyperlinq.SourceGenerator
                     case "Count":
                         if (invocation.IsCollection)
                         {
-                            sb.AppendLine($"        public static int Count<T>(this IEnumerable<T> source)");
+                            sb.AppendLine($"        public static int Count{suffix}<T>(this IEnumerable<T> source)");
                             sb.AppendLine("        {");
                             sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Count((ICollection<T>)source);");
                             sb.AppendLine("        }");
                         }
                         else
                         {
-                            sb.AppendLine($"        public static int Count<T>(this IEnumerable<T> source)");
+                            sb.AppendLine($"        public static int Count{suffix}<T>(this IEnumerable<T> source)");
                             sb.AppendLine("        {");
                             sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Count(source);");
                             sb.AppendLine("        }");
                         }
                         break;
                     case "First":
-                        sb.AppendLine($"        public static T First<T>(this IEnumerable<T> source)");
+                        sb.AppendLine($"        public static T First{suffix}<T>(this IEnumerable<T> source)");
                         sb.AppendLine("        {");
                         sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.First(source);");
                         sb.AppendLine("        }");
                         break;
                     case "Single":
-                        sb.AppendLine($"        public static T Single<T>(this IEnumerable<T> source)");
+                        sb.AppendLine($"        public static T Single{suffix}<T>(this IEnumerable<T> source)");
                         sb.AppendLine("        {");
                         sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Single(source);");
                         sb.AppendLine("        }");
                         break;
                     case "Select":
-                        sb.AppendLine($"        public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)");
+                        sb.AppendLine($"        public static IEnumerable<TResult> Select{suffix}<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)");
                         sb.AppendLine("        {");
                         sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Select(source, selector);");
                         sb.AppendLine("        }");
                         break;
                     case "Where":
-                        sb.AppendLine($"        public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)");
+                        sb.AppendLine($"        public static IEnumerable<TSource> Where{suffix}<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)");
                         sb.AppendLine("        {");
                         sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Where(source, predicate);");
                         sb.AppendLine("        }");

@@ -36,8 +36,17 @@ namespace NetFabric.Hyperlinq.Test
             Console.WriteLine();
 
             Console.WriteLine("--- Where ---");
-            var where = list.Where(x => x > 1);
-            foreach (var item in where) Console.Write(item + " ");
+            foreach (var item in list.Where(i => i % 2 == 0))
+            {
+                Console.Write($"{item} ");
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("--- Where().Select() ---");
+            foreach (var item in list.Where(i => i % 2 == 0).Select(i => i * 10))
+            {
+                Console.Write($"{item} ");
+            }
             Console.WriteLine();
         }
     }
