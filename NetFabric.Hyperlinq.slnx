@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="NetFabric.Hyperlinq/NetFabric.Hyperlinq.csproj" />
+  <Project Path="NetFabric.Hyperlinq.SourceGenerator/NetFabric.Hyperlinq.SourceGenerator.csproj" />
+  <Project Path="NetFabric.Hyperlinq.Test/NetFabric.Hyperlinq.Test.csproj" />
+</Solution>
