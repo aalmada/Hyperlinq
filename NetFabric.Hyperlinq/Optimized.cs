@@ -14,6 +14,24 @@ namespace NetFabric.Hyperlinq
             return enumerator.MoveNext();
         }
 
+        public static bool Any<TSource>(ICollection<TSource> source)
+            => source.Count != 0;
+
+        public static int Count<TSource>(IEnumerable<TSource> source)
+        {
+            if (source is ICollection<TSource> collection)
+                return collection.Count;
+
+            var count = 0;
+            using var enumerator = source.GetEnumerator();
+            while (enumerator.MoveNext())
+                count++;
+            return count;
+        }
+
+        public static int Count<TSource>(ICollection<TSource> source)
+            => source.Count;
+
         public static TSource First<TSource>(IEnumerable<TSource> source)
         {
             using var enumerator = source.GetEnumerator();

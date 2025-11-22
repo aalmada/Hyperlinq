@@ -14,6 +14,10 @@ namespace NetFabric.Hyperlinq.Test
             var any = list.Any();
             Console.WriteLine($"Any: {any}");
 
+            Console.WriteLine("--- Count ---");
+            var count = list.Count();
+            Console.WriteLine($"Count: {count}");
+
             Console.WriteLine("--- First ---");
             var first = list.First();
             Console.WriteLine($"First: {first}");
