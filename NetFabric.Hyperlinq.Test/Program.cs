@@ -48,6 +48,20 @@ namespace NetFabric.Hyperlinq.Test
                 Console.Write($"{item} ");
             }
             Console.WriteLine();
+
+            Console.WriteLine("--- Sum (int) ---");
+            var sumInt = list.Sum();
+            Console.WriteLine($"Sum: {sumInt}");
+
+            Console.WriteLine("--- Sum (double) ---");
+            IEnumerable<double> doubleList = new List<double> { 1.5, 2.5, 3.5 };
+            var sumDouble = doubleList.Sum();
+            Console.WriteLine($"Sum: {sumDouble}");
+
+            Console.WriteLine("--- Sum (array) ---");
+            IEnumerable<int> array = new int[] { 10, 20, 30, 40, 50 };
+            var sumArray = array.Sum();
+            Console.WriteLine($"Sum: {sumArray}");
         }
     }
 }

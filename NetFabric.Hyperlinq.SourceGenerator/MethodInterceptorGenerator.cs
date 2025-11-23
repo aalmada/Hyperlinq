@@ -19,6 +19,7 @@ namespace NetFabric.Hyperlinq.SourceGenerator
             new SingleMethodGenerator(),
             new SelectMethodGenerator(),
             new WhereMethodGenerator(),
+            new SumMethodGenerator(),
         };
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
