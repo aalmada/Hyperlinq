@@ -8,7 +8,7 @@ namespace NetFabric.Hyperlinq.Test
     {
         static void Main(string[] args)
         {
-            var list = new List<int> { 1, 2, 3 };
+            IEnumerable<int> list = new List<int> { 1, 2, 3 };
             
             Console.WriteLine("--- Any ---");
             var any = list.Any();

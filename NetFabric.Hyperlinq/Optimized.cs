@@ -54,13 +54,8 @@ namespace NetFabric.Hyperlinq
             return first;
         }
 
-        public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
-        {
-            if (source is WhereEnumerable<TSource> whereEnumerable)
-                return whereEnumerable.Select(selector);
-
-            return new SelectEnumerable<TSource, TResult>(source, selector);
-        }
+        public static SelectEnumerable<TSource, TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+            => new SelectEnumerable<TSource, TResult>(source, selector);
 
         public static WhereEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => new WhereEnumerable<TSource>(source, predicate);

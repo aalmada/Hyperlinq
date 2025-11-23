@@ -4,12 +4,23 @@ using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using System.Text;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace NetFabric.Hyperlinq.SourceGenerator
 {
     [Generator]
     public class MethodInterceptorGenerator : IIncrementalGenerator
     {
+        private static readonly List<IMethodGenerator> methodGenerators = new()
+        {
+            new AnyMethodGenerator(),
+            new CountMethodGenerator(),
+            new FirstMethodGenerator(),
+            new SingleMethodGenerator(),
+            new SelectMethodGenerator(),
+            new WhereMethodGenerator(),
+        };
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             var invocations = context.SyntaxProvider
@@ -41,40 +52,20 @@ namespace NetFabric.Hyperlinq.SourceGenerator
             if (methodSymbol.ContainingType.ToDisplayString() != "System.Linq.Enumerable")
                 return null;
 
-            var methodName = methodSymbol.Name;
-            if (methodName == "Any" && methodSymbol.Parameters.Length == 1)
+            foreach (var generator in methodGenerators)
             {
-                var receiverType = semanticModel.GetTypeInfo(memberAccess.Expression).Type;
-                var isCollection = receiverType is not null && ImplementsICollection(receiverType);
-                return new InvocationInfo(invocation, methodSymbol, "Any", methodSymbol.ContainingType.ToDisplayString(), isCollection);
-            }
-            if (methodName == "Count" && methodSymbol.Parameters.Length == 1)
-            {
-                var receiverType = semanticModel.GetTypeInfo(memberAccess.Expression).Type;
-                var isCollection = receiverType is not null && ImplementsICollection(receiverType);
-                return new InvocationInfo(invocation, methodSymbol, "Count", methodSymbol.ContainingType.ToDisplayString(), isCollection);
-            }
-            if (methodName == "First" && methodSymbol.Parameters.Length == 1)
-            {
-                return new InvocationInfo(invocation, methodSymbol, "First", methodSymbol.ContainingType.ToDisplayString(), false);
-            }
-            if (methodName == "Single" && methodSymbol.Parameters.Length == 1)
-            {
-                return new InvocationInfo(invocation, methodSymbol, "Single", methodSymbol.ContainingType.ToDisplayString(), false);
-            }
-            if (methodName == "Select" && methodSymbol.Parameters.Length == 2)
-            {
-                return new InvocationInfo(invocation, methodSymbol, "Select", methodSymbol.ContainingType.ToDisplayString(), false);
-            }
-            if (methodName == "Where" && methodSymbol.Parameters.Length == 2)
-            {
-                return new InvocationInfo(invocation, methodSymbol, "Where", methodSymbol.ContainingType.ToDisplayString(), false);
+                if (generator.MethodName == methodSymbol.Name)
+                {
+                    var info = generator.TryGetInvocation(context, memberAccess, methodSymbol);
+                    if (info is not null)
+                        return info;
+                }
             }
 
             return null;
         }
 
-        private static bool ImplementsICollection(ITypeSymbol typeSymbol)
+        public static bool ImplementsICollection(ITypeSymbol typeSymbol)
         {
             if (typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.ICollection<T>")
                 return true;
@@ -116,64 +107,13 @@ namespace NetFabric.Hyperlinq.SourceGenerator
                 var suffix = $"_{line}_{character}";
                 sb.AppendLine($"        [InterceptsLocation(@\"{filePath}\", {line}, {character})]");
                 
-                switch (invocation.MethodName)
+                foreach (var generator in methodGenerators)
                 {
-                    case "Any":
-                        if (invocation.IsCollection)
-                        {
-                            sb.AppendLine($"        public static bool Any{suffix}<T>(this IEnumerable<T> source)");
-                            sb.AppendLine("        {");
-                            sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Any((ICollection<T>)source);");
-                            sb.AppendLine("        }");
-                        }
-                        else
-                        {
-                            sb.AppendLine($"        public static bool Any{suffix}<T>(this IEnumerable<T> source)");
-                            sb.AppendLine("        {");
-                            sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Any(source);");
-                            sb.AppendLine("        }");
-                        }
+                    if (generator.MethodName == invocation.MethodName)
+                    {
+                        generator.Generate(sb, invocation, suffix);
                         break;
-                    case "Count":
-                        if (invocation.IsCollection)
-                        {
-                            sb.AppendLine($"        public static int Count{suffix}<T>(this IEnumerable<T> source)");
-                            sb.AppendLine("        {");
-                            sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Count((ICollection<T>)source);");
-                            sb.AppendLine("        }");
-                        }
-                        else
-                        {
-                            sb.AppendLine($"        public static int Count{suffix}<T>(this IEnumerable<T> source)");
-                            sb.AppendLine("        {");
-                            sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Count(source);");
-                            sb.AppendLine("        }");
-                        }
-                        break;
-                    case "First":
-                        sb.AppendLine($"        public static T First{suffix}<T>(this IEnumerable<T> source)");
-                        sb.AppendLine("        {");
-                        sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.First(source);");
-                        sb.AppendLine("        }");
-                        break;
-                    case "Single":
-                        sb.AppendLine($"        public static T Single{suffix}<T>(this IEnumerable<T> source)");
-                        sb.AppendLine("        {");
-                        sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Single(source);");
-                        sb.AppendLine("        }");
-                        break;
-                    case "Select":
-                        sb.AppendLine($"        public static IEnumerable<TResult> Select{suffix}<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)");
-                        sb.AppendLine("        {");
-                        sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Select(source, selector);");
-                        sb.AppendLine("        }");
-                        break;
-                    case "Where":
-                        sb.AppendLine($"        public static IEnumerable<TSource> Where{suffix}<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)");
-                        sb.AppendLine("        {");
-                        sb.AppendLine("            return NetFabric.Hyperlinq.Optimized.Where(source, predicate);");
-                        sb.AppendLine("        }");
-                        break;
+                    }
                 }
                 sb.AppendLine();
             }
@@ -196,17 +136,17 @@ namespace NetFabric.Hyperlinq.SourceGenerator
 
             context.AddSource("Interceptors.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
         }
+    }
 
-        private record InvocationInfo(InvocationExpressionSyntax Syntax, IMethodSymbol Symbol, string MethodName, string ContainingType, bool IsCollection)
+    public record InvocationInfo(InvocationExpressionSyntax Syntax, IMethodSymbol Symbol, string MethodName, string ContainingType, bool IsCollection)
+    {
+        public Location GetLocation()
         {
-            public Location GetLocation()
+            if (Syntax.Expression is MemberAccessExpressionSyntax memberAccess)
             {
-                if (Syntax.Expression is MemberAccessExpressionSyntax memberAccess)
-                {
-                    return memberAccess.Name.GetLocation();
-                }
-                return Syntax.GetLocation();
+                return memberAccess.Name.GetLocation();
             }
+            return Syntax.GetLocation();
         }
     }
 }

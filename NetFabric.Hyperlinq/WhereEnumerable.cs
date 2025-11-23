@@ -34,7 +34,7 @@ namespace NetFabric.Hyperlinq
             }
 
             public TSource Current => sourceEnumerator.Current;
-            object IEnumerator.Current => Current;
+            object? IEnumerator.Current => Current;
 
             public bool MoveNext()
             {
