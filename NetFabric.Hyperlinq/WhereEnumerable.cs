@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
@@ -15,6 +16,7 @@ namespace NetFabric.Hyperlinq
             this.predicate = predicate;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public WhereSelectEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
             => new WhereSelectEnumerable<TSource, TResult>(source, predicate, selector);
 
@@ -34,8 +36,9 @@ namespace NetFabric.Hyperlinq
             }
 
             public TSource Current => sourceEnumerator.Current;
-            object? IEnumerator.Current => Current;
+            object IEnumerator.Current => Current;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
                 while (sourceEnumerator.MoveNext())

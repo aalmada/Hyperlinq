@@ -8,60 +8,45 @@ namespace NetFabric.Hyperlinq.Test
     {
         static void Main(string[] args)
         {
-            IEnumerable<int> list = new List<int> { 1, 2, 3 };
+            Console.WriteLine("Testing AsValueEnumerable with LINQ methods...\n");
+
+            var list = new List<int> { 1, 2, 3, 4, 5 };
+            var valueEnum = list.AsValueEnumerable();
+
+            // Test Any
+            Console.WriteLine($"Any: {valueEnum.Any()}");
+
+            // Test Count
+            Console.WriteLine($"Count: {valueEnum.Count()}");
+
+            // Test First
+            Console.WriteLine($"First: {valueEnum.First()}");
+
+            // Test Single (with single element)
+            var singleList = new List<int> { 42 };
+            Console.WriteLine($"Single: {singleList.AsValueEnumerable().Single()}");
+
+            // Test Sum
+            Console.WriteLine($"Sum: {valueEnum.Sum()}");
+
+            Console.WriteLine("\nTesting chained operations:");
+            var result = list.AsValueEnumerable()
+                            .Where(x => x % 2 == 0)
+                            .Select(x => x * 10);
             
-            Console.WriteLine("--- Any ---");
-            var any = list.Any();
-            Console.WriteLine($"Any: {any}");
-
-            Console.WriteLine("--- Count ---");
-            var count = list.Count();
-            Console.WriteLine($"Count: {count}");
-
-            Console.WriteLine("--- First ---");
-            var first = list.First();
-            Console.WriteLine($"First: {first}");
-
-            Console.WriteLine("--- Single (Exception expected) ---");
-            try {
-                var single = list.Single();
-                Console.WriteLine($"Single: {single}");
-            } catch (Exception ex) {
-                Console.WriteLine($"Single threw: {ex.Message}");
-            }
-
-            Console.WriteLine("--- Select ---");
-            var select = list.Select(x => x * 2);
-            foreach (var item in select) Console.Write(item + " ");
-            Console.WriteLine();
-
-            Console.WriteLine("--- Where ---");
-            foreach (var item in list.Where(i => i % 2 == 0))
-            {
+            Console.WriteLine($"Where/Select Count: {result.Count()}");
+            Console.WriteLine($"Where/Select Sum: {result.Sum()}");
+            Console.Write("Where/Select values: ");
+            foreach (var item in result)
                 Console.Write($"{item} ");
-            }
             Console.WriteLine();
 
-            Console.WriteLine("--- Where().Select() ---");
-            foreach (var item in list.Where(i => i % 2 == 0).Select(i => i * 10))
-            {
-                Console.Write($"{item} ");
-            }
-            Console.WriteLine();
-
-            Console.WriteLine("--- Sum (int) ---");
-            var sumInt = list.Sum();
-            Console.WriteLine($"Sum: {sumInt}");
-
-            Console.WriteLine("--- Sum (double) ---");
-            IEnumerable<double> doubleList = new List<double> { 1.5, 2.5, 3.5 };
-            var sumDouble = doubleList.Sum();
-            Console.WriteLine($"Sum: {sumDouble}");
-
-            Console.WriteLine("--- Sum (array) ---");
-            IEnumerable<int> array = new int[] { 10, 20, 30, 40, 50 };
-            var sumArray = array.Sum();
-            Console.WriteLine($"Sum: {sumArray}");
+            Console.WriteLine("\nTesting with array:");
+            var array = new int[] { 10, 20, 30 };
+            var arrayValueEnum = array.AsValueEnumerable();
+            Console.WriteLine($"Array Count: {arrayValueEnum.Count()}");
+            Console.WriteLine($"Array Sum: {arrayValueEnum.Sum()}");
+            Console.WriteLine($"Array Any: {arrayValueEnum.Any()}");
         }
     }
 }

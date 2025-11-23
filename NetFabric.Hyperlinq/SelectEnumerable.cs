@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
@@ -33,6 +34,7 @@ namespace NetFabric.Hyperlinq
             public TResult Current => selector(sourceEnumerator.Current);
             object? IEnumerator.Current => Current;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext() => sourceEnumerator.MoveNext();
 
             public void Reset() => sourceEnumerator.Reset();

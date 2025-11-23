@@ -13,8 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NetFabric.Hyperlinq\NetFabric.Hyperlinq.csproj" />
-    <ProjectReference Include="..\NetFabric.Hyperlinq.SourceGenerator\NetFabric.Hyperlinq.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\NetFabric.Hyperlinq.Benchmarks.Baseline\NetFabric.Hyperlinq.Benchmarks.Baseline.csproj" />
   </ItemGroup>
 
 </Project>
