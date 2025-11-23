@@ -5,7 +5,7 @@ namespace NetFabric.Hyperlinq
 {
     public static class Optimized
     {
-        public static bool Any<TSource>(IEnumerable<TSource> source)
+        public static bool Any<TSource>(this IEnumerable<TSource> source)
         {
             if (source is ICollection<TSource> collection)
                 return collection.Count != 0;
@@ -14,10 +14,10 @@ namespace NetFabric.Hyperlinq
             return enumerator.MoveNext();
         }
 
-        public static bool Any<TSource>(ICollection<TSource> source)
+        public static bool Any<TSource>(this ICollection<TSource> source)
             => source.Count != 0;
 
-        public static int Count<TSource>(IEnumerable<TSource> source)
+        public static int Count<TSource>(this IEnumerable<TSource> source)
         {
             if (source is ICollection<TSource> collection)
                 return collection.Count;
@@ -29,10 +29,10 @@ namespace NetFabric.Hyperlinq
             return count;
         }
 
-        public static int Count<TSource>(ICollection<TSource> source)
+        public static int Count<TSource>(this ICollection<TSource> source)
             => source.Count;
 
-        public static TSource First<TSource>(IEnumerable<TSource> source)
+        public static TSource First<TSource>(this IEnumerable<TSource> source)
         {
             using var enumerator = source.GetEnumerator();
             if (enumerator.MoveNext())
@@ -41,7 +41,7 @@ namespace NetFabric.Hyperlinq
             throw new InvalidOperationException("Sequence contains no elements");
         }
 
-        public static TSource Single<TSource>(IEnumerable<TSource> source)
+        public static TSource Single<TSource>(this IEnumerable<TSource> source)
         {
             using var enumerator = source.GetEnumerator();
             if (!enumerator.MoveNext())
@@ -54,7 +54,7 @@ namespace NetFabric.Hyperlinq
             return first;
         }
 
-        public static IEnumerable<TResult> Select<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, TResult> selector)
+        public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
             if (source is WhereEnumerable<TSource> whereEnumerable)
                 return whereEnumerable.Select(selector);
@@ -62,7 +62,7 @@ namespace NetFabric.Hyperlinq
             return new SelectEnumerable<TSource, TResult>(source, selector);
         }
 
-        public static WhereEnumerable<TSource> Where<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        public static WhereEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => new WhereEnumerable<TSource>(source, predicate);
     }
 }

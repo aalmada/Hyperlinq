@@ -1,8 +1,9 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Configs;
 using NetFabric.Hyperlinq.Benchmarks.Baseline;
 using System.Collections.Generic;
-using System.Linq;
+using NetFabric.Hyperlinq;
 
 namespace NetFabric.Hyperlinq.Benchmarks
 {
@@ -14,10 +15,13 @@ namespace NetFabric.Hyperlinq.Benchmarks
         }
     }
 
+    [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+    [CategoriesColumn]
     [MemoryDiagnoser]
     public class Benchmarks
     {
-        IEnumerable<int> source;
+        IEnumerable<int> enumerableSource;
+        List<int> listSource;
 
         [Params(10, 10_000, 1_000_000)]
         public int Count { get; set; }
@@ -25,37 +29,72 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            source = Enumerable.Range(0, Count).ToList();
+            listSource = System.Linq.Enumerable.Range(0, Count).ToList();
+            enumerableSource = listSource;
         }
 
-        [Benchmark(Baseline = true)]
-        public int Linq_Where()
+        [BenchmarkCategory("IEnumerable"), Benchmark(Baseline = true)]
+        public int Linq_Where_IEnumerable()
         {
-            return LinqBenchmarks.Wheresum(source);
+            return LinqBenchmarks.WhereSum(enumerableSource);
         }
 
-        [Benchmark]
-        public int Hyperlinq_Where()
+        [BenchmarkCategory("IEnumerable"), Benchmark]
+        public int Hyperlinq_Where_IEnumerable()
         {
             var sum = 0;
-            foreach (var item in source.Where(x => x % 2 == 0))
+            foreach (var item in enumerableSource.Where(x => x % 2 == 0))
             {
                 sum += item;
             }
             return sum;
         }
 
-        [Benchmark]
-        public int Linq_Select()
+        [BenchmarkCategory("List"), Benchmark(Baseline = true)]
+        public int Linq_Where_List()
         {
-            return LinqBenchmarks.Selectsum(source);
+            return LinqBenchmarks.WhereSum(listSource);
         }
 
-        [Benchmark]
-        public int Hyperlinq_Select()
+        [BenchmarkCategory("List"), Benchmark]
+        public int Hyperlinq_Where_List()
         {
             var sum = 0;
-            foreach (var item in source.Select(x => x * 2))
+            foreach (var item in listSource.Where(x => x % 2 == 0))
+            {
+                sum += item;
+            }
+            return sum;
+        }
+
+        [BenchmarkCategory("IEnumerable"), Benchmark]
+        public int Linq_Select_IEnumerable()
+        {
+            return LinqBenchmarks.SelectSum(enumerableSource);
+        }
+
+        [BenchmarkCategory("IEnumerable"), Benchmark]
+        public int Hyperlinq_Select_IEnumerable()
+        {
+            var sum = 0;
+            foreach (var item in enumerableSource.Select(x => x * 2))
+            {
+                sum += item;
+            }
+            return sum;
+        }
+
+        [BenchmarkCategory("List"), Benchmark]
+        public int Linq_Select_List()
+        {
+            return LinqBenchmarks.SelectSum(listSource);
+        }
+
+        [BenchmarkCategory("List"), Benchmark]
+        public int Hyperlinq_Select_List()
+        {
+            var sum = 0;
+            foreach (var item in listSource.Select(x => x * 2))
             {
                 sum += item;
             }

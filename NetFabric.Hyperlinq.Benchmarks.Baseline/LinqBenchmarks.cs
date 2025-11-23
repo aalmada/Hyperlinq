@@ -5,24 +5,24 @@ namespace NetFabric.Hyperlinq.Benchmarks.Baseline
 {
     public static class LinqBenchmarks
     {
-        public static int WhereCount(IEnumerable<int> source)
+        public static int WhereSum(IEnumerable<int> source)
         {
-            var count = 0;
+            var sum = 0;
             foreach (var item in source.Where(x => x % 2 == 0))
             {
-                count++;
+                sum += item;
             }
-            return count;
+            return sum;
         }
 
-        public static int SelectCount(IEnumerable<int> source)
+        public static int SelectSum(IEnumerable<int> source)
         {
-            var count = 0;
+            var sum = 0;
             foreach (var item in source.Select(x => x * 2))
             {
-                count++;
+                sum += item;
             }
-            return count;
+            return sum;
         }
     }
 }
