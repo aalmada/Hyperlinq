@@ -7,8 +7,9 @@ namespace NetFabric.Hyperlinq
     /// <summary>
     /// Value-type enumerable wrapper for arrays.
     /// Uses ArrayEnumerator&lt;T&gt; which is a value type.
+    /// Implements IValueReadOnlyList to expose Count and indexer.
     /// </summary>
-    public readonly struct ArrayValueEnumerable<T> : IValueEnumerable<T, ArrayValueEnumerable<T>.Enumerator>
+    public readonly struct ArrayValueEnumerable<T> : IValueReadOnlyList<T, ArrayValueEnumerable<T>.Enumerator>
     {
         private readonly T[] source;
 
@@ -16,6 +17,9 @@ namespace NetFabric.Hyperlinq
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
+
+        public int Count => source.Length;
+        public T this[int index] => source[index];
 
         public Enumerator GetEnumerator() => new Enumerator(source);
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();

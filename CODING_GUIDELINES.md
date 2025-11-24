@@ -11,7 +11,39 @@ This document describes the coding patterns and conventions used in NetFabric.Hy
 - Enumerators MUST be structs (value types)
 - Return value-type enumerables from LINQ-like methods
 
-### 2. Aggressive Inlining
+### 2. Interface Hierarchy - Return Most Features
+**Principle:** Methods should accept the least features required as parameters and return the most features supported.
+
+The NetFabric.Hyperlinq.Abstractions package provides an interface hierarchy:
+- `IValueEnumerable<T, TEnumerator>` - Basic enumeration
+- `IValueReadOnlyCollection<T, TEnumerator>` - Adds `Count` property
+- `IValueReadOnlyList<T, TEnumerator>` - Adds indexer `this[int index]`
+
+**Guidelines:**
+- **Arrays and List<T>**: Return `IValueReadOnlyList<T, TEnumerator>` (supports Count + indexer)
+- **Filtered/Transformed sequences**: Return `IValueEnumerable<T, TEnumerator>` (no Count/indexer)
+- **Method parameters**: Accept `IValueEnumerable<T, TEnumerator>` (least features required)
+
+**Example:**
+```csharp
+// ✅ Returns IValueReadOnlyList (most features)
+public static ArrayValueEnumerable<T> AsValueEnumerable<T>(this T[] source)
+    => new ArrayValueEnumerable<T>(source);
+
+// ArrayValueEnumerable implements IValueReadOnlyList<T, Enumerator>
+public readonly struct ArrayValueEnumerable<T> : IValueReadOnlyList<T, Enumerator>
+{
+    public int Count => source.Length;        // From IValueReadOnlyCollection
+    public T this[int index] => source[index]; // From IValueReadOnlyList
+}
+
+// ✅ Accepts IValueEnumerable (least features required)
+public static int Count<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
+    where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+    where TEnumerator : struct, IEnumerator<TSource>
+```
+
+### 3. Aggressive Inlining
 Use `[MethodImpl(MethodImplOptions.AggressiveInlining)]` on:
 - **All extension methods** that create value enumerables
 - **Enumerator.MoveNext()** methods (hot path)
@@ -83,6 +115,60 @@ namespace NetFabric.Hyperlinq
 ```
 
 ### Enumerable Struct Files
+
+**For collections with Count and indexer (arrays, List<T>):**
+```csharp
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+namespace NetFabric.Hyperlinq
+{
+    public readonly struct ArrayValueEnumerable<T> 
+        : IValueReadOnlyList<T, ArrayValueEnumerable<T>.Enumerator>
+    {
+        readonly T[] source;
+
+        public ArrayValueEnumerable(T[] source)
+        {
+            this.source = source ?? throw new ArgumentNullException(nameof(source));
+        }
+
+        public int Count => source.Length;
+        public T this[int index] => source[index];
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Enumerator GetEnumerator() => new Enumerator(source);
+        
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            readonly T[] array;
+            int index;
+
+            public Enumerator(T[] array)
+            {
+                this.array = array;
+                this.index = -1;
+            }
+
+            public T Current => array[index];
+            object IEnumerator.Current => Current;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool MoveNext() => ++index < array.Length;
+
+            public void Reset() => index = -1;
+            public void Dispose() { }
+        }
+    }
+}
+```
+
+**For filtered/transformed sequences (no Count/indexer):**
 ```csharp
 using System;
 using System.Collections;
@@ -246,7 +332,11 @@ Before committing new LINQ operations:
 
 - [ ] Enumerable is `readonly struct`
 - [ ] Enumerator is `struct`
-- [ ] Implements `IValueEnumerable<T, TEnumerator>`
+- [ ] Implements appropriate interface:
+  - [ ] `IValueReadOnlyList<T, TEnumerator>` for arrays/List<T> (with Count + indexer)
+  - [ ] `IValueEnumerable<T, TEnumerator>` for filtered/transformed sequences
+- [ ] Method parameters accept `IValueEnumerable<T, TEnumerator>` (least features)
+- [ ] Return type exposes most features available (IValueReadOnlyList > IValueEnumerable)
 - [ ] `AsValueEnumerable()` has `[MethodImpl(AggressiveInlining)]`
 - [ ] `MoveNext()` has `[MethodImpl(AggressiveInlining)]`
 - [ ] Fusion methods have `[MethodImpl(AggressiveInlining)]`
