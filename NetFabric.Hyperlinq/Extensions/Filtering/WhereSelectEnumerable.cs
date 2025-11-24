@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace NetFabric.Hyperlinq
 {
+    /// <summary>
+    /// WhereSelectEnumerable for IEnumerable sources (fused Where+Select)
+    /// </summary>
     public readonly struct WhereSelectEnumerable<TSource, TResult> : IValueEnumerable<TResult, WhereSelectEnumerable<TSource, TResult>.Enumerator>
     {
         readonly IEnumerable<TSource> source;
@@ -12,9 +15,9 @@ namespace NetFabric.Hyperlinq
 
         public WhereSelectEnumerable(IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
         {
-            this.source = source;
-            this.predicate = predicate;
-            this.selector = selector;
+            this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
+            this.selector = selector ?? throw new ArgumentNullException(nameof(selector));
         }
 
         public Enumerator GetEnumerator() => new Enumerator(source.GetEnumerator(), predicate, selector);
@@ -48,7 +51,6 @@ namespace NetFabric.Hyperlinq
             }
 
             public void Reset() => sourceEnumerator.Reset();
-
             public void Dispose() => sourceEnumerator.Dispose();
         }
     }

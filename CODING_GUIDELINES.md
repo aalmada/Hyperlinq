@@ -1,5 +1,113 @@
 # NetFabric.Hyperlinq Coding Guidelines
 
+## Span and Memory Extension Methods
+
+### Overload Delegation Pattern
+
+To minimize code duplication while supporting multiple source types, use a delegation hierarchy where all overloads delegate to a single base implementation.
+
+#### Pattern 1: Direct Operations (Sum, Count, Any, etc.)
+
+**Base Implementation**: `ReadOnlySpan<T>` - contains the actual logic
+**Delegating Overloads**: All other types convert to `ReadOnlySpan<T>` with zero-copy conversions
+
+```csharp
+public static class SpanExtensions
+{
+    // BASE IMPLEMENTATION - Single source of truth
+    public static T Sum<T>(this ReadOnlySpan<T> source)
+        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        => TensorPrimitives.Sum<T>(source);
+    
+    // DELEGATING OVERLOADS - Zero-copy conversions
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Sum<T>(this Span<T> source)
+        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        => Sum((ReadOnlySpan<T>)source);  // Implicit conversion
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Sum<T>(this T[] source)
+        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        => Sum((ReadOnlySpan<T>)source);  // Implicit conversion
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Sum<T>(this ReadOnlyMemory<T> source)
+        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        => Sum(source.Span);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Sum<T>(this Memory<T> source)
+        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        => Sum(source.Span);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Sum<T>(this List<T> source)
+        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        => Sum(CollectionsMarshal.AsSpan(source));
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Sum<T>(this ArraySegment<T> source)
+        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        => Sum(source.AsSpan());
+}
+```
+
+#### Pattern 2: Chaining Operations (Where, Select)
+
+**Base Implementation**: `ReadOnlyMemory<T>` or `List<T>` (can be stored in struct fields)
+**Special Handling**: `List<T>` stored directly for efficiency
+
+```csharp
+public static class SpanExtensions
+{
+    // BASE IMPLEMENTATION for Memory-based sources
+    public static WhereEnumerable<T> Where<T>(
+        this ReadOnlyMemory<T> source, 
+        Func<T, bool> predicate)
+        => new WhereEnumerable<T>(source, predicate);
+    
+    // DELEGATING OVERLOADS
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WhereEnumerable<T> Where<T>(
+        this T[] source, 
+        Func<T, bool> predicate)
+        => Where((ReadOnlyMemory<T>)source, predicate);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WhereEnumerable<T> Where<T>(
+        this Memory<T> source, 
+        Func<T, bool> predicate)
+        => Where((ReadOnlyMemory<T>)source, predicate);
+    
+    // SPECIAL CASE - Store List directly (more efficient)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static WhereEnumerable<T> Where<T>(
+        this List<T> source, 
+        Func<T, bool> predicate)
+        => new WhereEnumerable<T>(source, predicate);
+}
+```
+
+#### Zero-Copy Conversion Matrix
+
+| Source Type | Converts To | Method | Cost |
+|-------------|-------------|--------|------|
+| `T[]` | `ReadOnlySpan<T>` | Implicit cast | Zero |
+| `Span<T>` | `ReadOnlySpan<T>` | Implicit cast | Zero |
+| `Memory<T>` | `ReadOnlySpan<T>` | `.Span` property | Zero |
+| `ReadOnlyMemory<T>` | `ReadOnlySpan<T>` | `.Span` property | Zero |
+| `List<T>` | `ReadOnlySpan<T>` | `CollectionsMarshal.AsSpan()` | Zero |
+| `ArraySegment<T>` | `ReadOnlySpan<T>` | `.AsSpan()` | Zero |
+
+#### Benefits
+
+✅ **Single Implementation**: Logic exists in one place
+✅ **Zero Overhead**: Aggressive inlining eliminates delegation cost
+✅ **Easy Maintenance**: Update one method, all overloads benefit
+✅ **Type Safety**: Compiler ensures correct overload resolution
+
 ## Performance Optimization Patterns
 
 This document describes the coding patterns and conventions used in NetFabric.Hyperlinq to achieve optimal performance through value-type enumeration.

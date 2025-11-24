@@ -5,6 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
+    /// <summary>
+    /// WhereEnumerable for IEnumerable sources (fallback)
+    /// </summary>
     public readonly struct WhereEnumerable<TSource> : IValueEnumerable<TSource, WhereEnumerable<TSource>.Enumerator>
     {
         readonly IEnumerable<TSource> source;
@@ -12,8 +15,8 @@ namespace NetFabric.Hyperlinq
 
         public WhereEnumerable(IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            this.source = source;
-            this.predicate = predicate;
+            this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -36,7 +39,7 @@ namespace NetFabric.Hyperlinq
             }
 
             public TSource Current => sourceEnumerator.Current;
-            object IEnumerator.Current => Current;
+            object? IEnumerator.Current => Current;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
@@ -50,7 +53,6 @@ namespace NetFabric.Hyperlinq
             }
 
             public void Reset() => sourceEnumerator.Reset();
-
             public void Dispose() => sourceEnumerator.Dispose();
         }
     }

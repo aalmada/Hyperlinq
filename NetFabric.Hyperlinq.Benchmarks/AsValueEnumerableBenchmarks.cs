@@ -31,13 +31,13 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("Array_Sum"), Benchmark(Baseline = true)]
         public int Array_LINQ_Sum()
         {
-            return array.Sum();
+            return Enumerable.Sum(array);
         }
 
         [BenchmarkCategory("Array_Sum"), Benchmark]
-        public int Array_AsValueEnumerable_Sum()
+        public int Array_Span_Sum()
         {
-            return array.AsValueEnumerable().Sum();
+            return array.Sum();  // Direct span extension
         }
 
         // ===== Array_WhereSelectSum =====
@@ -49,9 +49,9 @@ namespace NetFabric.Hyperlinq.Benchmarks
         }
 
         [BenchmarkCategory("Array_WhereSelectSum"), Benchmark]
-        public int Array_AsValueEnumerable_WhereSelectSum()
+        public int Array_Span_WhereSelectSum()
         {
-            return array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+            return array.Where(x => x % 2 == 0).Select(x => x * 2).Sum();  // Direct span extensions
         }
 
         // ===== IEnumerable_Sum =====
@@ -59,7 +59,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("IEnumerable_Sum"), Benchmark(Baseline = true)]
         public int IEnumerable_LINQ_Sum()
         {
-            return enumerable.Sum();
+            return Enumerable.Sum(enumerable);
         }
 
         [BenchmarkCategory("IEnumerable_Sum"), Benchmark]
@@ -87,13 +87,13 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("List_Any"), Benchmark(Baseline = true)]
         public bool List_LINQ_Any()
         {
-            return list.Any();
+            return Enumerable.Any(list);
         }
 
         [BenchmarkCategory("List_Any"), Benchmark]
-        public bool List_AsValueEnumerable_Any()
+        public bool List_Span_Any()
         {
-            return list.AsValueEnumerable().Any();
+            return list.Any();  // Direct span extension
         }
 
         // ===== List_Count =====
@@ -101,13 +101,13 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("List_Count"), Benchmark(Baseline = true)]
         public int List_LINQ_Count()
         {
-            return list.Count();
+            return Enumerable.Count(list);
         }
 
         [BenchmarkCategory("List_Count"), Benchmark]
-        public int List_AsValueEnumerable_Count()
+        public int List_Span_Count()
         {
-            return list.AsValueEnumerable().Count();
+            return list.Count();  // Direct span extension (property access)
         }
 
         // ===== List_Sum =====
@@ -115,13 +115,13 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("List_Sum"), Benchmark(Baseline = true)]
         public int List_LINQ_Sum()
         {
-            return list.Sum();
+            return Enumerable.Sum(list);
         }
 
         [BenchmarkCategory("List_Sum"), Benchmark]
-        public int List_AsValueEnumerable_Sum()
+        public int List_Span_Sum()
         {
-            return list.AsValueEnumerable().Sum();
+            return list.Sum();  // Direct span extension
         }
 
         // ===== List_WhereSelectSum =====
@@ -133,9 +133,9 @@ namespace NetFabric.Hyperlinq.Benchmarks
         }
 
         [BenchmarkCategory("List_WhereSelectSum"), Benchmark]
-        public int List_AsValueEnumerable_WhereSelectSum()
+        public int List_Span_WhereSelectSum()
         {
-            return list.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+            return list.Where(x => x % 2 == 0).Select(x => x * 2).Sum();  // Direct span extensions
         }
     }
 }
