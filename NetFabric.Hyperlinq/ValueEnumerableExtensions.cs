@@ -68,27 +68,28 @@ namespace NetFabric.Hyperlinq
 
         /// <summary>
         /// Computes the sum of a sequence of numeric values.
-        /// Uses TensorPrimitives for arrays and lists when possible.
+        /// Uses TensorPrimitives optimization for arrays and lists.
         /// </summary>
         public static T Sum<TEnumerable, TEnumerator, T>(this TEnumerable source)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
         {
-            // Optimize for specific types
-            if (source is ListValueEnumerable<T> listEnum)
-            {
-                // Access the underlying list via reflection or add a property
-                // For now, fall through to standard enumeration
-            }
-            
+            // Optimize using TensorPrimitives for arrays
             if (source is ArrayValueEnumerable<T> arrayEnum)
             {
-                // Access the underlying array via reflection or add a property
-                // For now, fall through to standard enumeration
+                return System.Numerics.Tensors.TensorPrimitives.Sum<T>(arrayEnum.Source);
+            }
+            
+            // Optimize using TensorPrimitives for lists
+            if (source is ListValueEnumerable<T> listEnum)
+            {
+                var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(listEnum.Source);
+                return System.Numerics.Tensors.TensorPrimitives.Sum<T>(span);
             }
 
-            var sum = T.Zero;
+            // Fallback to standard enumeration
+            var sum = T.AdditiveIdentity;
             foreach (var item in source)
                 sum += item;
             return sum;

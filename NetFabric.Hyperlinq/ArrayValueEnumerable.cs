@@ -18,6 +18,8 @@ namespace NetFabric.Hyperlinq
             this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
 
+        internal T[] Source => source;
+
         public int Count => source.Length;
         public T this[int index] => source[index];
 
