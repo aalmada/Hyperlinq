@@ -29,8 +29,7 @@ namespace NetFabric.Hyperlinq
             where TEnumerator : struct, IEnumerator<TSource>
         {
             var count = 0;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
+            foreach (var _ in source)
                 count++;
             return count;
         }
@@ -90,9 +89,8 @@ namespace NetFabric.Hyperlinq
             }
 
             var sum = T.Zero;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-                sum += enumerator.Current;
+            foreach (var item in source)
+                sum += item;
             return sum;
         }
     }
