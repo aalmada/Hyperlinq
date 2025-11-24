@@ -248,6 +248,56 @@ public readonly struct WhereEnumerable<TSource> : IValueEnumerable<...>
 - **Extension methods**: Match LINQ naming (e.g., `Where`, `Select`, `Sum`)
 - **Wrapper methods**: `AsValueEnumerable()`
 
+## File Organization
+
+### Partial Classes for Extension Methods
+
+The `ValueEnumerableExtensions` class is split into multiple partial class files organized by LINQ method categories. Enumerable implementation files are co-located with their extension methods:
+
+```
+NetFabric.Hyperlinq/
+├── ValueEnumerableExtensions.cs (main partial class)
+├── AsValueEnumerableExtensions.cs
+├── Optimized.cs
+├── Wrappers/
+│   ├── ArrayValueEnumerable.cs
+│   ├── ListValueEnumerable.cs
+│   └── EnumerableValueEnumerable.cs
+└── Extensions/
+    ├── Aggregation/
+    │   ├── ValueEnumerableExtensions.Count.cs
+    │   └── ValueEnumerableExtensions.Sum.cs
+    ├── Element/
+    │   ├── ValueEnumerableExtensions.First.cs
+    │   └── ValueEnumerableExtensions.Single.cs
+    ├── Filtering/
+    │   ├── WhereEnumerable.cs
+    │   └── WhereSelectEnumerable.cs
+    ├── Projection/
+    │   └── SelectEnumerable.cs
+    └── Quantifier/
+        └── ValueEnumerableExtensions.Any.cs
+```
+
+**Benefits:**
+- Easy to locate specific methods and their implementations
+- Enumerable structs are co-located with extension methods that use them
+- Reduces merge conflicts
+- Scales well as more methods are added
+- Clear categorization by LINQ operation type
+
+**Categories:**
+- **Aggregation**: Sum, Count, Average, Min, Max, Aggregate
+- **Element**: First, FirstOrDefault, Last, LastOrDefault, Single, SingleOrDefault, ElementAt
+- **Quantifier**: Any, All, Contains
+- **Projection**: Select, SelectMany, Zip
+- **Filtering**: Where, OfType, Distinct
+- **Ordering**: OrderBy, OrderByDescending, ThenBy, Reverse
+- **Partitioning**: Take, Skip, TakeLast, SkipLast
+- **Set**: Union, Intersect, Except
+- **Conversion**: ToArray, ToList, ToDictionary
+- **Wrappers**: AsValueEnumerable wrappers for List, Array, IEnumerable
+
 ## Testing Requirements
 
 ### Unit Tests
