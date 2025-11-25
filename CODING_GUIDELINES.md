@@ -31,6 +31,8 @@ NetFabric.Hyperlinq is a high-performance LINQ implementation that eliminates he
 
 ### 2.2 Interface Hierarchy
 
+**Note:** The `IValue*` interfaces (`IValueEnumerable`, `IValueReadOnlyCollection`, `IValueReadOnlyList`) are defined in the [NetFabric.Hyperlinq.Abstractions](https://github.com/NetFabric/NetFabric.Hyperlinq.Abstractions) package, which is referenced by this project.
+
 Use the appropriate interface based on capabilities:
 
 | Interface | Capabilities | Use For |
@@ -40,6 +42,7 @@ Use the appropriate interface based on capabilities:
 | `IValueReadOnlyList<T, TEnumerator>` | + `this[int]` indexer | Random-access sources (arrays, lists) |
 
 **Principle:** Accept the least features required (parameters), return the most features supported (return types).
+
 
 ### 2.3 Backward Compatibility
 
@@ -117,6 +120,21 @@ public readonly struct WhereEnumerable<T>
     object source;  // Runtime type checking - avoid!
 }
 ```
+
+### 3.2 Generic Wrappers
+
+Use generic wrappers when you want to support any collection that implements a standard interface (`IEnumerable<T>`, `ICollection<T>`, `IList<T>`) but still want to provide a value-type enumerable wrapper.
+
+**Available Generic Wrappers:**
+- `ValueEnumerableWrapper<TEnumerable, TEnumerator, TSource>`
+- `ValueReadOnlyCollectionWrapper<TCollection, TEnumerator, TSource>`
+- `ValueReadOnlyListWrapper<TList, TEnumerator, TSource>`
+
+**When to use Type-Specific Wrappers:**
+Use type-specific wrappers (like `ListValueEnumerable<T>`) when you need to access a specific value-type enumerator that is not accessible through the interface (e.g., `List<T>.Enumerator` cannot be cast from `IEnumerator<T>`).
+
+**When to use Generic Wrappers:**
+Use generic wrappers for custom collections or when you want to provide a wrapper for any type implementing a standard interface without creating a specific wrapper for each type.
 
 ### 3.2 Overload Delegation (Zero-Copy)
 
