@@ -64,6 +64,39 @@ public readonly struct ArrayValueEnumerable<T>
 }
 ```
 
+### 2.4 Leveraging ICollection for Optimizations
+
+Since `IValueReadOnlyCollection` implementations also implement `ICollection<T>`, optimize operations by checking for `ICollection<T>`. This provides broader compatibility with standard .NET collections.
+
+**Pattern:**
+```csharp
+// Generic method with optimization
+public static int Count<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
+    where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+    where TEnumerator : struct, IEnumerator<TSource>
+{
+    // Check for ICollection<T> (broader than IValueReadOnlyCollection)
+    if (source is ICollection<TSource> collection)
+        return collection.Count;  // O(1)
+
+    // Fallback to enumeration
+    var count = 0;
+    foreach (var _ in source)
+        count++;
+    return count;
+}
+
+// Dedicated ICollection<T> overload
+[MethodImpl(MethodImplOptions.AggressiveInlining)]
+public static int Count<T>(this ICollection<T> source)
+    => source.Count;
+```
+
+**Benefits:**
+- Works with any `ICollection<T>` (List, HashSet, custom collections)
+- O(1) performance for Count, Any operations
+- Better IntelliSense for standard .NET users
+
 ---
 
 ## 3. Implementation Patterns
