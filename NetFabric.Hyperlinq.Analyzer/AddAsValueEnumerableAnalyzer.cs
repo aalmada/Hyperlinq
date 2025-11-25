@@ -8,7 +8,7 @@ using System.Linq;
 namespace NetFabric.Hyperlinq.Analyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class AsValueEnumerableAnalyzer : DiagnosticAnalyzer
+    public class AddAsValueEnumerableAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "NFHYPERLINQ001";
         private const string Category = "Performance";

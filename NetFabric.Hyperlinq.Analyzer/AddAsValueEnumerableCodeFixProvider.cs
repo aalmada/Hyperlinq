@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -12,10 +12,12 @@ using System.Threading.Tasks;
 
 namespace NetFabric.Hyperlinq.Analyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AsValueEnumerableCodeFixProvider)), Shared]
-    public class AsValueEnumerableCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AddAsValueEnumerableCodeFixProvider)), Shared]
+    public class AddAsValueEnumerableCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(AsValueEnumerableAnalyzer.DiagnosticId);
+        private const string NetFabricHyperlinkNamespace = "NetFabric.Hyperlinq";
+
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(AddAsValueEnumerableAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -37,17 +39,17 @@ namespace NetFabric.Hyperlinq.Analyzer
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: "Add AsValueEnumerable()",
-                    createChangedDocument: c => AddAsValueEnumerableAsync(context.Document, expression, c),
+                    createChangedDocument: c => AddAsValueEnumerableAsync(context.Document, expression, root, c),
                     equivalenceKey: "AddAsValueEnumerable"),
                 diagnostic);
         }
 
-        private static async Task<Document> AddAsValueEnumerableAsync(Document document, ExpressionSyntax expression, CancellationToken cancellationToken)
+        private static async Task<Document> AddAsValueEnumerableAsync(
+            Document document,
+            ExpressionSyntax expression,
+            SyntaxNode root,
+            CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root == null)
-                return document;
-
             // Create the AsValueEnumerable() invocation
             var asValueEnumerableInvocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -57,6 +59,24 @@ namespace NetFabric.Hyperlinq.Analyzer
 
             // Replace the expression with the new invocation
             var newRoot = root.ReplaceNode(expression, asValueEnumerableInvocation);
+
+            // Check if we need to add the using directive
+            if (root is CompilationUnitSyntax compilationUnit)
+            {
+                var hasUsingDirective = compilationUnit.Usings
+                    .Any(u => u.Name?.ToString() == NetFabricHyperlinkNamespace);
+
+                if (!hasUsingDirective)
+                {
+                    // Add the using directive
+                    var usingDirective = SyntaxFactory.UsingDirective(
+                        SyntaxFactory.ParseName(NetFabricHyperlinkNamespace))
+                        .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+
+                    var newCompilationUnit = ((CompilationUnitSyntax)newRoot).AddUsings(usingDirective);
+                    newRoot = newCompilationUnit;
+                }
+            }
 
             return document.WithSyntaxRoot(newRoot);
         }
