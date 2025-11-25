@@ -4,11 +4,13 @@ High-performance LINQ operations using value-type enumerables and span-based ext
 
 ## Features
 
-✅ **Zero Allocations** - Value-type enumerables eliminate heap allocations
-✅ **SIMD Acceleration** - TensorPrimitives for vectorized operations
-✅ **Span Support** - Direct operations on arrays, lists, and memory
-✅ **Seamless Chaining** - No wrapper methods needed
-✅ **LINQ Compatible** - Drop-in replacement for System.Linq
+✅ **Zero Allocations** - Value-type enumerables eliminate heap allocations  
+✅ **SIMD Acceleration** - TensorPrimitives for vectorized operations  
+✅ **Span Support** - Direct operations on arrays, lists, and memory  
+✅ **Seamless Chaining** - No wrapper methods needed  
+✅ **LINQ Compatible** - Drop-in replacement for System.Linq  
+✅ **Backward Compatible** - Implements standard `ICollection<T>` and `IList<T>` interfaces  
+✅ **Roslyn Analyzer** - IDE suggestions and code fixes for performance optimization  
 
 ## Quick Start
 
@@ -76,8 +78,8 @@ var memorySum = memory.Sum();  // Async-safe
 - `Contains()` - Coming soon
 
 ### Filtering & Projection
-- `Where()` - Lazy filtering
-- `Select()` - Lazy projection (via Where fusion)
+- `Where()` - Lazy filtering with loop unrolling
+- `Select()` - Lazy projection with capability preservation
 - `OfType()` - Coming soon
 
 ## Performance
@@ -101,6 +103,36 @@ var linq = array.Where(x => x > 0).Select(x => x * 2).Sum();
 var hyperlinq = array.Where(x => x > 0).Select(x => x * 2).Sum();
 // Allocations: 0 (value-type enumerables)
 ```
+
+## Roslyn Analyzer
+
+The included Roslyn analyzer provides IDE suggestions to optimize your code automatically.
+
+### Automatic Suggestions
+
+The analyzer detects opportunities to use `AsValueEnumerable()`:
+
+```csharp
+var list = new List<int> { 1, 2, 3 };
+
+// ⚠️ NFHYPERLINQ001: Consider using AsValueEnumerable() for better performance
+var result = list.Where(x => x > 1);
+```
+
+### One-Click Code Fix
+
+Apply the suggested fix in your IDE:
+
+```csharp
+// ✅ Optimized with code fix
+var result = list.AsValueEnumerable().Where(x => x > 1);
+```
+
+### Benefits
+- **Zero-allocation enumeration** - Eliminates boxing
+- **IDE integration** - Suggestions appear as you type
+- **One-click fixes** - Apply optimizations instantly
+- **Learn as you code** - Understand performance patterns
 
 ## Advanced Usage
 
@@ -198,9 +230,46 @@ public readonly struct WhereEnumerable<T> : IValueEnumerable<T, Enumerator>
 }
 ```
 
+### Capability Preservation
+Select operations preserve source capabilities:
+
+```csharp
+// IValueReadOnlyList → SelectListEnumerable (Count + indexer)
+var projected = list.AsValueEnumerable().Select(x => x * 2);
+var count = projected.Count();  // O(1) - preserved from source
+
+// IValueReadOnlyCollection → SelectCollectionEnumerable (Count)
+var filtered = collection.Where(x => x > 0);
+var selected = filtered.Select(x => x * 2);
+var count = selected.Count();  // O(1) - preserved
+```
+
+### Fusion Optimizations
+WhereSelect operations optimize Count/Any by ignoring the selector:
+
+```csharp
+var expensive = list
+    .Where(x => x > 0)
+    .Select(x => ExpensiveTransform(x));
+
+// Count only uses predicate - selector never called!
+var count = expensive.Count();
+```
+
+## Documentation
+
+### For Users
+- **[README.md](README.md)** - This file - Quick start and examples
+
+### For Contributors
+- **[CODING_GUIDELINES.md](CODING_GUIDELINES.md)** - Architecture, patterns, and standards
+- **[OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md)** - Low-level performance techniques
+
 ## Contributing
 
-See [CODING_GUIDELINES.md](CODING_GUIDELINES.md) for development patterns and best practices.
+Contributions are welcome! Please read:
+1. [CODING_GUIDELINES.md](CODING_GUIDELINES.md) - Required patterns and architecture
+2. [OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md) - Performance optimization techniques
 
 ## License
 
@@ -208,71 +277,6 @@ MIT License - see LICENSE file for details.
 
 ## Related Projects
 
+- [NetFabric.Hyperlinq.Abstractions](https://github.com/NetFabric/NetFabric.Hyperlinq.Abstractions) - Core interfaces
 - [NetFabric.Assertive](https://github.com/NetFabric/NetFabric.Assertive) - Fluent assertions for enumerables
 - [NetFabric.CodeAnalysis](https://github.com/NetFabric/NetFabric.CodeAnalysis) - Roslyn analyzers for performance
-
-
-High-performance LINQ implementation using value-type enumeration to eliminate boxing and reduce allocations.
-
-## Features
-
-- ✅ **Zero-allocation enumeration** - Value-type enumerators eliminate boxing
-- ✅ **Aggressive inlining** - Hot paths are inlined for maximum performance
-- ✅ **Operation fusion** - `Where().Select()` chains are fused into single operations
-- ✅ **Roslyn analyzer** - IDE suggestions to use `AsValueEnumerable()`
-- ✅ **Code fix provider** - One-click optimization
-
-## Quick Start
-
-```csharp
-using NetFabric.Hyperlinq;
-
-var list = new List<int> { 1, 2, 3, 4, 5 };
-
-// Standard LINQ (boxing occurs)
-var result1 = list.Where(x => x % 2 == 0).Select(x => x * 10).Sum();
-
-// Optimized with AsValueEnumerable (no boxing!)
-var result2 = list.AsValueEnumerable()
-                  .Where(x => x % 2 == 0)
-                  .Select(x => x * 10)
-                  .Sum();
-```
-
-## Performance
-
-The analyzer will suggest using `AsValueEnumerable()` where it improves performance:
-
-```csharp
-var list = new List<int> { 1, 2, 3 };
-var result = list.Where(x => x > 1);  // ⚠️ NFHYPERLINQ001: Consider using AsValueEnumerable()
-```
-
-Apply the code fix to optimize:
-
-```csharp
-var result = list.AsValueEnumerable().Where(x => x > 1);  // ✅ Optimized!
-```
-
-## Supported Operations
-
-- `Any()` - Check if sequence has elements
-- `Count()` - Count elements
-- `First()` - Get first element
-- `Single()` - Get single element
-- `Sum()` - Sum numeric values
-- `Where()` - Filter elements
-- `Select()` - Transform elements
-
-## Documentation
-
-- [Coding Guidelines](CODING_GUIDELINES.md) - Performance patterns and best practices
-- [Architecture](docs/ARCHITECTURE.md) - Design decisions and implementation details
-
-## Contributing
-
-See [CODING_GUIDELINES.md](CODING_GUIDELINES.md) for performance patterns and conventions.
-
-## License
-
-MIT

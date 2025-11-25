@@ -18,6 +18,18 @@ namespace NetFabric.Hyperlinq
         }
 
         /// <summary>
+        /// Projects each element of a collection into a new form.
+        /// Preserves Count property for O(1) access.
+        /// </summary>
+        public static SelectCollectionEnumerable<TEnumerator, TSource, TResult> Select<TEnumerator, TSource, TResult>(
+            this IValueReadOnlyCollection<TSource, TEnumerator> source,
+            Func<TSource, TResult> selector)
+            where TEnumerator : struct, IEnumerator<TSource>
+        {
+            return new SelectCollectionEnumerable<TEnumerator, TSource, TResult>(source, selector);
+        }
+
+        /// <summary>
         /// Projects each element of a list into a new form.
         /// </summary>
         public static SelectListEnumerable<TSource, TResult> Select<TSource, TResult>(

@@ -27,6 +27,45 @@ namespace NetFabric.Hyperlinq
         IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>
+        /// Returns the number of elements that satisfy the predicate.
+        /// Optimized to ignore the selector since Count doesn't need projected values.
+        /// Uses CollectionsMarshal for zero-copy access.
+        /// </summary>
+        public int Count()
+        {
+            var count = 0;
+            var span = CollectionsMarshal.AsSpan(source);
+            ref var spanRef = ref MemoryMarshal.GetReference(span);
+            var length = span.Length;
+
+            for (var i = 0; i < length; i++)
+            {
+                if (predicate(Unsafe.Add(ref spanRef, i)))
+                    count++;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Determines whether any element satisfies the predicate.
+        /// Optimized to ignore the selector since Any doesn't need projected values.
+        /// Uses CollectionsMarshal for zero-copy access.
+        /// </summary>
+        public bool Any()
+        {
+            var span = CollectionsMarshal.AsSpan(source);
+            ref var spanRef = ref MemoryMarshal.GetReference(span);
+            var length = span.Length;
+
+            for (var i = 0; i < length; i++)
+            {
+                if (predicate(Unsafe.Add(ref spanRef, i)))
+                    return true;
+            }
+            return false;
+        }
+
         public struct Enumerator : IEnumerator<TResult>
         {
             readonly List<TSource> list;

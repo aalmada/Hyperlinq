@@ -150,6 +150,61 @@ public readonly struct WhereEnumerable<T>
 }
 ```
 
+### 3.4 Preserving Capabilities Through Select
+
+Create specialized Select implementations that preserve source capabilities:
+
+```csharp
+// IValueReadOnlyList -> SelectListEnumerable (preserves Count + indexer)
+SelectListEnumerable<T, R> Select(ListValueEnumerable<T>, ...)
+
+// IValueReadOnlyCollection -> SelectCollectionEnumerable (preserves Count)
+SelectCollectionEnumerable<TEnum, T, R> Select(IValueReadOnlyCollection<T, TEnum>, ...)
+
+// IValueEnumerable -> SelectEnumerable (basic enumeration)
+SelectEnumerable<T, R> Select(IValueEnumerable<T, TEnum>, ...)
+```
+
+**Principle:** Return the most specific type based on source capabilities.
+
+### 3.5 Fusion Optimizations for Count/Any
+
+For fused operations like `WhereSelect`, add `Count()` and `Any()` methods that ignore the selector:
+
+```csharp
+public readonly struct WhereSelectEnumerable<TSource, TResult>
+{
+    // Count doesn't need projected values - only predicate matters
+    public int Count()
+    {
+        var count = 0;
+        foreach (var item in source)
+        {
+            if (predicate(item))
+                count++;  // Selector never called!
+        }
+        return count;
+    }
+
+    // Any doesn't need projected values - only predicate matters
+    public bool Any()
+    {
+        foreach (var item in source)
+        {
+            if (predicate(item))
+                return true;  // Selector never called!
+        }
+        return false;
+    }
+}
+```
+
+**Benefits:**
+- Eliminates unnecessary selector calls
+- Faster for expensive projections
+- Maintains fusion advantages
+
+
 ---
 
 ## 4. Performance Requirements
