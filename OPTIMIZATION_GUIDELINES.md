@@ -1,5 +1,23 @@
 # Performance Optimization Guidelines
 
+> **See also**: [CODING_GUIDELINES.md](CODING_GUIDELINES.md) for architecture, patterns, and project standards.
+
+## Introduction
+
+This document provides **detailed, low-level performance optimization techniques** for implementing LINQ-style operations in NetFabric.Hyperlinq. These techniques are applied **after** following the architectural patterns defined in [CODING_GUIDELINES.md](CODING_GUIDELINES.md).
+
+**When to use this guide:**
+- You're implementing a new LINQ operation
+- You want to optimize an existing operation
+- You need to understand why specific code patterns are used
+
+**What this covers:**
+- Loop unrolling for instruction-level parallelism
+- Branch elimination for aggregations
+- Bounds check elimination
+- SIMD optimization
+- Type-specific implementation strategies
+
 This document outlines proven optimization techniques to apply when implementing LINQ-style operations in NetFabric.Hyperlinq.
 
 ## Table of Contents

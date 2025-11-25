@@ -1,430 +1,210 @@
 # NetFabric.Hyperlinq Coding Guidelines
 
-## Span and Memory Extension Methods
+> **See also**: [OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md) for detailed performance optimization techniques.
 
-### Overload Delegation Pattern
+## 1. Introduction
 
-To minimize code duplication while supporting multiple source types, use a delegation hierarchy where all overloads delegate to a single base implementation.
+NetFabric.Hyperlinq is a high-performance LINQ implementation that eliminates heap allocations and minimizes overhead through value-type enumeration, aggressive inlining, and specialized implementations.
 
-#### Pattern 1: Direct Operations (Sum, Count, Any, etc.)
+**Key Goals:**
+- Zero allocations (struct-based enumerators)
+- Faster than System.Linq
+- Full LINQ compatibility
+- Type-safe, compile-time optimizations
 
-**Base Implementation**: `ReadOnlySpan<T>` - contains the actual logic
-**Delegating Overloads**: All other types convert to `ReadOnlySpan<T>` with zero-copy conversions
+---
 
+## 2. Core Architecture
+
+### 2.1 Value-Type Enumeration
+
+**Requirements:**
+- All enumerables MUST be `readonly struct`
+- All enumerators MUST be `struct`
+- Return concrete struct types, NEVER `IEnumerable<T>`
+
+**Why?**
+- Eliminates boxing
+- No heap allocations
+- Better cache locality
+- Enables compile-time optimizations
+
+### 2.2 Interface Hierarchy
+
+Use the appropriate interface based on capabilities:
+
+| Interface | Capabilities | Use For |
+|-----------|-------------|---------|
+| `IValueEnumerable<T, TEnumerator>` | Enumeration only | Filtered/transformed sequences (count unknown) |
+| `IValueReadOnlyCollection<T, TEnumerator>` | + `Count` property | Collections with known count |
+| `IValueReadOnlyList<T, TEnumerator>` | + `this[int]` indexer | Random-access sources (arrays, lists) |
+
+**Principle:** Accept the least features required (parameters), return the most features supported (return types).
+
+### 2.3 Backward Compatibility
+
+To ensure compatibility with existing .NET code:
+
+**Requirements:**
+- Types implementing `IValueReadOnlyCollection` MUST also implement `ICollection<T>` (read-only)
+- Types implementing `IValueReadOnlyList` MUST also implement `IList<T>` (read-only)
+
+**Implementation:**
 ```csharp
-public static class SpanExtensions
+public readonly struct ArrayValueEnumerable<T> 
+    : IValueReadOnlyList<T, Enumerator>, IList<T>
 {
-    // BASE IMPLEMENTATION - Single source of truth
-    public static T Sum<T>(this ReadOnlySpan<T> source)
-        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        => TensorPrimitives.Sum<T>(source);
+    // IList<T> implementation
+    bool ICollection<T>.IsReadOnly => true;
+    void ICollection<T>.Add(T item) => throw new NotSupportedException();
+    void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
+    // ... other mutation methods throw NotSupportedException
     
-    // DELEGATING OVERLOADS - Zero-copy conversions
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Sum<T>(this Span<T> source)
-        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        => Sum((ReadOnlySpan<T>)source);  // Implicit conversion
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Sum<T>(this T[] source)
-        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        => Sum((ReadOnlySpan<T>)source);  // Implicit conversion
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Sum<T>(this ReadOnlyMemory<T> source)
-        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        => Sum(source.Span);
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Sum<T>(this Memory<T> source)
-        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        => Sum(source.Span);
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Sum<T>(this List<T> source)
-        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        => Sum(CollectionsMarshal.AsSpan(source));
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Sum<T>(this ArraySegment<T> source)
-        where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        => Sum(source.AsSpan());
+    // Implement Contains, CopyTo, IndexOf efficiently
 }
 ```
 
-#### Pattern 2: Chaining Operations (Where, Select)
+---
 
-**Base Implementation**: `ReadOnlyMemory<T>` or `List<T>` (can be stored in struct fields)
-**Special Handling**: `List<T>` stored directly for efficiency
+## 3. Implementation Patterns
+
+### 3.1 Specialized Enumerables
+
+Create type-specific implementations to avoid runtime branching:
 
 ```csharp
-public static class SpanExtensions
+// ✅ GOOD: Separate types for each source
+public readonly struct WhereArrayEnumerable<T> { }      // For T[]
+public readonly struct WhereListEnumerable<T> { }       // For List<T>
+public readonly struct WhereEnumerable<T> { }           // For IEnumerable<T>
+
+// ❌ BAD: Single type with runtime checks
+public readonly struct WhereEnumerable<T>
 {
-    // BASE IMPLEMENTATION for Memory-based sources
-    public static WhereEnumerable<T> Where<T>(
-        this ReadOnlyMemory<T> source, 
-        Func<T, bool> predicate)
-        => new WhereEnumerable<T>(source, predicate);
-    
-    // DELEGATING OVERLOADS
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WhereEnumerable<T> Where<T>(
-        this T[] source, 
-        Func<T, bool> predicate)
-        => Where((ReadOnlyMemory<T>)source, predicate);
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WhereEnumerable<T> Where<T>(
-        this Memory<T> source, 
-        Func<T, bool> predicate)
-        => Where((ReadOnlyMemory<T>)source, predicate);
-    
-    // SPECIAL CASE - Store List directly (more efficient)
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WhereEnumerable<T> Where<T>(
-        this List<T> source, 
-        Func<T, bool> predicate)
-        => new WhereEnumerable<T>(source, predicate);
+    object source;  // Runtime type checking - avoid!
 }
 ```
 
-#### Zero-Copy Conversion Matrix
+### 3.2 Overload Delegation (Zero-Copy)
 
-| Source Type | Converts To | Method | Cost |
-|-------------|-------------|--------|------|
-| `T[]` | `ReadOnlySpan<T>` | Implicit cast | Zero |
-| `Span<T>` | `ReadOnlySpan<T>` | Implicit cast | Zero |
-| `Memory<T>` | `ReadOnlySpan<T>` | `.Span` property | Zero |
-| `ReadOnlyMemory<T>` | `ReadOnlySpan<T>` | `.Span` property | Zero |
-| `List<T>` | `ReadOnlySpan<T>` | `CollectionsMarshal.AsSpan()` | Zero |
-| `ArraySegment<T>` | `ReadOnlySpan<T>` | `.AsSpan()` | Zero |
+Minimize code duplication by delegating to a base implementation:
 
-#### Benefits
-
-✅ **Single Implementation**: Logic exists in one place
-✅ **Zero Overhead**: Aggressive inlining eliminates delegation cost
-✅ **Easy Maintenance**: Update one method, all overloads benefit
-✅ **Type Safety**: Compiler ensures correct overload resolution
-
-## Performance Optimization Patterns
-
-This document describes the coding patterns and conventions used in NetFabric.Hyperlinq to achieve optimal performance through value-type enumeration.
-
-## Core Principles
-
-### 1. Value-Type Enumeration
-- Use `IValueEnumerable<T, TEnumerator>` instead of `IEnumerable<T>` to avoid boxing
-- Enumerators MUST be structs (value types)
-- Return value-type enumerables from LINQ-like methods
-
-### 2. Interface Hierarchy - Return Most Features
-**Principle:** Methods should accept the least features required as parameters and return the most features supported.
-
-The NetFabric.Hyperlinq.Abstractions package provides an interface hierarchy:
-- `IValueEnumerable<T, TEnumerator>` - Basic enumeration
-- `IValueReadOnlyCollection<T, TEnumerator>` - Adds `Count` property
-- `IValueReadOnlyList<T, TEnumerator>` - Adds indexer `this[int index]`
-
-**Guidelines:**
-- **Arrays and List<T>**: Return `IValueReadOnlyList<T, TEnumerator>` (supports Count + indexer)
-- **Filtered/Transformed sequences**: Return `IValueEnumerable<T, TEnumerator>` (no Count/indexer)
-- **Method parameters**: Accept `IValueEnumerable<T, TEnumerator>` (least features required)
-
-**Example:**
 ```csharp
-// ✅ Returns IValueReadOnlyList (most features)
-public static ArrayValueEnumerable<T> AsValueEnumerable<T>(this T[] source)
-    => new ArrayValueEnumerable<T>(source);
+// Base implementation
+public static T Sum<T>(this ReadOnlySpan<T> source) { /* ... */ }
 
-// ArrayValueEnumerable implements IValueReadOnlyList<T, Enumerator>
-public readonly struct ArrayValueEnumerable<T> : IValueReadOnlyList<T, Enumerator>
-{
-    public int Count => source.Length;        // From IValueReadOnlyCollection
-    public T this[int index] => source[index]; // From IValueReadOnlyList
-}
-
-// ✅ Accepts IValueEnumerable (least features required)
-public static int Count<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
-    where TEnumerable : IValueEnumerable<TSource, TEnumerator>
-    where TEnumerator : struct, IEnumerator<TSource>
-```
-
-### 3. Aggressive Inlining
-Use `[MethodImpl(MethodImplOptions.AggressiveInlining)]` on:
-- **All extension methods** that create value enumerables
-- **Enumerator.MoveNext()** methods (hot path)
-- **Fusion methods** (e.g., `Where().Select()` optimization)
-- **Small property getters** in performance-critical paths
-
-**Example:**
-```csharp
-using System.Runtime.CompilerServices;
+// Delegating overloads (zero-copy conversions)
+[MethodImpl(MethodImplOptions.AggressiveInlining)]
+public static T Sum<T>(this T[] source) 
+    => Sum((ReadOnlySpan<T>)source);
 
 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-public static ListValueEnumerable<T> AsValueEnumerable<T>(this List<T> source)
-    => new ListValueEnumerable<T>(source);
+public static T Sum<T>(this List<T> source) 
+    => Sum(CollectionsMarshal.AsSpan(source));
 ```
 
-### 3. Struct Enumerables
-All enumerable types MUST be `readonly struct`:
+### 3.3 Operation Fusion
+
+Combine operations to eliminate intermediate enumerators:
 
 ```csharp
-public readonly struct WhereEnumerable<TSource> 
-    : IValueEnumerable<TSource, WhereEnumerable<TSource>.Enumerator>
-{
-    readonly IEnumerable<TSource> source;
-    readonly Func<TSource, bool> predicate;
-    
-    public Enumerator GetEnumerator() => new Enumerator(source.GetEnumerator(), predicate);
-    
-    public struct Enumerator : IEnumerator<TSource>
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool MoveNext() { /* ... */ }
-    }
-}
-```
-
-## Required Attributes
-
-### MethodImpl Locations
-
-| Location | Attribute | Reason |
-|----------|-----------|--------|
-| `AsValueEnumerable()` extensions | `[MethodImpl(AggressiveInlining)]` | Entry point to optimized path |
-| `Enumerator.MoveNext()` | `[MethodImpl(AggressiveInlining)]` | Called every iteration (hot path) |
-| Fusion methods (e.g., `Select()` on `WhereEnumerable`) | `[MethodImpl(AggressiveInlining)]` | Enable operation fusion |
-| Small getters in enumerators | `[MethodImpl(AggressiveInlining)]` | Eliminate call overhead |
-
-### DO NOT Use AggressiveInlining On:
-- Large methods (>50 lines)
-- Methods with complex control flow
-- Methods that are rarely called
-- Exception-throwing methods
-
-## File Structure Patterns
-
-### Extension Method Files
-```csharp
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
-namespace NetFabric.Hyperlinq
-{
-    public static class AsValueEnumerableExtensions
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ListValueEnumerable<T> AsValueEnumerable<T>(this List<T> source)
-            => new ListValueEnumerable<T>(source);
-    }
-}
-```
-
-### Enumerable Struct Files
-
-**For collections with Count and indexer (arrays, List<T>):**
-```csharp
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
-namespace NetFabric.Hyperlinq
-{
-    public readonly struct ArrayValueEnumerable<T> 
-        : IValueReadOnlyList<T, ArrayValueEnumerable<T>.Enumerator>
-    {
-        readonly T[] source;
-
-        public ArrayValueEnumerable(T[] source)
-        {
-            this.source = source ?? throw new ArgumentNullException(nameof(source));
-        }
-
-        public int Count => source.Length;
-        public T this[int index] => source[index];
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Enumerator GetEnumerator() => new Enumerator(source);
-        
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public struct Enumerator : IEnumerator<T>
-        {
-            readonly T[] array;
-            int index;
-
-            public Enumerator(T[] array)
-            {
-                this.array = array;
-                this.index = -1;
-            }
-
-            public T Current => array[index];
-            object IEnumerator.Current => Current;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext() => ++index < array.Length;
-
-            public void Reset() => index = -1;
-            public void Dispose() { }
-        }
-    }
-}
-```
-
-**For filtered/transformed sequences (no Count/indexer):**
-```csharp
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
-namespace NetFabric.Hyperlinq
-{
-    public readonly struct WhereEnumerable<TSource> 
-        : IValueEnumerable<TSource, WhereEnumerable<TSource>.Enumerator>
-    {
-        readonly IEnumerable<TSource> source;
-        readonly Func<TSource, bool> predicate;
-
-        public WhereEnumerable(IEnumerable<TSource> source, Func<TSource, bool> predicate)
-        {
-            this.source = source;
-            this.predicate = predicate;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Enumerator GetEnumerator() => new Enumerator(source.GetEnumerator(), predicate);
-        
-        IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public struct Enumerator : IEnumerator<TSource>
-        {
-            readonly IEnumerator<TSource> sourceEnumerator;
-            readonly Func<TSource, bool> predicate;
-
-            public Enumerator(IEnumerator<TSource> sourceEnumerator, Func<TSource, bool> predicate)
-            {
-                this.sourceEnumerator = sourceEnumerator;
-                this.predicate = predicate;
-            }
-
-            public TSource Current => sourceEnumerator.Current;
-            object IEnumerator.Current => Current;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext()
-            {
-                while (sourceEnumerator.MoveNext())
-                {
-                    if (predicate(sourceEnumerator.Current))
-                        return true;
-                }
-                return false;
-            }
-
-            public void Reset() => sourceEnumerator.Reset();
-            public void Dispose() => sourceEnumerator.Dispose();
-        }
-    }
-}
-```
-
-## Operation Fusion Pattern
-
-When an operation can be fused with another (e.g., `Where().Select()`), provide a fusion method:
-
-```csharp
-public readonly struct WhereEnumerable<TSource> : IValueEnumerable<...>
+public readonly struct WhereEnumerable<T>
 {
     // Fusion: Where().Select() -> WhereSelectEnumerable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public WhereSelectEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
-        => new WhereSelectEnumerable<TSource, TResult>(source, predicate, selector);
+    public WhereSelectEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
+        => new WhereSelectEnumerable<T, TResult>(source, predicate, selector);
 }
 ```
 
-## Naming Conventions
+---
 
-- **Enumerable structs**: `{Operation}Enumerable<T>` (e.g., `WhereEnumerable<T>`)
-- **Enumerator structs**: Nested `Enumerator` struct
-- **Extension methods**: Match LINQ naming (e.g., `Where`, `Select`, `Sum`)
-- **Wrapper methods**: `AsValueEnumerable()`
+## 4. Performance Requirements
 
-## File Organization
+### 4.1 Aggressive Inlining
 
-### Partial Classes for Extension Methods
+Use `[MethodImpl(MethodImplOptions.AggressiveInlining)]` on:
+- Extension methods (entry points)
+- `Enumerator.MoveNext()` (hottest path)
+- Fusion methods
+- Small property getters
 
-The `ValueEnumerableExtensions` class is split into multiple partial class files organized by LINQ method categories. Enumerable implementation files are co-located with their extension methods:
+**Do NOT use on:**
+- Large methods (>50 lines)
+- Complex control flow
+- Exception-throwing methods
+
+### 4.2 Zero Allocations
+
+**Goal:** 0 bytes allocated per operation (excluding result materialization).
+
+**Verification:** Use `[MemoryDiagnoser]` in benchmarks.
+
+### 4.3 Advanced Optimizations
+
+For detailed techniques (loop unrolling, branch elimination, SIMD, etc.), see [OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md).
+
+---
+
+## 5. Project Structure
+
+### 5.1 File Organization
 
 ```
 NetFabric.Hyperlinq/
-├── ValueEnumerableExtensions.cs (main partial class)
-├── AsValueEnumerableExtensions.cs
-├── Optimized.cs
 ├── Wrappers/
 │   ├── ArrayValueEnumerable.cs
 │   ├── ListValueEnumerable.cs
 │   └── EnumerableValueEnumerable.cs
 └── Extensions/
     ├── Aggregation/
-    │   ├── ValueEnumerableExtensions.Count.cs
-    │   └── ValueEnumerableExtensions.Sum.cs
-    ├── Element/
-    │   ├── ValueEnumerableExtensions.First.cs
-    │   └── ValueEnumerableExtensions.Single.cs
+    │   ├── ValueEnumerableExtensions.Sum.cs
+    │   └── ValueEnumerableExtensions.Count.cs
     ├── Filtering/
     │   ├── WhereEnumerable.cs
-    │   └── WhereSelectEnumerable.cs
+    │   ├── WhereListEnumerable.cs
+    │   └── ValueEnumerableExtensions.Where.cs
     ├── Projection/
-    │   └── SelectEnumerable.cs
-    └── Quantifier/
-        └── ValueEnumerableExtensions.Any.cs
+    │   ├── SelectEnumerable.cs
+    │   ├── SelectListEnumerable.cs
+    │   └── ValueEnumerableExtensions.Select.cs
+    └── Span/
+        ├── SpanExtensions.Sum.cs
+        └── SpanExtensions.Where.cs
 ```
 
-**Benefits:**
-- Easy to locate specific methods and their implementations
-- Enumerable structs are co-located with extension methods that use them
-- Reduces merge conflicts
-- Scales well as more methods are added
-- Clear categorization by LINQ operation type
+**Principles:**
+- Group by operation category
+- Co-locate enumerables with their extension methods
+- Use partial classes for large extension method sets
 
-**Categories:**
-- **Aggregation**: Sum, Count, Average, Min, Max, Aggregate
-- **Element**: First, FirstOrDefault, Last, LastOrDefault, Single, SingleOrDefault, ElementAt
-- **Quantifier**: Any, All, Contains
-- **Projection**: Select, SelectMany, Zip
-- **Filtering**: Where, OfType, Distinct
-- **Ordering**: OrderBy, OrderByDescending, ThenBy, Reverse
-- **Partitioning**: Take, Skip, TakeLast, SkipLast
-- **Set**: Union, Intersect, Except
-- **Conversion**: ToArray, ToList, ToDictionary
-- **Wrappers**: AsValueEnumerable wrappers for List, Array, IEnumerable
+### 5.2 Naming Conventions
 
-## Testing Requirements
+| Type | Convention | Example |
+|------|-----------|---------|
+| Enumerable structs | `{Operation}{Source}Enumerable<T>` | `WhereListEnumerable<T>` |
+| Enumerator structs | Nested `Enumerator` | `WhereEnumerable<T>.Enumerator` |
+| Extension methods | Match LINQ | `Where`, `Select`, `Sum` |
+| Wrapper methods | `AsValueEnumerable()` | `list.AsValueEnumerable()` |
 
-### Unit Tests
-- Test each operation with various data sources
-- Test chaining operations
+---
+
+## 6. Testing & Benchmarking
+
+### 6.1 Unit Tests
+
+**Requirements:**
+- Test all source types (Array, List, IEnumerable, Memory)
 - Test edge cases (empty, single element)
-- Compare results with standard LINQ
+- Verify LINQ compatibility
+- Use property-based testing where applicable
 
-### Benchmarks
-- Use `[BenchmarkCategory]` to group related benchmarks
-- Use `[Params]` to test different collection sizes
-- Compare against standard LINQ (set as `Baseline = true`)
-- Use `[MemoryDiagnoser]` to track allocations
+### 6.2 Benchmarks
 
-**Example:**
+**Setup:**
 ```csharp
 [MemoryDiagnoser]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-[CategoriesColumn]
 public class Benchmarks
 {
     [Params(100, 10_000)]
@@ -434,76 +214,92 @@ public class Benchmarks
     public int LINQ_Sum() => list.Sum();
 
     [BenchmarkCategory("Sum"), Benchmark]
-    public int AsValueEnumerable_Sum() => list.AsValueEnumerable().Sum();
+    public int Hyperlinq_Sum() => list.AsValueEnumerable().Sum();
 }
 ```
 
-## Analyzer Patterns
+**Metrics:**
+- Mean time (lower is better)
+- Allocated memory (should be 0 B)
+- Ratio (Hyperlinq/LINQ < 1.0)
 
-### Diagnostic IDs
-- `NFHYPERLINQ001`: Suggest using `AsValueEnumerable()`
-- `NFHYPERLINQ0xx`: Future diagnostics
+---
 
-### Severity Levels
-- **Info**: Performance suggestions (e.g., use `AsValueEnumerable()`)
-- **Warning**: Potential bugs or anti-patterns
-- **Error**: Breaking changes or incorrect usage
+## 7. Implementation Checklist
 
-## Common Pitfalls to Avoid
+Before committing a new operation:
+
+### Architecture
+- [ ] Enumerable is `readonly struct`
+- [ ] Enumerator is `struct`
+- [ ] Implements appropriate interface:
+  - [ ] `IValueReadOnlyList` + `IList` (if random access)
+  - [ ] `IValueReadOnlyCollection` + `ICollection` (if count known)
+  - [ ] `IValueEnumerable` (otherwise)
+- [ ] Backward compatibility interfaces implemented explicitly
+- [ ] Type-specific implementations (no runtime branching)
+
+### Performance
+- [ ] `[MethodImpl(AggressiveInlining)]` on extensions and `MoveNext`
+- [ ] Zero allocations verified with `[MemoryDiagnoser]`
+- [ ] Optimization techniques applied (see [OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md))
+- [ ] Benchmarked against System.Linq
+
+### Testing
+- [ ] Unit tests for all source types
+- [ ] Edge cases tested
+- [ ] LINQ compatibility verified
+- [ ] Benchmarks added
+
+### Documentation
+- [ ] XML documentation on public APIs
+- [ ] Examples in README if new feature
+- [ ] OPTIMIZATION_GUIDELINES.md updated if new technique
+
+---
+
+## 8. Common Pitfalls
 
 ### ❌ DON'T: Return IEnumerable<T>
 ```csharp
-public static IEnumerable<T> Where<T>(this IEnumerable<T> source, Func<T, bool> predicate)
-    => new WhereEnumerable<T>(source, predicate); // Boxing occurs!
+public static IEnumerable<T> Where<T>(...)
+    => new WhereEnumerable<T>(...);  // Boxing!
 ```
 
-### ✅ DO: Return value-type enumerable
+### ✅ DO: Return concrete struct
 ```csharp
-public static WhereEnumerable<T> Where<T>(this IEnumerable<T> source, Func<T, bool> predicate)
-    => new WhereEnumerable<T>(source, predicate); // No boxing!
+public static WhereEnumerable<T> Where<T>(...)
+    => new WhereEnumerable<T>(...);  // No boxing
 ```
 
 ### ❌ DON'T: Use class for enumerables
 ```csharp
-public class WhereEnumerable<T> { } // Heap allocation!
+public class WhereEnumerable<T> { }  // Heap allocation
 ```
 
 ### ✅ DO: Use readonly struct
 ```csharp
-public readonly struct WhereEnumerable<T> { } // Stack allocation!
+public readonly struct WhereEnumerable<T> { }  // Stack allocation
 ```
 
-### ❌ DON'T: Forget AggressiveInlining on hot paths
+### ❌ DON'T: Runtime type checking
 ```csharp
-public bool MoveNext() { } // Method call overhead
+public bool MoveNext()
+{
+    if (source is List<T> list) { }  // Runtime overhead
+}
 ```
 
-### ✅ DO: Inline hot paths
+### ✅ DO: Type-specific implementations
 ```csharp
-[MethodImpl(MethodImplOptions.AggressiveInlining)]
-public bool MoveNext() { } // Inlined!
+public readonly struct WhereListEnumerable<T> { }  // Compile-time
 ```
 
-## Performance Checklist
+---
 
-Before committing new LINQ operations:
+## 9. References
 
-- [ ] Enumerable is `readonly struct`
-- [ ] Enumerator is `struct`
-- [ ] Implements appropriate interface:
-  - [ ] `IValueReadOnlyList<T, TEnumerator>` for arrays/List<T> (with Count + indexer)
-  - [ ] `IValueEnumerable<T, TEnumerator>` for filtered/transformed sequences
-- [ ] Method parameters accept `IValueEnumerable<T, TEnumerator>` (least features)
-- [ ] Return type exposes most features available (IValueReadOnlyList > IValueEnumerable)
-- [ ] `AsValueEnumerable()` has `[MethodImpl(AggressiveInlining)]`
-- [ ] `MoveNext()` has `[MethodImpl(AggressiveInlining)]`
-- [ ] Fusion methods have `[MethodImpl(AggressiveInlining)]`
-- [ ] Unit tests added
-- [ ] Benchmarks added
-- [ ] Compared against standard LINQ
-
-## References
-
-- [IValueEnumerable Documentation](https://github.com/NetFabric/NetFabric.Hyperlinq.Abstractions)
+- [NetFabric.Hyperlinq.Abstractions](https://github.com/NetFabric/NetFabric.Hyperlinq.Abstractions)
+- [OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md) - Detailed performance techniques
 - [MethodImplOptions.AggressiveInlining](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.methodimploptions)
 - [Value Types Best Practices](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/struct)
