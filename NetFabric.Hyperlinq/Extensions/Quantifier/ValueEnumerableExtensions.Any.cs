@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
@@ -7,19 +8,26 @@ namespace NetFabric.Hyperlinq
     {
         /// <summary>
         /// Determines whether a sequence contains any elements.
-        /// Optimized for IValueReadOnlyCollection to use Count property.
+        /// Optimized for ICollection to use Count property.
         /// </summary>
         public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
         {
-            // Optimize for IValueReadOnlyCollection
-            if (source is IValueReadOnlyCollection<TSource, TEnumerator> collection)
+            // Optimize for ICollection (includes IValueReadOnlyCollection implementations)
+            if (source is ICollection<TSource> collection)
                 return collection.Count != 0;
 
             // Fallback to enumeration
             using var enumerator = source.GetEnumerator();
             return enumerator.MoveNext();
         }
+
+        /// <summary>
+        /// Determines whether a collection contains any elements.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Any<T>(this ICollection<T> source)
+            => source.Count != 0;
     }
 }
