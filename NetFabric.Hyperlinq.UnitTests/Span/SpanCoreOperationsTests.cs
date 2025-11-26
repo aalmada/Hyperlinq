@@ -3,148 +3,217 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TUnit.Core;
+using NetFabric.Assertive;
 
 namespace NetFabric.Hyperlinq.UnitTests.Span;
 
 public class SpanCoreOperationsTests
 {
+    // ===== Data Sources =====
+    
+    public static IEnumerable<(Func<int[]> arrayFactory, string description)> GetIntArraySources()
+    {
+        yield return (() => new int[] { 1, 2, 3, 4, 5 }, "Array with 5 elements");
+        yield return (() => new int[] { 10, 20, 30 }, "Array with 3 elements");
+        yield return (() => Array.Empty<int>(), "Empty array");
+        yield return (() => new int[] { 42 }, "Single element");
+    }
+    
+    public static IEnumerable<(Func<List<int>> listFactory, string description)> GetIntListSources()
+    {
+        yield return (() => new List<int> { 1, 2, 3, 4, 5 }, "List with 5 elements");
+        yield return (() => new List<int> { 10, 20, 30 }, "List with 3 elements");
+        yield return (() => new List<int>(), "Empty list");
+        yield return (() => new List<int> { 99 }, "Single element");
+    }
+    
+    public static IEnumerable<(Func<int[]> arrayFactory, string description)> GetNonEmptyIntArraySources()
+    {
+        yield return (() => new int[] { 1, 2, 3, 4, 5 }, "Array with 5 elements");
+        yield return (() => new int[] { 10, 20, 30 }, "Array with 3 elements");
+        yield return (() => new int[] { 42 }, "Single element");
+    }
+    
     // ===== Count Tests =====
     
     [Test]
-    public async Task Array_Count_ShouldWork()
+    [MethodDataSource(nameof(GetIntArraySources))]
+    public void Array_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5 };
-        await Assert.That(array.Count()).IsEqualTo(5);
+        var array = testCase.arrayFactory();
+        
+        var hyperlinqResult = array.Count();
+        var linqResult = Enumerable.Count(array);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task List_Count_ShouldWork()
+    [MethodDataSource(nameof(GetIntListSources))]
+    public void List_Count_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5 };
-        await Assert.That(list.Count()).IsEqualTo(5);
+        var list = testCase.listFactory();
+        
+        var hyperlinqResult = list.Count();
+        var linqResult = Enumerable.Count(list);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task Memory_Count_ShouldWork()
+    public void Memory_Count_ShouldWork()
     {
         ReadOnlyMemory<int> memory = new int[] { 1, 2, 3 }.AsMemory();
-        await Assert.That(memory.Count()).IsEqualTo(3);
+        memory.Count().Must().BeEqualTo(3);
     }
     
     // ===== Any Tests =====
     
     [Test]
-    public async Task Array_Any_NonEmpty_ShouldReturnTrue()
+    [MethodDataSource(nameof(GetIntArraySources))]
+    public void Array_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1 };
-        await Assert.That(array.Any()).IsTrue();
+        var array = testCase.arrayFactory();
+        
+        var hyperlinqResult = array.Any();
+        var linqResult = Enumerable.Any(array);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task Array_Any_Empty_ShouldReturnFalse()
+    [MethodDataSource(nameof(GetIntListSources))]
+    public void List_Any_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
     {
-        var array = Array.Empty<int>();
-        await Assert.That(array.Any()).IsFalse();
-    }
-    
-    [Test]
-    public async Task List_Any_ShouldWork()
-    {
-        var list = new List<int> { 1, 2, 3 };
-        await Assert.That(list.Any()).IsTrue();
+        var list = testCase.listFactory();
+        
+        var hyperlinqResult = list.Any();
+        var linqResult = Enumerable.Any(list);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     // ===== First Tests =====
     
     [Test]
-    public async Task Array_First_ShouldReturnFirstElement()
+    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    public void Array_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 10, 20, 30 };
-        await Assert.That(array.First()).IsEqualTo(10);
+        var array = testCase.arrayFactory();
+        
+        var hyperlinqResult = array.First();
+        var linqResult = Enumerable.First(array);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task List_First_ShouldWork()
+    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    public void List_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 5, 10, 15 };
-        await Assert.That(list.First()).IsEqualTo(5);
+        var list = new List<int>(testCase.arrayFactory());
+        
+        var hyperlinqResult = list.First();
+        var linqResult = Enumerable.First(list);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task Memory_First_ShouldWork()
+    public void Memory_First_ShouldWork()
     {
         ReadOnlyMemory<int> memory = new int[] { 100, 200 }.AsMemory();
-        await Assert.That(memory.First()).IsEqualTo(100);
+        memory.First().Must().BeEqualTo(100);
     }
     
     [Test]
-    public async Task Array_First_Empty_ShouldThrow()
+    public void Array_First_Empty_ShouldThrow()
     {
         var array = Array.Empty<int>();
-        await Assert.That(() => array.First()).Throws<InvalidOperationException>();
+        Action action = () => array.First();
+        action.Must().Throw<InvalidOperationException>();
     }
     
     // ===== Last Tests =====
     
     [Test]
-    public async Task Array_Last_ShouldReturnLastElement()
+    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    public void Array_Last_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 10, 20, 30 };
-        await Assert.That(array.Last()).IsEqualTo(30);
+        var array = testCase.arrayFactory();
+        
+        var hyperlinqResult = array.Last();
+        var linqResult = Enumerable.Last(array);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task List_Last_ShouldWork()
+    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    public void List_Last_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 5, 10, 15 };
-        await Assert.That(list.Last()).IsEqualTo(15);
+        var list = new List<int>(testCase.arrayFactory());
+        
+        var hyperlinqResult = list.Last();
+        var linqResult = Enumerable.Last(list);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task Memory_Last_ShouldWork()
+    public void Memory_Last_ShouldWork()
     {
         ReadOnlyMemory<int> memory = new int[] { 100, 200, 300 }.AsMemory();
-        await Assert.That(memory.Last()).IsEqualTo(300);
+        memory.Last().Must().BeEqualTo(300);
     }
     
     [Test]
-    public async Task Array_Last_Empty_ShouldThrow()
+    public void Array_Last_Empty_ShouldThrow()
     {
         var array = Array.Empty<int>();
-        await Assert.That(() => array.Last()).Throws<InvalidOperationException>();
+        Action action = () => array.Last();
+        action.Must().Throw<InvalidOperationException>();
     }
     
     // ===== Combined Operations =====
     
     [Test]
-    public async Task Array_Where_Count_ShouldWork()
+    [MethodDataSource(nameof(GetIntArraySources))]
+    public void Array_Where_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5, 6 };
-        var result = array.Where(x => x % 2 == 0).Count();
-        await Assert.That(result).IsEqualTo(3);
+        var array = testCase.arrayFactory();
+        
+        var hyperlinqResult = array.Where(x => x % 2 == 0).Count();
+        var linqResult = array.Where(x => x % 2 == 0).Count();
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task List_Where_Any_ShouldWork()
+    [MethodDataSource(nameof(GetIntListSources))]
+    public void List_Where_Any_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 3, 5, 7 };
-        var result = list.Where(x => x % 2 == 0).Any();
-        await Assert.That(result).IsFalse();
+        var list = testCase.listFactory();
+        
+        var hyperlinqResult = list.Where(x => x % 2 == 0).Any();
+        var linqResult = list.Where(x => x % 2 == 0).Any();
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public async Task Array_Where_First_ShouldWork()
+    public void Array_Where_First_ShouldWork()
     {
         var array = new int[] { 1, 2, 3, 4, 5 };
         var result = array.Where(x => x > 3).First();
-        await Assert.That(result).IsEqualTo(4);
+        result.Must().BeEqualTo(4);
     }
     
     [Test]
-    public async Task Array_Where_Last_ShouldWork()
+    public void Array_Where_Last_ShouldWork()
     {
         var array = new int[] { 1, 2, 3, 4, 5 };
         var result = array.Where(x => x > 2).Last();
-        await Assert.That(result).IsEqualTo(5);
+        result.Must().BeEqualTo(5);
     }
 }

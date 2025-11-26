@@ -12,11 +12,11 @@ public class AsValueEnumerableTests
     // ===== List<T> Tests =====
     
     [Test]
-    public async Task List_AsValueEnumerable_ShouldReturnListValueEnumerable()
+    public void List_AsValueEnumerable_ShouldReturnListValueEnumerable()
     {
         var list = new List<int> { 1, 2, 3 };
         var valueEnum = list.AsValueEnumerable();
-        await Assert.That(valueEnum.GetType().Name).IsEqualTo("ListValueEnumerable`1");
+        valueEnum.Must().BeOfType<ListValueEnumerable<int>>();
     }
     
     [Test]
@@ -43,15 +43,15 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public async Task List_AsValueEnumerable_Indexer_ShouldWork()
+    public void List_AsValueEnumerable_Indexer_ShouldWork()
     {
         var list = new List<int> { 10, 20, 30, 40, 50 };
         var valueEnum = list.AsValueEnumerable();
         
         // Test indexer access
-        await Assert.That(valueEnum[0]).IsEqualTo(10);
-        await Assert.That(valueEnum[2]).IsEqualTo(30);
-        await Assert.That(valueEnum[4]).IsEqualTo(50);
+        valueEnum[0].Must().BeEqualTo(10);
+        valueEnum[2].Must().BeEqualTo(30);
+        valueEnum[4].Must().BeEqualTo(50);
     }
     
     [Test]
@@ -129,11 +129,11 @@ public class AsValueEnumerableTests
     // ===== Array Tests =====
     
     [Test]
-    public async Task Array_AsValueEnumerable_ShouldReturnArrayValueEnumerable()
+    public void Array_AsValueEnumerable_ShouldReturnArrayValueEnumerable()
     {
         var array = new int[] { 1, 2, 3 };
         var valueEnum = array.AsValueEnumerable();
-        await Assert.That(valueEnum.GetType().Name).IsEqualTo("ArrayValueEnumerable`1");
+        valueEnum.Must().BeOfType<ArrayValueEnumerable<int>>();
     }
     
     [Test]
@@ -160,14 +160,14 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public async Task Array_AsValueEnumerable_Indexer_ShouldWork()
+    public void Array_AsValueEnumerable_Indexer_ShouldWork()
     {
         var array = new int[] { 10, 20, 30, 40, 50 };
         var valueEnum = array.AsValueEnumerable();
         
-        await Assert.That(valueEnum[0]).IsEqualTo(10);
-        await Assert.That(valueEnum[2]).IsEqualTo(30);
-        await Assert.That(valueEnum[4]).IsEqualTo(50);
+        valueEnum[0].Must().BeEqualTo(10);
+        valueEnum[2].Must().BeEqualTo(30);
+        valueEnum[4].Must().BeEqualTo(50);
     }
     
     [Test]
@@ -214,7 +214,7 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public async Task List_WhereSelectSum_ShouldMatchLinq()
+    public void List_WhereSelectSum_ShouldMatchLinq()
     {
         var list = new List<int> { 1, 2, 3, 4, 5 };
         
@@ -227,7 +227,7 @@ public class AsValueEnumerableTests
                             .Select(x => x * 10)
                             .Sum();
         
-        await Assert.That(hyperlinqResult).IsEqualTo(linqResult);
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
@@ -318,11 +318,11 @@ public class AsValueEnumerableTests
     // ===== IEnumerable<T> Fallback Tests =====
     
     [Test]
-    public async Task IEnumerable_AsValueEnumerable_ShouldReturnEnumerableValueEnumerable()
+    public void IEnumerable_AsValueEnumerable_ShouldReturnEnumerableValueEnumerable()
     {
         IEnumerable<int> enumerable = Enumerable.Range(1, 5);
         var valueEnum = enumerable.AsValueEnumerable();
-        await Assert.That(valueEnum.GetType().Name).IsEqualTo("EnumerableValueEnumerable`1");
+        valueEnum.Must().BeOfType<EnumerableValueEnumerable<int>>();
     }
     
     [Test]
