@@ -1,0 +1,38 @@
+using System;
+using System.Collections.Generic;
+
+namespace NetFabric.Hyperlinq
+{
+    public static partial class ValueEnumerableExtensions
+    {
+        /// <summary>
+        /// Returns an option containing the only element of a sequence, or None if the sequence is empty.
+        /// Throws an exception if there is more than one element in the sequence.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The sequence contains more than one element.</exception>
+        public static Option<TSource> SingleOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
+            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+            where TEnumerator : struct, IEnumerator<TSource>
+        {
+            // Optimize for IList<T> - O(1) access via Count and indexer
+            if (source is IList<TSource> list)
+            {
+                if (list.Count == 0)
+                    return Option<TSource>.None();
+                if (list.Count > 1)
+                    throw new InvalidOperationException("Sequence contains more than one element");
+                return Option<TSource>.Some(list[0]);
+            }
+            
+            using var enumerator = source.GetEnumerator();
+            if (!enumerator.MoveNext())
+                return Option<TSource>.None();
+            
+            var first = enumerator.Current;
+            if (enumerator.MoveNext())
+                throw new InvalidOperationException("Sequence contains more than one element");
+
+            return Option<TSource>.Some(first);
+        }
+    }
+}

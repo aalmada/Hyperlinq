@@ -5,65 +5,55 @@ using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq
 {
-    /// <summary>
-    /// Extension methods for span-compatible types - First operation.
-    /// </summary>
     public static partial class SpanExtensions
     {
-        // ===== BASE IMPLEMENTATION =====
-        
         /// <summary>
-        /// Returns the first element of a sequence.
+        /// Returns the first element of a span.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this ReadOnlySpan<T> source)
-        {
-            if (source.Length == 0)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return source[0];
-        }
-        
-        // ===== DELEGATING OVERLOADS =====
-        
+            => source.FirstOrNone().Value;
+
         /// <summary>
-        /// Returns the first element of a sequence.
+        /// Returns the first element of a span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this Span<T> source)
-            => First((ReadOnlySpan<T>)source);
-        
+            => source.FirstOrNone().Value;
+
         /// <summary>
-        /// Returns the first element of a sequence.
+        /// Returns the first element of an array.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this T[] source)
-            => First((ReadOnlySpan<T>)source);
-        
+            => source.FirstOrNone().Value;
+
         /// <summary>
-        /// Returns the first element of a sequence.
+        /// Returns the first element of a memory.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this ReadOnlyMemory<T> source)
-            => First(source.Span);
-        
+            => source.FirstOrNone().Value;
+
         /// <summary>
-        /// Returns the first element of a sequence.
+        /// Returns the first element of a memory.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this Memory<T> source)
-            => First(source.Span);
-        
+            => source.FirstOrNone().Value;
+
         /// <summary>
-        /// Returns the first element of a sequence.
+        /// Returns the first element of a list.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this List<T> source)
-            => First(CollectionsMarshal.AsSpan(source));
-        
+            => source.FirstOrNone().Value;
+
         /// <summary>
-        /// Returns the first element of a sequence.
+        /// Returns the first element of an array segment.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this ArraySegment<T> source)
-            => First(source.AsSpan());
+            => source.FirstOrNone().Value;
     }
 }
