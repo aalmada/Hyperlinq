@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
@@ -12,5 +13,34 @@ namespace NetFabric.Hyperlinq
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
             => source.FirstOrNone<TEnumerable, TEnumerator, TSource>().Value;
+
+        /// <summary>
+        /// Returns the first element of a sequence that satisfies a specified condition.
+        /// </summary>
+        public static TSource First<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
+            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+            where TEnumerator : struct, IEnumerator<TSource>
+            => source.Where(predicate).First();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
+            => source.Where(predicate).First();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
+            => source.Where(predicate).First();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
+            => ValueEnumerableExtensions.Where<EnumerableValueEnumerable<T>, EnumerableValueEnumerable<T>.Enumerator, T>(source, predicate).First();
+
+        public static TSource First<TSource>(this WhereEnumerable<TSource> source)
+            => source.FirstOrNone().Value;
+
+        public static TSource First<TSource>(this WhereMemoryEnumerable<TSource> source)
+            => source.FirstOrNone().Value;
+
+        public static TSource First<TSource>(this WhereListEnumerable<TSource> source)
+            => source.FirstOrNone().Value;
     }
 }
