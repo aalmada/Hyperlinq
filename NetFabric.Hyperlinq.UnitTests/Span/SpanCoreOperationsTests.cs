@@ -9,35 +9,10 @@ namespace NetFabric.Hyperlinq.UnitTests.Span;
 
 public class SpanCoreOperationsTests
 {
-    // ===== Data Sources =====
-    
-    public static IEnumerable<(Func<int[]> arrayFactory, string description)> GetIntArraySources()
-    {
-        yield return (() => new int[] { 1, 2, 3, 4, 5 }, "Array with 5 elements");
-        yield return (() => new int[] { 10, 20, 30 }, "Array with 3 elements");
-        yield return (() => Array.Empty<int>(), "Empty array");
-        yield return (() => new int[] { 42 }, "Single element");
-    }
-    
-    public static IEnumerable<(Func<List<int>> listFactory, string description)> GetIntListSources()
-    {
-        yield return (() => new List<int> { 1, 2, 3, 4, 5 }, "List with 5 elements");
-        yield return (() => new List<int> { 10, 20, 30 }, "List with 3 elements");
-        yield return (() => new List<int>(), "Empty list");
-        yield return (() => new List<int> { 99 }, "Single element");
-    }
-    
-    public static IEnumerable<(Func<int[]> arrayFactory, string description)> GetNonEmptyIntArraySources()
-    {
-        yield return (() => new int[] { 1, 2, 3, 4, 5 }, "Array with 5 elements");
-        yield return (() => new int[] { 10, 20, 30 }, "Array with 3 elements");
-        yield return (() => new int[] { 42 }, "Single element");
-    }
-    
     // ===== Count Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -49,10 +24,10 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntListSources))]
-    public void List_Count_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = testCase.listFactory();
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.Count();
         var linqResult = Enumerable.Count(list);
@@ -61,16 +36,22 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    public void Memory_Count_ShouldWork()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Memory_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        ReadOnlyMemory<int> memory = new int[] { 1, 2, 3 }.AsMemory();
-        memory.Count().Must().BeEqualTo(3);
+        var array = testCase.arrayFactory();
+        ReadOnlyMemory<int> memory = array.AsMemory();
+        
+        var hyperlinqResult = memory.Count();
+        var linqResult = Enumerable.Count(array);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     // ===== Any Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -82,10 +63,10 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntListSources))]
-    public void List_Any_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = testCase.listFactory();
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.Any();
         var linqResult = Enumerable.Any(list);
@@ -96,7 +77,7 @@ public class SpanCoreOperationsTests
     // ===== First Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
     public void Array_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -108,7 +89,7 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
     public void List_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var list = new List<int>(testCase.arrayFactory());
@@ -120,10 +101,16 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    public void Memory_First_ShouldWork()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
+    public void Memory_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        ReadOnlyMemory<int> memory = new int[] { 100, 200 }.AsMemory();
-        memory.First().Must().BeEqualTo(100);
+        var array = testCase.arrayFactory();
+        ReadOnlyMemory<int> memory = array.AsMemory();
+        
+        var hyperlinqResult = memory.First();
+        var linqResult = Enumerable.First(array);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
@@ -137,7 +124,7 @@ public class SpanCoreOperationsTests
     // ===== Last Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
     public void Array_Last_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -149,7 +136,7 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetNonEmptyIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
     public void List_Last_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var list = new List<int>(testCase.arrayFactory());
@@ -161,10 +148,16 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    public void Memory_Last_ShouldWork()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
+    public void Memory_Last_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        ReadOnlyMemory<int> memory = new int[] { 100, 200, 300 }.AsMemory();
-        memory.Last().Must().BeEqualTo(300);
+        var array = testCase.arrayFactory();
+        ReadOnlyMemory<int> memory = array.AsMemory();
+        
+        var hyperlinqResult = memory.Last();
+        var linqResult = Enumerable.Last(array);
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
     }
     
     [Test]
@@ -178,7 +171,7 @@ public class SpanCoreOperationsTests
     // ===== Combined Operations =====
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Where_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -190,10 +183,10 @@ public class SpanCoreOperationsTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntListSources))]
-    public void List_Where_Any_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
+    public void List_Where_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = testCase.listFactory();
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.Where(x => x % 2 == 0).Any();
         var linqResult = list.Where(x => x % 2 == 0).Any();

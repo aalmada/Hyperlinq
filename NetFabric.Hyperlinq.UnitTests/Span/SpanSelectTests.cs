@@ -9,30 +9,10 @@ namespace NetFabric.Hyperlinq.UnitTests.Span;
 
 public class SpanSelectTests
 {
-    // ===== Data Sources =====
-    
-    public static IEnumerable<(Func<int[]> arrayFactory, string description)> GetIntArraySources()
-    {
-        yield return (() => new int[] { 1, 2, 3, 4, 5 }, "Array with 5 elements");
-        yield return (() => new int[] { 10, 20, 30 }, "Array with 3 elements");
-        yield return (() => Array.Empty<int>(), "Empty array");
-        yield return (() => new int[] { 42 }, "Single element");
-        yield return (() => Enumerable.Range(1, 100).ToArray(), "Large array (100 elements)");
-    }
-    
-    public static IEnumerable<(Func<List<int>> listFactory, string description)> GetIntListSources()
-    {
-        yield return (() => new List<int> { 1, 2, 3, 4, 5 }, "List with 5 elements");
-        yield return (() => new List<int> { 10, 20, 30 }, "List with 3 elements");
-        yield return (() => new List<int>(), "Empty list");
-        yield return (() => new List<int> { 99 }, "Single element");
-        yield return (() => Enumerable.Range(1, 100).ToList(), "Large list (100 elements)");
-    }
-    
     // ===== Array Select Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Select_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -46,7 +26,7 @@ public class SpanSelectTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Select_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -58,7 +38,7 @@ public class SpanSelectTests
 
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Select_TypeChange_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -74,10 +54,10 @@ public class SpanSelectTests
     // ===== List Select Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetIntListSources))]
-    public void List_Select_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_Select_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = testCase.listFactory();
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.Select(x => x * 3);
         var linqResult = list.Select(x => x * 3);
@@ -88,10 +68,10 @@ public class SpanSelectTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntListSources))]
-    public void List_Select_Count_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_Select_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = testCase.listFactory();
+        var list = new List<int>(testCase.arrayFactory());
         var result = list.Select(x => x / 10);
         
         result.Count.Must().BeEqualTo(list.Count);
@@ -102,7 +82,7 @@ public class SpanSelectTests
     // ===== Memory Select Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Memory_Select_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -119,7 +99,7 @@ public class SpanSelectTests
     // ===== WhereSelect Fusion Tests =====
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_WhereSelect_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -138,10 +118,10 @@ public class SpanSelectTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntListSources))]
-    public void List_WhereSelect_ShouldMatchLinq((Func<List<int>> listFactory, string description) testCase)
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_WhereSelect_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = testCase.listFactory();
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list
             .Where(x => x > 4)
@@ -157,7 +137,7 @@ public class SpanSelectTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_WhereSelect_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
@@ -174,7 +154,7 @@ public class SpanSelectTests
     }
     
     [Test]
-    [MethodDataSource(nameof(GetIntArraySources))]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_WhereSelect_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();

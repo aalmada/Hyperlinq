@@ -12,17 +12,19 @@ public class AsValueEnumerableTests
     // ===== List<T> Tests =====
     
     [Test]
-    public void List_AsValueEnumerable_ShouldReturnListValueEnumerable()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_AsValueEnumerable_ShouldReturnListValueEnumerable((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3 };
+        var list = new List<int>(testCase.arrayFactory());
         var valueEnum = list.AsValueEnumerable();
         valueEnum.Must().BeOfType<ListValueEnumerable<int>>();
     }
     
     [Test]
-    public void List_AsValueEnumerable_ShouldBeEnumerableOf()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_AsValueEnumerable_ShouldBeEnumerableOf((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var list = new List<int>(testCase.arrayFactory());
         var valueEnum = list.AsValueEnumerable();
         
         valueEnum.Must()
@@ -31,9 +33,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void List_AsValueEnumerable_Count_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_AsValueEnumerable_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var list = new List<int>(testCase.arrayFactory());
         var valueEnum = list.AsValueEnumerable();
         
         valueEnum.Must()
@@ -55,9 +58,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void List_AsValueEnumerable_Any_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_AsValueEnumerable_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3 };
+        var list = new List<int>(testCase.arrayFactory());
         var valueEnum = list.AsValueEnumerable();
         
         valueEnum.Must()
@@ -66,22 +70,13 @@ public class AsValueEnumerableTests
             .EvaluateTrue(e => e.Any() == list.Any());
     }
     
-    [Test]
-    public void List_Empty_Any_ShouldMatchLinq()
-    {
-        var list = new List<int>();
-        var valueEnum = list.AsValueEnumerable();
-        
-        valueEnum.Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(list)
-            .EvaluateTrue(e => e.Any() == false);
-    }
+
     
     [Test]
-    public void List_AsValueEnumerable_First_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
+    public void List_AsValueEnumerable_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 10, 20, 30 };
+        var list = new List<int>(testCase.arrayFactory());
         var valueEnum = list.AsValueEnumerable();
         
         valueEnum.Must()
@@ -103,9 +98,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void List_AsValueEnumerable_Sum_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_AsValueEnumerable_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var list = new List<int>(testCase.arrayFactory());
         var valueEnum = list.AsValueEnumerable();
         
         valueEnum.Must()
@@ -129,17 +125,19 @@ public class AsValueEnumerableTests
     // ===== Array Tests =====
     
     [Test]
-    public void Array_AsValueEnumerable_ShouldReturnArrayValueEnumerable()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_AsValueEnumerable_ShouldReturnArrayValueEnumerable((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3 };
+        var array = testCase.arrayFactory();
         var valueEnum = array.AsValueEnumerable();
         valueEnum.Must().BeOfType<ArrayValueEnumerable<int>>();
     }
     
     [Test]
-    public void Array_AsValueEnumerable_ShouldBeEnumerableOf()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_AsValueEnumerable_ShouldBeEnumerableOf((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5 };
+        var array = testCase.arrayFactory();
         var valueEnum = array.AsValueEnumerable();
         
         valueEnum.Must()
@@ -148,9 +146,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void Array_AsValueEnumerable_Count_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_AsValueEnumerable_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5 };
+        var array = testCase.arrayFactory();
         var valueEnum = array.AsValueEnumerable();
         
         valueEnum.Must()
@@ -171,9 +170,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void Array_AsValueEnumerable_Sum_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_AsValueEnumerable_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 10, 20, 30 };
+        var array = testCase.arrayFactory();
         var valueEnum = array.AsValueEnumerable();
         
         valueEnum.Must()
@@ -183,9 +183,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void Array_AsValueEnumerable_Any_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_AsValueEnumerable_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3 };
+        var array = testCase.arrayFactory();
         var valueEnum = array.AsValueEnumerable();
         
         valueEnum.Must()
@@ -197,9 +198,10 @@ public class AsValueEnumerableTests
     // ===== Chained Operations Tests =====
     
     [Test]
-    public void List_WhereSelect_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_WhereSelect_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.AsValueEnumerable()
                                   .Where(x => x % 2 == 0)
@@ -214,9 +216,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void List_WhereSelectSum_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_WhereSelectSum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.AsValueEnumerable()
                                   .Where(x => x % 2 == 0)
@@ -231,9 +234,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void Array_WhereSelectCount_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_WhereSelectCount_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.AsValueEnumerable()
                                    .Where(x => x > 5)
@@ -249,9 +253,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void List_MultipleWhere_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_MultipleWhere_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.AsValueEnumerable()
                                   .Where(x => x > 3)
@@ -267,53 +272,13 @@ public class AsValueEnumerableTests
     
     // ===== Edge Cases =====
     
-    [Test]
-    public void List_Empty_Count_ShouldMatchLinq()
-    {
-        var list = new List<int>();
-        var valueEnum = list.AsValueEnumerable();
-        
-        valueEnum.Must()
-            .BeEnumerableOf<int>()
-            .BeEmpty()
-            .EvaluateTrue(e => e.Count() == 0);
-    }
+
     
-    [Test]
-    public void Array_Empty_Sum_ShouldMatchLinq()
-    {
-        var array = new int[] { };
-        var valueEnum = array.AsValueEnumerable();
-        
-        valueEnum.Must()
-            .BeEnumerableOf<int>()
-            .BeEmpty()
-            .EvaluateTrue(e => e.Sum() == 0);
-    }
+
     
-    [Test]
-    public void List_SingleElement_First_ShouldMatchLinq()
-    {
-        var list = new List<int> { 99 };
-        var valueEnum = list.AsValueEnumerable();
-        
-        valueEnum.Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(list)
-            .EvaluateTrue(e => e.First() == 99);
-    }
+
     
-    [Test]
-    public void List_LargeCollection_Sum_ShouldMatchLinq()
-    {
-        var list = Enumerable.Range(1, 1000).ToList();
-        var valueEnum = list.AsValueEnumerable();
-        
-        valueEnum.Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(list)
-            .EvaluateTrue(e => e.Sum() == list.Sum());
-    }
+
     
     // ===== IEnumerable<T> Fallback Tests =====
     
@@ -366,9 +331,10 @@ public class AsValueEnumerableTests
     // ===== Enumerator Reusability Tests =====
     
     [Test]
-    public void List_AsValueEnumerable_ShouldSupportMultipleEnumerations()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_AsValueEnumerable_ShouldSupportMultipleEnumerations((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3 };
+        var list = new List<int>(testCase.arrayFactory());
         var valueEnum = list.AsValueEnumerable();
         
         // NetFabric.Assertive will enumerate multiple times to verify behavior
@@ -378,9 +344,10 @@ public class AsValueEnumerableTests
     }
     
     [Test]
-    public void Array_AsValueEnumerable_ShouldSupportMultipleEnumerations()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_AsValueEnumerable_ShouldSupportMultipleEnumerations((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3 };
+        var array = testCase.arrayFactory();
         var valueEnum = array.AsValueEnumerable();
         
         // NetFabric.Assertive will enumerate multiple times to verify behavior

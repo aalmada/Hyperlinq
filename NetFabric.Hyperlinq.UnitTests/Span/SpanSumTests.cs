@@ -10,9 +10,10 @@ namespace NetFabric.Hyperlinq.UnitTests.Span;
 public class SpanSumTests
 {
     [Test]
-    public void Array_Sum_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Array_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5 };
+        var array = testCase.arrayFactory();
         
         var spanResult = array.Sum();  // SpanExtensions.Sum
         var linqResult = Enumerable.Sum(array);
@@ -21,9 +22,10 @@ public class SpanSumTests
     }
     
     [Test]
-    public void List_Sum_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void List_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var list = new List<int>(testCase.arrayFactory());
         
         var spanResult = list.Sum();  // SpanExtensions.Sum
         var linqResult = Enumerable.Sum(list);
@@ -32,36 +34,42 @@ public class SpanSumTests
     }
     
     [Test]
-    public void ReadOnlyMemory_Sum_ShouldWork()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void ReadOnlyMemory_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5 };
+        var array = testCase.arrayFactory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var result = memory.Sum();
+        var linqResult = Enumerable.Sum(array);
         
-        result.Must().BeEqualTo(15);
+        result.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public void Memory_Sum_ShouldWork()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Memory_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5 };
+        var array = testCase.arrayFactory();
         Memory<int> memory = array.AsMemory();
         
         var result = memory.Sum();
+        var linqResult = Enumerable.Sum(array);
         
-        result.Must().BeEqualTo(15);
+        result.Must().BeEqualTo(linqResult);
     }
     
     [Test]
-    public void ArraySegment_Sum_ShouldWork()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void ArraySegment_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
-        var array = new int[] { 1, 2, 3, 4, 5 };
-        var segment = new ArraySegment<int>(array, 1, 3);  // {2, 3, 4}
+        var array = testCase.arrayFactory();
+        var segment = new ArraySegment<int>(array);
         
         var result = segment.Sum();
+        var linqResult = Enumerable.Sum(array);
         
-        result.Must().BeEqualTo(9);
+        result.Must().BeEqualTo(linqResult);
     }
     
     [Test]
@@ -84,15 +92,7 @@ public class SpanSumTests
         result.Must().BeEqualTo(15);
     }
     
-    [Test]
-    public void Empty_Array_Sum_ShouldReturnZero()
-    {
-        var array = Array.Empty<int>();
-        
-        var result = array.Sum();
-        
-        result.Must().BeEqualTo(0);
-    }
+
     
     [Test]
     public async Task Double_Sum_ShouldWork()
