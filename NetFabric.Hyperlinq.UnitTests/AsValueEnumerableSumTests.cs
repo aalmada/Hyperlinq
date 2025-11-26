@@ -47,15 +47,29 @@ public class AsValueEnumerableSumTests
     }
     
     [Test]
-    public void IEnumerable_AsValueEnumerable_Sum_ShouldMatchLinq()
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEnumerableSources))]
+    public void IEnumerable_AsValueEnumerable_Sum_ShouldMatchLinq((Func<IEnumerable<int>> enumerableFactory, string description) testCase)
     {
-        IEnumerable<int> enumerable = Enumerable.Range(1, 10);
+        IEnumerable<int> enumerable = testCase.enumerableFactory();
         var valueEnum = enumerable.AsValueEnumerable();
         
         valueEnum.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(enumerable)
             .EvaluateTrue(e => e.Sum() == enumerable.Sum());
+    }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetCollectionSources))]
+    public void ICollection_AsValueEnumerable_Sum_ShouldMatchLinq((Func<ICollection<int>> collectionFactory, string description) testCase)
+    {
+        ICollection<int> collection = testCase.collectionFactory();
+        var valueEnum = collection.AsValueEnumerable();
+        
+        valueEnum.Must()
+            .BeEnumerableOf<int>()
+            .BeEqualTo(collection)
+            .EvaluateTrue(e => e.Sum() == collection.Sum());
     }
     
     [Test]
@@ -94,6 +108,42 @@ public class AsValueEnumerableSumTests
                                   .Sum();
         
         var linqResult = list.Where(x => x % 2 == 0)
+                            .Select(x => x * 10)
+                            .Sum();
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEnumerableSources))]
+    public void IEnumerable_WhereSelectSum_ShouldMatchLinq((Func<IEnumerable<int>> enumerableFactory, string description) testCase)
+    {
+        IEnumerable<int> enumerable = testCase.enumerableFactory();
+        
+        var hyperlinqResult = enumerable.AsValueEnumerable()
+                                  .Where(x => x % 2 == 0)
+                                  .Select(x => x * 10)
+                                  .Sum();
+        
+        var linqResult = enumerable.Where(x => x % 2 == 0)
+                            .Select(x => x * 10)
+                            .Sum();
+        
+        hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetCollectionSources))]
+    public void ICollection_WhereSelectSum_ShouldMatchLinq((Func<ICollection<int>> collectionFactory, string description) testCase)
+    {
+        ICollection<int> collection = testCase.collectionFactory();
+        
+        var hyperlinqResult = collection.AsValueEnumerable()
+                                  .Where(x => x % 2 == 0)
+                                  .Select(x => x * 10)
+                                  .Sum();
+        
+        var linqResult = collection.Where(x => x % 2 == 0)
                             .Select(x => x * 10)
                             .Sum();
         

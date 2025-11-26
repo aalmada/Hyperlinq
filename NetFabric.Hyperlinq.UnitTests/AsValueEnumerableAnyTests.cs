@@ -33,4 +33,30 @@ public class AsValueEnumerableAnyTests
             .BeEqualTo(array)
             .EvaluateTrue(e => e.Any() == array.Any());
     }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEnumerableSources))]
+    public void IEnumerable_AsValueEnumerable_Any_ShouldMatchLinq((Func<IEnumerable<int>> enumerableFactory, string description) testCase)
+    {
+        IEnumerable<int> enumerable = testCase.enumerableFactory();
+        var valueEnum = enumerable.AsValueEnumerable();
+        
+        valueEnum.Must()
+            .BeEnumerableOf<int>()
+            .BeEqualTo(enumerable)
+            .EvaluateTrue(e => e.Any() == enumerable.Any());
+    }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetCollectionSources))]
+    public void ICollection_AsValueEnumerable_Any_ShouldMatchLinq((Func<ICollection<int>> collectionFactory, string description) testCase)
+    {
+        ICollection<int> collection = testCase.collectionFactory();
+        var valueEnum = collection.AsValueEnumerable();
+        
+        valueEnum.Must()
+            .BeEnumerableOf<int>()
+            .BeEqualTo(collection)
+            .EvaluateTrue(e => e.Any() == collection.Any());
+    }
 }

@@ -33,4 +33,30 @@ public class AsValueEnumerableCountTests
             .BeEqualTo(array)
             .EvaluateTrue(e => e.Count() == array.Count());
     }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEnumerableSources))]
+    public void IEnumerable_AsValueEnumerable_Count_ShouldMatchLinq((Func<IEnumerable<int>> enumerableFactory, string description) testCase)
+    {
+        IEnumerable<int> enumerable = testCase.enumerableFactory();
+        var valueEnum = enumerable.AsValueEnumerable();
+        
+        valueEnum.Must()
+            .BeEnumerableOf<int>()
+            .BeEqualTo(enumerable)
+            .EvaluateTrue(e => e.Count() == enumerable.Count());
+    }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetCollectionSources))]
+    public void ICollection_AsValueEnumerable_Count_ShouldMatchLinq((Func<ICollection<int>> collectionFactory, string description) testCase)
+    {
+        ICollection<int> collection = testCase.collectionFactory();
+        var valueEnum = collection.AsValueEnumerable();
+        
+        valueEnum.Must()
+            .BeEnumerableOf<int>()
+            .BeEqualTo(collection)
+            .EvaluateTrue(e => e.Count() == collection.Count);
+    }
 }
