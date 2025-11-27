@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq
 {
@@ -61,5 +62,52 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T SingleOrDefault<T>(this ArraySegment<T> source, T defaultValue)
             => source.SingleOrNone().GetValueOrDefault(defaultValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this ReadOnlySpan<T> source, Func<T, bool> predicate)
+            => source.SingleOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this ReadOnlySpan<T> source, Func<T, bool> predicate, T defaultValue)
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this Span<T> source, Func<T, bool> predicate)
+            => source.SingleOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this Span<T> source, Func<T, bool> predicate, T defaultValue)
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this T[] source, Func<T, bool> predicate)
+            => source.SingleOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this T[] source, Func<T, bool> predicate, T defaultValue)
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this List<T> source, Func<T, bool> predicate)
+            => source.SingleOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this List<T> source, Func<T, bool> predicate, T defaultValue)
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this Memory<T> source, Func<T, bool> predicate)
+            => source.SingleOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this Memory<T> source, Func<T, bool> predicate, T defaultValue)
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this ReadOnlyMemory<T> source, Func<T, bool> predicate)
+            => source.SingleOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T SingleOrDefault<T>(this ReadOnlyMemory<T> source, Func<T, bool> predicate, T defaultValue)
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
     }
 }

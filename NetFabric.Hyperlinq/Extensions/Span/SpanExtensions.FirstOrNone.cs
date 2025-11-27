@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq
 {
@@ -47,5 +48,34 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> FirstOrNone<T>(this ArraySegment<T> source)
             => source.Count == 0 ? Option<T>.None() : Option<T>.Some(source[0]);
+        public static Option<T> FirstOrNone<T>(this ReadOnlySpan<T> source, Func<T, bool> predicate)
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return Option<T>.Some(item);
+            }
+            return Option<T>.None();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<T> FirstOrNone<T>(this Span<T> source, Func<T, bool> predicate)
+            => FirstOrNone((ReadOnlySpan<T>)source, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<T> FirstOrNone<T>(this T[] source, Func<T, bool> predicate)
+            => FirstOrNone(new ReadOnlySpan<T>(source), predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<T> FirstOrNone<T>(this List<T> source, Func<T, bool> predicate)
+            => FirstOrNone(CollectionsMarshal.AsSpan(source), predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<T> FirstOrNone<T>(this Memory<T> source, Func<T, bool> predicate)
+            => FirstOrNone(source.Span, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<T> FirstOrNone<T>(this ReadOnlyMemory<T> source, Func<T, bool> predicate)
+            => FirstOrNone(source.Span, predicate);
     }
 }

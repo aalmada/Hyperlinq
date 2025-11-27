@@ -55,5 +55,29 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T First<T>(this ArraySegment<T> source)
             => source.FirstOrNone().Value;
+            
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this ReadOnlySpan<T> source, Func<T, bool> predicate)
+            => source.FirstOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this Span<T> source, Func<T, bool> predicate)
+            => source.FirstOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this T[] source, Func<T, bool> predicate)
+            => source.FirstOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this List<T> source, Func<T, bool> predicate)
+            => source.FirstOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this Memory<T> source, Func<T, bool> predicate)
+            => source.FirstOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T First<T>(this ReadOnlyMemory<T> source, Func<T, bool> predicate)
+            => source.FirstOrNone(predicate).Value;
     }
 }

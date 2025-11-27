@@ -61,5 +61,35 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Count<T>(this ArraySegment<T> source)
             => source.Count;
+        public static int Count<T>(this ReadOnlySpan<T> source, Func<T, bool> predicate)
+        {
+            var count = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    count++;
+            }
+            return count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Count<T>(this Span<T> source, Func<T, bool> predicate)
+            => Count((ReadOnlySpan<T>)source, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Count<T>(this T[] source, Func<T, bool> predicate)
+            => Count(new ReadOnlySpan<T>(source), predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Count<T>(this List<T> source, Func<T, bool> predicate)
+            => Count(CollectionsMarshal.AsSpan(source), predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Count<T>(this Memory<T> source, Func<T, bool> predicate)
+            => Count(source.Span, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Count<T>(this ReadOnlyMemory<T> source, Func<T, bool> predicate)
+            => Count(source.Span, predicate);
     }
 }

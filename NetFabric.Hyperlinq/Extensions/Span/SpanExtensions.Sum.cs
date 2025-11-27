@@ -72,5 +72,41 @@ namespace NetFabric.Hyperlinq
         public static T Sum<T>(this ArraySegment<T> source)
             where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
             => Sum(source.AsSpan());
+        public static T Sum<T>(this ReadOnlySpan<T> source, Func<T, bool> predicate)
+            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+        {
+            var sum = T.AdditiveIdentity;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    sum += item;
+            }
+            return sum;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Sum<T>(this Span<T> source, Func<T, bool> predicate)
+            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            => Sum((ReadOnlySpan<T>)source, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Sum<T>(this T[] source, Func<T, bool> predicate)
+            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            => Sum(new ReadOnlySpan<T>(source), predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Sum<T>(this List<T> source, Func<T, bool> predicate)
+            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            => Sum(CollectionsMarshal.AsSpan(source), predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Sum<T>(this Memory<T> source, Func<T, bool> predicate)
+            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            => Sum(source.Span, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Sum<T>(this ReadOnlyMemory<T> source, Func<T, bool> predicate)
+            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            => Sum(source.Span, predicate);
     }
 }
