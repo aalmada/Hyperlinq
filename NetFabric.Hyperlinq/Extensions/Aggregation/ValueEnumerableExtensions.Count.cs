@@ -35,19 +35,51 @@ namespace NetFabric.Hyperlinq
         public static int Count<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            => source.Where(predicate).Count();
+        {
+            var count = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    count++;
+            }
+            return count;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Count<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<ArrayValueEnumerable<T>, ArrayValueEnumerable<T>.Enumerator, T>(source, predicate).Count();
+        {
+            var count = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    count++;
+            }
+            return count;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Count<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<ListValueEnumerable<T>, List<T>.Enumerator, T>(source, predicate).Count();
+        {
+            var count = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    count++;
+            }
+            return count;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Count<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<EnumerableValueEnumerable<T>, EnumerableValueEnumerable<T>.Enumerator, T>(source, predicate).Count();
+        {
+            var count = 0;
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    count++;
+            }
+            return count;
+        }
 
         public static int Count<TSource>(this WhereEnumerable<TSource> source)
         {

@@ -33,19 +33,47 @@ namespace NetFabric.Hyperlinq
         public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            => source.Where(predicate).Any();
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return true;
+            }
+            return false;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Any<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<ArrayValueEnumerable<T>, ArrayValueEnumerable<T>.Enumerator, T>(source, predicate).Any();
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return true;
+            }
+            return false;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Any<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<ListValueEnumerable<T>, List<T>.Enumerator, T>(source, predicate).Any();
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return true;
+            }
+            return false;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Any<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<EnumerableValueEnumerable<T>, EnumerableValueEnumerable<T>.Enumerator, T>(source, predicate).Any();
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return true;
+            }
+            return false;
+        }
 
         public static bool Any<TSource>(this WhereEnumerable<TSource> source)
         {

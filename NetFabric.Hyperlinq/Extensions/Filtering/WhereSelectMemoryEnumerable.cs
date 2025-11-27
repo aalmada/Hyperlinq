@@ -23,6 +23,9 @@ namespace NetFabric.Hyperlinq
             this.selector = selector ?? throw new ArgumentNullException(nameof(selector));
         }
 
+        internal ReadOnlyMemory<TSource> Source => source;
+        internal Func<TSource, bool> Predicate => predicate;
+
         public Enumerator GetEnumerator() => new Enumerator(source, predicate, selector);
         IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

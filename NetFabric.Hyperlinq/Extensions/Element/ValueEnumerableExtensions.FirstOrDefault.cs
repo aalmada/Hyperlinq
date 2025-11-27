@@ -27,7 +27,7 @@ namespace NetFabric.Hyperlinq
         public static TSource FirstOrDefault<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            => source.Where(predicate).FirstOrDefault();
+            => ValueEnumerableExtensions.FirstOrNone<TEnumerable, TEnumerator, TSource>(source, predicate).GetValueOrDefault();
 
         /// <summary>
         /// Returns the first element of a sequence that satisfies a specified condition, or a specified default value if the sequence contains no elements.
@@ -35,55 +35,31 @@ namespace NetFabric.Hyperlinq
         public static TSource FirstOrDefault<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate, TSource defaultValue)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            => source.Where(predicate).FirstOrDefault(defaultValue);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T FirstOrDefault<T>(this ArrayValueEnumerable<T> source)
-            => source.FirstOrNone().GetValueOrDefault();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T FirstOrDefault<T>(this ArrayValueEnumerable<T> source, T defaultValue)
-            => source.FirstOrNone().GetValueOrDefault(defaultValue);
+            => ValueEnumerableExtensions.FirstOrNone<TEnumerable, TEnumerator, TSource>(source, predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T FirstOrDefault<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.Where(predicate).FirstOrDefault();
+            => source.FirstOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T FirstOrDefault<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate, T defaultValue)
-            => source.Where(predicate).FirstOrDefault(defaultValue);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T FirstOrDefault<T>(this ListValueEnumerable<T> source)
-            => source.FirstOrNone().GetValueOrDefault();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T FirstOrDefault<T>(this ListValueEnumerable<T> source, T defaultValue)
-            => source.FirstOrNone().GetValueOrDefault(defaultValue);
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T FirstOrDefault<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.Where(predicate).FirstOrDefault();
+            => source.FirstOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T FirstOrDefault<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate, T defaultValue)
-            => source.Where(predicate).FirstOrDefault(defaultValue);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T FirstOrDefault<T>(this EnumerableValueEnumerable<T> source)
-            => source.FirstOrNone().GetValueOrDefault();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T FirstOrDefault<T>(this EnumerableValueEnumerable<T> source, T defaultValue)
-            => source.FirstOrNone().GetValueOrDefault(defaultValue);
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T FirstOrDefault<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<EnumerableValueEnumerable<T>, EnumerableValueEnumerable<T>.Enumerator, T>(source, predicate).FirstOrDefault();
+            => source.FirstOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T FirstOrDefault<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate, T defaultValue)
-            => ValueEnumerableExtensions.Where<EnumerableValueEnumerable<T>, EnumerableValueEnumerable<T>.Enumerator, T>(source, predicate).FirstOrDefault(defaultValue);
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
         public static TSource FirstOrDefault<TSource>(this WhereEnumerable<TSource> source)
             => source.FirstOrNone().GetValueOrDefault();

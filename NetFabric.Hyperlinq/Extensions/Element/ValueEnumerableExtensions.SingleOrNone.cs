@@ -74,20 +74,79 @@ namespace NetFabric.Hyperlinq
         public static Option<TSource> SingleOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            => ValueEnumerableExtensions.SingleOrNone<WhereEnumerable<TSource>, WhereEnumerable<TSource>.Enumerator, TSource>(
-                ValueEnumerableExtensions.Where<TEnumerable, TEnumerator, TSource>(source, predicate));
+        {
+            var found = false;
+            var result = default(TSource);
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                {
+                    if (found)
+                        throw new InvalidOperationException("Sequence contains more than one matching element");
+                    
+                    found = true;
+                    result = item;
+                }
+            }
+            return found ? Option<TSource>.Some(result!) : Option<TSource>.None();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> SingleOrNone<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.Where(predicate).SingleOrNone();
+        {
+            var found = false;
+            var result = default(T);
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                {
+                    if (found)
+                        throw new InvalidOperationException("Sequence contains more than one matching element");
+                    
+                    found = true;
+                    result = item;
+                }
+            }
+            return found ? Option<T>.Some(result!) : Option<T>.None();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> SingleOrNone<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.Where(predicate).SingleOrNone();
+        {
+            var found = false;
+            var result = default(T);
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                {
+                    if (found)
+                        throw new InvalidOperationException("Sequence contains more than one matching element");
+                    
+                    found = true;
+                    result = item;
+                }
+            }
+            return found ? Option<T>.Some(result!) : Option<T>.None();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> SingleOrNone<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<EnumerableValueEnumerable<T>, EnumerableValueEnumerable<T>.Enumerator, T>(source, predicate).SingleOrNone();
+        {
+            var found = false;
+            var result = default(T);
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                {
+                    if (found)
+                        throw new InvalidOperationException("Sequence contains more than one matching element");
+                    
+                    found = true;
+                    result = item;
+                }
+            }
+            return found ? Option<T>.Some(result!) : Option<T>.None();
+        }
 
         public static Option<TSource> SingleOrNone<TSource>(this WhereEnumerable<TSource> source)
         {

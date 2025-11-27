@@ -56,20 +56,47 @@ namespace NetFabric.Hyperlinq
         public static Option<TSource> FirstOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            => ValueEnumerableExtensions.FirstOrNone<WhereEnumerable<TSource>, WhereEnumerable<TSource>.Enumerator, TSource>(
-                ValueEnumerableExtensions.Where<TEnumerable, TEnumerator, TSource>(source, predicate));
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return Option<TSource>.Some(item);
+            }
+            return Option<TSource>.None();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> FirstOrNone<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.Where(predicate).FirstOrNone();
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return Option<T>.Some(item);
+            }
+            return Option<T>.None();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> FirstOrNone<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.Where(predicate).FirstOrNone();
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return Option<T>.Some(item);
+            }
+            return Option<T>.None();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Option<T> FirstOrNone<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            => ValueEnumerableExtensions.Where<EnumerableValueEnumerable<T>, EnumerableValueEnumerable<T>.Enumerator, T>(source, predicate).FirstOrNone();
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    return Option<T>.Some(item);
+            }
+            return Option<T>.None();
+        }
 
         public static Option<TSource> FirstOrNone<TSource>(this WhereEnumerable<TSource> source)
         {
