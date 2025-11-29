@@ -3,6 +3,7 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Configs;
 using System.Collections.Generic;
 using System.Linq;
+using NetFabric.Hyperlinq;
 
 namespace NetFabric.Hyperlinq.Benchmarks
 {
@@ -136,6 +137,94 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public int List_Hyperlinq_WhereSelectSum()
         {
             return list.Where(x => x % 2 == 0).Select(x => x * 2).Sum();  // Hyperlinq extensions
+        }
+
+        // ===== IEnumerable_Select =====
+
+        [BenchmarkCategory("IEnumerable_Select"), Benchmark(Baseline = true)]
+        public int IEnumerable_LINQ_Select()
+        {
+            var sum = 0;
+            foreach (var item in Enumerable.Select(enumerable, x => x * 2))
+                sum += item;
+            return sum;
+        }
+
+        [BenchmarkCategory("IEnumerable_Select"), Benchmark]
+        public int IEnumerable_Hyperlinq_Select()
+        {
+            var sum = 0;
+            foreach (var item in enumerable.AsValueEnumerable().Select(x => x * 2))
+                sum += item;
+            return sum;
+        }
+
+        // ===== IEnumerable_Where =====
+
+        [BenchmarkCategory("IEnumerable_Where"), Benchmark(Baseline = true)]
+        public int IEnumerable_LINQ_Where()
+        {
+            var sum = 0;
+            foreach (var item in Enumerable.Where(enumerable, x => x % 2 == 0))
+                sum += item;
+            return sum;
+        }
+
+        [BenchmarkCategory("IEnumerable_Where"), Benchmark]
+        public int IEnumerable_Hyperlinq_Where()
+        {
+            var sum = 0;
+            foreach (var item in enumerable.AsValueEnumerable().Where(x => x % 2 == 0))
+                sum += item;
+            return sum;
+        }
+
+        // ===== IEnumerable_WhereSelect =====
+
+        [BenchmarkCategory("IEnumerable_WhereSelect"), Benchmark(Baseline = true)]
+        public int IEnumerable_LINQ_WhereSelect()
+        {
+            var sum = 0;
+            foreach (var item in Enumerable.Select(Enumerable.Where(enumerable, x => x % 2 == 0), x => x * 2))
+                sum += item;
+            return sum;
+        }
+
+        [BenchmarkCategory("IEnumerable_WhereSelect"), Benchmark]
+        public int IEnumerable_Hyperlinq_WhereSelect()
+        {
+            var sum = 0;
+            foreach (var item in enumerable.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2))
+                sum += item;
+            return sum;
+        }
+
+        // ===== IEnumerable_Count =====
+
+        [BenchmarkCategory("IEnumerable_Count"), Benchmark(Baseline = true)]
+        public int IEnumerable_LINQ_Count()
+        {
+            return Enumerable.Count(enumerable);
+        }
+
+        [BenchmarkCategory("IEnumerable_Count"), Benchmark]
+        public int IEnumerable_Hyperlinq_Count()
+        {
+            return enumerable.AsValueEnumerable().Count();
+        }
+
+        // ===== IEnumerable_Any =====
+
+        [BenchmarkCategory("IEnumerable_Any"), Benchmark(Baseline = true)]
+        public bool IEnumerable_LINQ_Any()
+        {
+            return Enumerable.Any(enumerable);
+        }
+
+        [BenchmarkCategory("IEnumerable_Any"), Benchmark]
+        public bool IEnumerable_Hyperlinq_Any()
+        {
+            return enumerable.AsValueEnumerable().Any();
         }
     }
 }

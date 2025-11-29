@@ -18,9 +18,9 @@ public class SpanSelectTests
         var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.Select(x => x * 2);
-        var linqResult = array.Select(x => x * 2);
+        var linqResult = Enumerable.Select(array, x => x * 2);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -35,7 +35,7 @@ public class SpanSelectTests
         result.Count().Must().BeEqualTo(array.Length);
     }
     
-
+    
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
@@ -44,9 +44,9 @@ public class SpanSelectTests
         var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.Select(x => x.ToString());
-        var linqResult = array.Select(x => x.ToString());
+        var linqResult = Enumerable.Select(array, x => x.ToString());
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<string>()
             .EvaluateTrue(e => e.SequenceEqual(linqResult));
     }
@@ -60,7 +60,7 @@ public class SpanSelectTests
         var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.Select(x => x * 3);
-        var linqResult = list.Select(x => x * 3);
+        var linqResult = Enumerable.Select(list, x => x * 3);
         
         hyperlinqResult.Must()
             .BeEnumerableOf<int>()
@@ -89,7 +89,7 @@ public class SpanSelectTests
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var hyperlinqResult = memory.Select(x => x + 10);
-        var linqResult = array.Select(x => x + 10);
+        var linqResult = Enumerable.Select(array, x => x + 10);
         
         hyperlinqResult.Must()
             .BeEnumerableOf<int>()
@@ -108,11 +108,9 @@ public class SpanSelectTests
             .Where(x => x % 2 == 0)
             .Select(x => x * 10);
         
-        var linqResult = array
-            .Where(x => x % 2 == 0)
-            .Select(x => x * 10);
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 10);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -127,9 +125,7 @@ public class SpanSelectTests
             .Where(x => x > 4)
             .Select(x => x * 2);
         
-        var linqResult = list
-            .Where(x => x > 4)
-            .Select(x => x * 2);
+        var linqResult = Enumerable.Select(Enumerable.Where(list, x => x > 4), x => x * 2);
         
         hyperlinqResult.Must()
             .BeEnumerableOf<int>()
@@ -146,9 +142,7 @@ public class SpanSelectTests
             .Where(x => x > 10)
             .Select(x => x * 2);
         
-        var linqResult = array
-            .Where(x => x > 10)
-            .Select(x => x * 2);
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x > 10), x => x * 2);
         
         hyperlinqResult.Count().Must().BeEqualTo(linqResult.Count());
     }
@@ -163,9 +157,7 @@ public class SpanSelectTests
             .Where(x => x > 1000)
             .Select(x => x * 2);
         
-        var linqResult = array
-            .Where(x => x > 1000)
-            .Select(x => x * 2);
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x > 1000), x => x * 2);
         
         hyperlinqResult.Any().Must().BeEqualTo(linqResult.Any());
     }
@@ -178,9 +170,9 @@ public class SpanSelectTests
         var array = new double[] { 1.5, 2.5, 3.5 };
         
         var hyperlinqResult = array.Select(x => x * 2.0);
-        var linqResult = array.Select(x => x * 2.0);
+        var linqResult = Enumerable.Select(array, x => x * 2.0);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<double>()
             .BeEqualTo(linqResult);
     }
@@ -191,7 +183,7 @@ public class SpanSelectTests
         var list = new List<string> { "a", "b", "c" };
         
         var hyperlinqResult = list.Select(x => x.ToUpper());
-        var linqResult = list.Select(x => x.ToUpper());
+        var linqResult = Enumerable.Select(list, x => x.ToUpper());
         
         hyperlinqResult.Must()
             .BeEnumerableOf<string>()
@@ -206,11 +198,11 @@ public class SpanSelectTests
         var array = new int[] { 1, 2, 3, 4, 5 };
         
         var hyperlinqResult = array.Select(x => new { Value = x, Squared = x * x });
-        var linqResult = array.Select(x => new { Value = x, Squared = x * x });
+        var linqResult = Enumerable.Select(array, x => new { Value = x, Squared = x * x });
         
         hyperlinqResult.Count().Must().BeEqualTo(linqResult.Count());
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<object>()
             .EvaluateTrue(e => e.Zip(linqResult).All(pair => 
                 pair.First.Value == pair.Second.Value && 

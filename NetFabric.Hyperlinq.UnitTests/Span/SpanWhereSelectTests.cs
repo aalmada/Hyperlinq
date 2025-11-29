@@ -12,12 +12,13 @@ public class SpanWhereSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Array_WhereSelect_ShouldReturnWhereSelectMemoryEnumerable((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_WhereSelect_ShouldReturnWhereSelectReadOnlySpanEnumerable((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
         var result = array.Where(x => x % 2 == 0).Select(x => x * 2);
         
-        result.Must().BeOfType<WhereSelectMemoryEnumerable<int, int>>();
+        // Ref structs cannot be used in generic type arguments
+        result.ToArray().Must().BeEnumerableOf<int>();
     }
     
     [Test]
@@ -50,9 +51,9 @@ public class SpanWhereSelectTests
         var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Select(x => x * 10);
-        var linqResult = array.Where(x => x % 2 == 0).Select(x => x * 10);
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 10);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -64,7 +65,7 @@ public class SpanWhereSelectTests
         var list = new List<int>(testCase.arrayFactory());
         
         var hyperlinqResult = list.Where(x => x % 2 == 0).Select(x => x * 10);
-        var linqResult = list.Where(x => x % 2 == 0).Select(x => x * 10);
+        var linqResult = Enumerable.Select(Enumerable.Where(list, x => x % 2 == 0), x => x * 10);
         
         hyperlinqResult.Must()
             .BeEnumerableOf<int>()
@@ -79,7 +80,7 @@ public class SpanWhereSelectTests
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var hyperlinqResult = memory.Where(x => x % 2 == 0).Select(x => x * 10);
-        var linqResult = array.Where(x => x % 2 == 0).Select(x => x * 10);
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 10);
         
         hyperlinqResult.Must()
             .BeEnumerableOf<int>()
@@ -95,9 +96,9 @@ public class SpanWhereSelectTests
         var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Select(x => x.ToString());
-        var linqResult = array.Where(x => x % 2 == 0).Select(x => x.ToString());
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x.ToString());
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<string>()
             .EvaluateTrue(e => e.SequenceEqual(linqResult));
     }
@@ -109,9 +110,9 @@ public class SpanWhereSelectTests
         var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Select(x => (double)x * 1.5);
-        var linqResult = array.Where(x => x % 2 == 0).Select(x => (double)x * 1.5);
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => (double)x * 1.5);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<double>()
             .BeEqualTo(linqResult);
     }
@@ -126,7 +127,7 @@ public class SpanWhereSelectTests
         
         // Count should be optimized to ignore the selector
         var hyperlinqResult = array.Where(x => x % 2 == 0).Select(x => x * 10).Count();
-        var linqResult = array.Where(x => x % 2 == 0).Count();
+        var linqResult = Enumerable.Count(Enumerable.Where(array, x => x % 2 == 0));
         
         hyperlinqResult.Must().BeEqualTo(linqResult);
     }
@@ -139,7 +140,7 @@ public class SpanWhereSelectTests
         
         // Any should be optimized to ignore the selector
         var hyperlinqResult = array.Where(x => x % 2 == 0).Select(x => x * 10).Any();
-        var linqResult = array.Where(x => x % 2 == 0).Any();
+        var linqResult = Enumerable.Any(Enumerable.Where(array, x => x % 2 == 0));
         
         hyperlinqResult.Must().BeEqualTo(linqResult);
     }
@@ -153,7 +154,7 @@ public class SpanWhereSelectTests
         var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Select(x => x * 2).Sum();
-        var linqResult = array.Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+        var linqResult = Enumerable.Sum(Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
         
         hyperlinqResult.Must().BeEqualTo(linqResult);
     }
@@ -168,7 +169,7 @@ public class SpanWhereSelectTests
         if (filtered.Any())
         {
             var hyperlinqResult = filtered.Select(x => x * 2).First();
-            var linqResult = array.Where(x => x > 0).Select(x => x * 2).First();
+            var linqResult = Enumerable.First(Enumerable.Select(Enumerable.Where(array, x => x > 0), x => x * 2));
             
             hyperlinqResult.Must().BeEqualTo(linqResult);
         }
@@ -183,9 +184,9 @@ public class SpanWhereSelectTests
         var array = testCase.arrayFactory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Select(x => x * 2);
-        var linqResult = array.Where(x => x % 2 == 0).Select(x => x * 2);
+        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 2);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }

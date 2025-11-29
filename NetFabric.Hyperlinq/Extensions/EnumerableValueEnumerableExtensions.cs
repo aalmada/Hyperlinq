@@ -10,6 +10,17 @@ namespace NetFabric.Hyperlinq
             where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Sum()
+            {
+                var sum = T.AdditiveIdentity;
+                foreach (var item in source)
+                {
+                    sum += item;
+                }
+                return sum;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T Sum(Func<T, bool> predicate)
             {
                 var sum = T.AdditiveIdentity;
@@ -123,6 +134,14 @@ namespace NetFabric.Hyperlinq
                 }
                 return found ? Option<T>.Some(result!) : Option<T>.None();
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public SelectEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
+                => new SelectEnumerable<T, TResult>(source.Source, selector);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereEnumerable<T> Where(Func<T, bool> predicate)
+                => new WhereEnumerable<T>(source.Source, predicate);
         }
     }
 }

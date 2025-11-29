@@ -94,6 +94,14 @@ namespace NetFabric.Hyperlinq
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public SelectReadOnlySpanEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
+                => new SelectReadOnlySpanEnumerable<T, TResult>(source, selector);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereReadOnlySpanEnumerable<T> Where(Func<T, bool> predicate)
+                => new WhereReadOnlySpanEnumerable<T>(source, predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T Single()
                 => source.SingleOrNone().Value;
 

@@ -130,6 +130,32 @@ namespace NetFabric.Hyperlinq
                 }
                 return found ? Option<T>.Some(result!) : Option<T>.None();
             }
+
+            /// <summary>
+            /// Returns the last element of a sequence.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Last()
+            {
+                if (source.Count == 0)
+                    throw new InvalidOperationException("Sequence contains no elements");
+                return source.Source[^1];
+            }
+
+            /// <summary>
+            /// Returns the last element that satisfies a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Last(Func<T, bool> predicate)
+            {
+                var array = source.Source;
+                for (var index = array.Length - 1; index >= 0; index--)
+                {
+                    if (predicate(array[index]))
+                        return array[index];
+                }
+                throw new InvalidOperationException("Sequence contains no matching element");
+            }
         }
     }
 }

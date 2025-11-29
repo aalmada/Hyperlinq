@@ -17,6 +17,8 @@ namespace NetFabric.Hyperlinq
             this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
 
+        internal IEnumerable<T> Source => source;
+
         public Enumerator GetEnumerator() => new Enumerator(source.GetEnumerator());
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => source.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => source.GetEnumerator();

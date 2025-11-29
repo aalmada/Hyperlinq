@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using System.Collections.Generic;
 using System.Linq;
+using NetFabric.Hyperlinq;
 
 namespace NetFabric.Hyperlinq.Benchmarks
 {
