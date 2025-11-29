@@ -32,7 +32,7 @@ public class SpanSelectTests
         var array = testCase.arrayFactory();
         var result = array.Select(x => x * 2);
         
-        result.Count.Must().BeEqualTo(array.Length);
+        result.Count().Must().BeEqualTo(array.Length);
     }
     
 
@@ -74,7 +74,7 @@ public class SpanSelectTests
         var list = new List<int>(testCase.arrayFactory());
         var result = list.Select(x => x / 10);
         
-        result.Count.Must().BeEqualTo(list.Count);
+        result.Count().Must().BeEqualTo(list.Count);
     }
     
 

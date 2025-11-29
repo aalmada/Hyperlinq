@@ -45,67 +45,6 @@ namespace NetFabric.Hyperlinq
             return count;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Count<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-        {
-            var count = 0;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    count++;
-            }
-            return count;
-        }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Count<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-        {
-            var count = 0;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    count++;
-            }
-            return count;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Count<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-        {
-            var count = 0;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    count++;
-            }
-            return count;
-        }
-
-        public static int Count<TSource>(this WhereEnumerable<TSource> source)
-        {
-            var count = 0;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-                count++;
-            return count;
-        }
-
-        public static int Count<TSource>(this WhereMemoryEnumerable<TSource> source)
-        {
-            var count = 0;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-                count++;
-            return count;
-        }
-
-        public static int Count<TSource>(this WhereListEnumerable<TSource> source)
-        {
-            var count = 0;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-                count++;
-            return count;
-        }
     }
 }

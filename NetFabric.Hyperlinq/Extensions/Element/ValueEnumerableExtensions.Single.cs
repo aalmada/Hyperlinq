@@ -22,25 +22,6 @@ namespace NetFabric.Hyperlinq
             where TEnumerator : struct, IEnumerator<TSource>
             => ValueEnumerableExtensions.SingleOrNone<TEnumerable, TEnumerator, TSource>(source, predicate).Value;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Single<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.SingleOrNone(predicate).Value;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Single<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.SingleOrNone(predicate).Value;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Single<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.SingleOrNone(predicate).Value;
-
-        public static TSource Single<TSource>(this WhereEnumerable<TSource> source)
-            => source.SingleOrNone().Value;
-
-        public static TSource Single<TSource>(this WhereMemoryEnumerable<TSource> source)
-            => source.SingleOrNone().Value;
-
-        public static TSource Single<TSource>(this WhereListEnumerable<TSource> source)
-            => source.SingleOrNone().Value;
     }
 }

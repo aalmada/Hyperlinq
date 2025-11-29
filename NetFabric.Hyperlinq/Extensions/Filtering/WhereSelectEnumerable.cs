@@ -20,38 +20,12 @@ namespace NetFabric.Hyperlinq
             this.selector = selector ?? throw new ArgumentNullException(nameof(selector));
         }
 
+        internal IEnumerable<TSource> Source => source;
+        internal Func<TSource, bool> Predicate => predicate;
+
         public Enumerator GetEnumerator() => new Enumerator(source.GetEnumerator(), predicate, selector);
         IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        /// <summary>
-        /// Returns the number of elements that satisfy the predicate.
-        /// Optimized to ignore the selector since Count doesn't need projected values.
-        /// </summary>
-        public int Count()
-        {
-            var count = 0;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    count++;
-            }
-            return count;
-        }
-
-        /// <summary>
-        /// Determines whether any element satisfies the predicate.
-        /// Optimized to ignore the selector since Any doesn't need projected values.
-        /// </summary>
-        public bool Any()
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    return true;
-            }
-            return false;
-        }
 
         public struct Enumerator : IEnumerator<TResult>
         {

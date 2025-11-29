@@ -51,53 +51,6 @@ namespace NetFabric.Hyperlinq
             return sum;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Sum<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        {
-            var sum = T.AdditiveIdentity;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    sum += item;
-            }
-            return sum;
-        }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Sum<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        {
-            var sum = T.AdditiveIdentity;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    sum += item;
-            }
-            return sum;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Sum<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
-        {
-            var sum = T.AdditiveIdentity;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    sum += item;
-            }
-            return sum;
-        }
-
-        public static TSource Sum<TSource>(this WhereEnumerable<TSource> source)
-            where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
-        {
-            var sum = TSource.AdditiveIdentity;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-                sum += enumerator.Current;
-            return sum;
-        }
     }
 }

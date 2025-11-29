@@ -17,18 +17,6 @@ namespace NetFabric.Hyperlinq
             return new WhereEnumerable<TSource>(source, predicate);
         }
 
-        public static WhereMemoryEnumerable<TSource> Where<TSource>(
-            this ArrayValueEnumerable<TSource> source,
-            Func<TSource, bool> predicate)
-        {
-            return new WhereMemoryEnumerable<TSource>(source.Source, predicate);
-        }
 
-        public static WhereListEnumerable<TSource> Where<TSource>(
-            this ListValueEnumerable<TSource> source,
-            Func<TSource, bool> predicate)
-        {
-            return new WhereListEnumerable<TSource>(source.Source, predicate);
-        }
     }
 }

@@ -21,6 +21,9 @@ namespace NetFabric.Hyperlinq
             this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
+        internal List<TSource> Source => source;
+        internal Func<TSource, bool> Predicate => predicate;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public WhereSelectListEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
             => new WhereSelectListEnumerable<TSource, TResult>(source, predicate, selector);

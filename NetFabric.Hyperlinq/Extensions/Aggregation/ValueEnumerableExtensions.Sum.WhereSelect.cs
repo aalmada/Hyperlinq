@@ -15,7 +15,7 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Sum<TSource, TResult>(this WhereSelectMemoryEnumerable<TSource, TResult> source)
             where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
-            => SpanExtensions.Sum(source.Source.Span, source.Predicate);
+            => source.Source.Span.Sum(source.Predicate);
 
         /// <summary>
         /// Optimized Sum for WhereSelectListEnumerable - iterates source with predicate only.
@@ -25,7 +25,7 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Sum<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
             where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
-            => SpanExtensions.Sum(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source), source.Predicate);
+            => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source).Sum(source.Predicate);
 
     }
 }

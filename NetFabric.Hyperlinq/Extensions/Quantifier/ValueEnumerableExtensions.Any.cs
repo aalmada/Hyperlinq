@@ -42,55 +42,6 @@ namespace NetFabric.Hyperlinq
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Any<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    return true;
-            }
-            return false;
-        }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Any<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    return true;
-            }
-            return false;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Any<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    return true;
-            }
-            return false;
-        }
-
-        public static bool Any<TSource>(this WhereEnumerable<TSource> source)
-        {
-            using var enumerator = source.GetEnumerator();
-            return enumerator.MoveNext();
-        }
-
-        public static bool Any<TSource>(this WhereMemoryEnumerable<TSource> source)
-        {
-            using var enumerator = source.GetEnumerator();
-            return enumerator.MoveNext();
-        }
-
-        public static bool Any<TSource>(this WhereListEnumerable<TSource> source)
-        {
-            using var enumerator = source.GetEnumerator();
-            return enumerator.MoveNext();
-        }
     }
 }

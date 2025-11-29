@@ -21,6 +21,9 @@ namespace NetFabric.Hyperlinq
             this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
+        internal ReadOnlyMemory<TSource> Source => source;
+        internal Func<TSource, bool> Predicate => predicate;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public WhereSelectMemoryEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
             => new WhereSelectMemoryEnumerable<TSource, TResult>(source, predicate, selector);

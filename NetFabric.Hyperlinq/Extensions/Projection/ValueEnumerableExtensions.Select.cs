@@ -29,24 +29,6 @@ namespace NetFabric.Hyperlinq
             return new SelectCollectionEnumerable<TEnumerator, TSource, TResult>(source, selector);
         }
 
-        /// <summary>
-        /// Projects each element of a list into a new form.
-        /// </summary>
-        public static SelectListEnumerable<TSource, TResult> Select<TSource, TResult>(
-            this ListValueEnumerable<TSource> source,
-            Func<TSource, TResult> selector)
-        {
-            return new SelectListEnumerable<TSource, TResult>(source.Source, selector);
-        }
 
-        /// <summary>
-        /// Projects each element of an array into a new form.
-        /// </summary>
-        public static SelectArrayEnumerable<TSource, TResult> Select<TSource, TResult>(
-            this ArrayValueEnumerable<TSource> source,
-            Func<TSource, TResult> selector)
-        {
-            return new SelectArrayEnumerable<TSource, TResult>(source.Source, selector);
-        }
     }
 }

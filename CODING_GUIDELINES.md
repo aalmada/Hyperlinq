@@ -222,6 +222,30 @@ public readonly struct WhereSelectEnumerable<TSource, TResult>
 - Faster for expensive projections
 - Maintains fusion advantages
 
+### 3.6 Extension Methods vs Instance Methods
+
+Prefer **Extension Methods** over Instance Methods for operations (like `Count`, `Any`, `Sum`, `First`, etc.).
+
+**Why?**
+1.  **Generic Constraints:** Operations like `Sum` often require specific constraints (e.g., `where T : INumber`) that cannot be applied to instance methods of a generic struct without constraining the entire struct. Extension methods allow applying constraints only to the specific operation.
+2.  **Separation of Concerns:** Keeps the struct definition focused on data and iteration logic. Operations are separated into their own files, preventing "God Objects".
+3.  **Consistency:** Since some operations *must* be extensions (due to constraints), making all operations extensions provides a consistent API implementation style.
+
+**Example:**
+```csharp
+// ❌ BAD: Instance method for operation
+public readonly struct WhereSelectEnumerable<T>
+{
+    public int Count() { /* ... */ }
+}
+
+// ✅ GOOD: Extension method
+public static class ValueEnumerableExtensions
+{
+    public static int Count<T>(this WhereSelectEnumerable<T> source) { /* ... */ }
+}
+```
+
 
 ---
 

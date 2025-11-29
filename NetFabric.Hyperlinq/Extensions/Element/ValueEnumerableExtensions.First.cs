@@ -22,25 +22,6 @@ namespace NetFabric.Hyperlinq
             where TEnumerator : struct, IEnumerator<TSource>
             => ValueEnumerableExtensions.FirstOrNone<TEnumerable, TEnumerator, TSource>(source, predicate).Value;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T First<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.FirstOrNone(predicate).Value;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T First<T>(this ListValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.FirstOrNone(predicate).Value;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T First<T>(this EnumerableValueEnumerable<T> source, Func<T, bool> predicate)
-            => source.FirstOrNone(predicate).Value;
-
-        public static TSource First<TSource>(this WhereEnumerable<TSource> source)
-            => source.FirstOrNone().Value;
-
-        public static TSource First<TSource>(this WhereMemoryEnumerable<TSource> source)
-            => source.FirstOrNone().Value;
-
-        public static TSource First<TSource>(this WhereListEnumerable<TSource> source)
-            => source.FirstOrNone().Value;
     }
 }
