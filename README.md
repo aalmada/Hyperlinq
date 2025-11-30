@@ -1,54 +1,114 @@
 # NetFabric.Hyperlinq
 
-High‑performance LINQ‑style operations using value‑type enumerables and span‑based extensions with zero allocations.
+High-performance LINQ-style operations using value-type enumerables and span-based extensions with **zero allocations**.
 
-## Quick Start
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## ✨ Features
+
+- ✅ **Zero Allocations** - Span-based operations with ref struct enumerators
+- ✅ **SIMD Optimization** - Vectorized operations for numeric types
+- ✅ **Generic Math** - `Sum()` works with any numeric type (int, double, BigInteger, etc.)
+- ✅ **Operation Fusion** - Automatic fusion of `Where().Select().Sum()` chains
+- ✅ **Roslyn Analyzer** - Suggests optimizations automatically
+
+## 🚀 Quick Start
+
+### Installation
 ```bash
 dotnet add package NetFabric.Hyperlinq
 ```
+
+### Basic Usage
 ```csharp
-using NetFabric.Hyperlinq; // required for List<T> and contiguous memory types (array, Span<T>, Memory<T>)
+using NetFabric.Hyperlinq; // Required for arrays, spans, memory, and List<T>
 
 int[] numbers = { 1, 2, 3, 4, 5 };
-var sum = numbers.Sum();               // SIMD‑optimized, works for any numeric type supporting generic math
-var listSum = new List<int>{1,2,3}.Sum(); // zero‑copy via CollectionsMarshal
-```
-> **Note**: For `IEnumerable<T>` sources (e.g., custom collections) you must call `.AsValueEnumerable()` first. The built‑in Roslyn analyzer will suggest this automatically.
+var sum = numbers.Sum();  // SIMD-optimized, zero allocations
 
-## Supported Types
-| Type | Usage |
-|------|-------|
-| `T[]` | Direct `using NetFabric.Hyperlinq;` – fastest |
-| `Span<T>` / `ReadOnlySpan<T>` | Direct `using NetFabric.Hyperlinq;` |
-| `Memory<T>` / `ReadOnlyMemory<T>` | Direct `using NetFabric.Hyperlinq;` |
-| `List<T>` | Direct `using NetFabric.Hyperlinq;` – zero‑copy via `CollectionsMarshal` |
-| `IEnumerable<T>` | Call `.AsValueEnumerable()` (analyzer can add it) |
-
-## Aggregation – `Sum`
-`Sum()` works with any type that implements `IAdditionOperators<T, T, T>` and `IAdditiveIdentity<T, T>` (generic math). No extra overloads are needed.
-```csharp
-double[] d = { 1.5, 2.5, 3.5 };
-var dSum = d.Sum(); // 7.5
-
-BigInteger[] big = { new BigInteger(1), new BigInteger(2) };
-var bigSum = big.Sum(); // 3
+// For IEnumerable<T>, use AsValueEnumerable()
+IEnumerable<int> enumerable = GetNumbers();
+var result = enumerable.AsValueEnumerable()
+    .Where(x => x > 0)
+    .Select(x => x * 2)
+    .Sum();  // Fused into single pass!
 ```
 
-## Analyzer & Code Fix
-The Roslyn analyzer detects when a source can be wrapped with `AsValueEnumerable()` and offers a one‑click fix.
-```csharp
-var list = new List<int>{1,2,3};
-var result = list.Where(x => x > 1); // ⚠️ NFHYPERLINQ001 – suggest AsValueEnumerable()
-// After fix:
-var result = list.AsValueEnumerable().Where(x => x > 1);
-```
+## 📊 Performance
 
-## Documentation
-* **[CODING_GUIDELINES.md](CODING_GUIDELINES.md)** – Architecture, patterns, and standards
-* **[OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md)** – Low-level performance techniques
+Compared to standard LINQ:
+- **50-55% faster** for `IEnumerable` Where/WhereSelect operations
+- **26% faster** for Sum operations on arrays/lists
+- **Up to 75% less memory** allocated
 
-## Contributing
-Contributions are welcome! Please read the guidelines linked above before submitting PRs.
+See [benchmarks](docs/benchmarks/) for detailed results.
+
+## 🎯 Supported Types
+
+| Type | Usage | Performance |
+|------|-------|-------------|
+| `T[]` | Direct | Fastest - SIMD optimized |
+| `Span<T>` / `ReadOnlySpan<T>` | Direct | Zero allocations |
+| `Memory<T>` / `ReadOnlyMemory<T>` | Direct | Zero allocations |
+| `List<T>` | Direct | Zero-copy via `CollectionsMarshal` |
+| `IEnumerable<T>` | `.AsValueEnumerable()` | Struct enumerators |
+
+## 📚 Documentation
+
+- **[Getting Started](docs/getting-started/)** - Installation and quick start
+- **[Guides](docs/guides/)** - In-depth usage guides
+  - [Fusion Operations](docs/guides/fusion-operations.md)
+- **[Architecture](docs/architecture/)** - Design principles and internals
+- **[API Reference](docs/api/)** - Complete API documentation
+- **[Benchmarks](docs/benchmarks/)** - Performance benchmarks
+
+## 🛠️ Contributing
+
+Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md) and check out the [development guidelines](docs/contributing/).
+
+### Development Guidelines
+- [Coding Guidelines](docs/contributing/coding-guidelines.md)
+- [First/Single Rules](docs/contributing/first-single-rules.md)
+- [Optimization Guidelines](docs/contributing/optimization-guidelines.md)
+- [Testing Guidelines](docs/contributing/testing-guidelines.md)
+
+## 🔧 Requirements
+
+- .NET 10 or later
+- C# 14 language features
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2025 Antão Almada
 
 ---
-© 2025 NetFabric – MIT License
+
+## 🌟 Examples
+
+### Generic Math Support
+```csharp
+using System.Numerics;
+
+// Works with any numeric type!
+double[] doubles = { 1.5, 2.5, 3.5 };
+var doubleSum = doubles.Sum(); // 7.5
+
+BigInteger[] bigInts = { new(1), new(2), new(3) };
+var bigSum = bigInts.Sum(); // 6
+```
+
+### Roslyn Analyzer
+The analyzer automatically suggests optimizations:
+```csharp
+var list = new List<int> { 1, 2, 3 };
+var result = list.Where(x => x > 1); // ⚠️ Analyzer suggests: Use AsValueEnumerable()
+
+// After fix:
+var result = list.AsValueEnumerable().Where(x => x > 1); // ✅ Optimized!
+```
+
+---
+
+**Built with ❤️ for high-performance .NET applications**
