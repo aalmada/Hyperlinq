@@ -13,9 +13,18 @@ namespace NetFabric.Hyperlinq
         /// Delegates to SpanExtensions.Sum for implementation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource Sum<TSource, TResult>(this WhereSelectMemoryEnumerable<TSource, TResult> source)
-            where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
-            => source.Source.Span.Sum(source.Predicate);
+        public static TResult Sum<TSource, TResult>(this WhereSelectMemoryEnumerable<TSource, TResult> source)
+            where TResult : IAdditionOperators<TResult, TResult, TResult>, IAdditiveIdentity<TResult, TResult>
+        {
+            var sum = TResult.AdditiveIdentity;
+            var span = source.Source.Span;
+            for (var index = 0; index < span.Length; index++)
+            {
+                if (source.Predicate(span[index]))
+                    sum += source.Selector(span[index]);
+            }
+            return sum;
+        }
 
         /// <summary>
         /// Optimized Sum for WhereSelectListEnumerable - iterates source with predicate only.
@@ -23,9 +32,18 @@ namespace NetFabric.Hyperlinq
         /// Delegates to SpanExtensions.Sum for implementation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource Sum<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
-            where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
-            => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source).Sum(source.Predicate);
+        public static TResult Sum<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
+            where TResult : IAdditionOperators<TResult, TResult, TResult>, IAdditiveIdentity<TResult, TResult>
+        {
+            var sum = TResult.AdditiveIdentity;
+            var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source);
+            for (var index = 0; index < span.Length; index++)
+            {
+                if (source.Predicate(span[index]))
+                    sum += source.Selector(span[index]);
+            }
+            return sum;
+        }
 
     }
 }

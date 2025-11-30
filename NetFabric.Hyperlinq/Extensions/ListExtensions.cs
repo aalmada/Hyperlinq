@@ -127,13 +127,6 @@ namespace NetFabric.Hyperlinq
                 => CollectionsMarshal.AsSpan(source).Last(predicate);
 
             /// <summary>
-            /// Projects each element into a new form.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SelectListEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
-                => new SelectListEnumerable<T, TResult>(source, selector);
-
-            /// <summary>
             /// Returns the only element of a sequence.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -188,13 +181,6 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Option<T> SingleOrNone(Func<T, bool> predicate)
                 => CollectionsMarshal.AsSpan(source).SingleOrNone(predicate);
-
-            /// <summary>
-            /// Filters elements based on a predicate.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public WhereListEnumerable<T> Where(Func<T, bool> predicate)
-                => new WhereListEnumerable<T>(source, predicate);
         }
     }
 }

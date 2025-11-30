@@ -56,7 +56,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public int Array_LINQ_WhereSelect()
         {
             var sum = 0;
-            foreach (var item in array.Where(x => x % 2 == 0).Select(x => x * 2))
+            foreach (var item in Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 2))
                 sum += item;
             return sum;
         }
@@ -65,7 +65,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public int Array_Hyperlinq_WhereSelect()
         {
             var sum = 0;
-            foreach (var item in array.Where(x => x % 2 == 0).Select(x => x * 2))  // Uses WhereSelectMemoryEnumerable
+            foreach (var item in array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2))  // Uses WhereSelectMemoryEnumerable
                 sum += item;
             return sum;
         }
@@ -96,7 +96,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public int List_LINQ_WhereSelect()
         {
             var sum = 0;
-            foreach (var item in list.Where(x => x % 2 == 0).Select(x => x * 2))
+            foreach (var item in Enumerable.Select(Enumerable.Where(list, x => x % 2 == 0), x => x * 2))
                 sum += item;
             return sum;
         }
@@ -105,7 +105,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public int List_Hyperlinq_WhereSelect()
         {
             var sum = 0;
-            foreach (var item in list.Where(x => x % 2 == 0).Select(x => x * 2))  // Uses WhereSelectListEnumerable
+            foreach (var item in list.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2))  // Uses WhereSelectListEnumerable
                 sum += item;
             return sum;
         }
@@ -143,7 +143,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("Array_WhereSum"), Benchmark(Baseline = true)]
         public int Array_LINQ_WhereSum()
         {
-            return array.Where(x => x % 2 == 0).Sum();
+            return Enumerable.Sum(Enumerable.Where(array, x => x % 2 == 0));
         }
 
         [BenchmarkCategory("Array_WhereSum"), Benchmark]
@@ -157,7 +157,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("List_WhereSum"), Benchmark(Baseline = true)]
         public int List_LINQ_WhereSum()
         {
-            return list.Where(x => x % 2 == 0).Sum();
+            return Enumerable.Sum(Enumerable.Where(list, x => x % 2 == 0));
         }
 
         [BenchmarkCategory("List_WhereSum"), Benchmark]

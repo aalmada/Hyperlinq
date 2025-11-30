@@ -18,7 +18,7 @@ public class AsValueEnumerableChainingTests
                                   .Where(x => x % 2 == 0)
                                   .Select(x => x * 10);
         
-        var linqResult = list.Where(x => x % 2 == 0)
+        var linqResult = list.AsValueEnumerable().Where(x => x % 2 == 0)
                              .Select(x => x * 10);
         
         hyperlinqResult.Must()

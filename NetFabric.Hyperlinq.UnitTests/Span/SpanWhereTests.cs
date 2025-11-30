@@ -33,7 +33,7 @@ public class SpanWhereTests
         var hyperlinqResult = list.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(list, x => x % 2 == 0);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -94,16 +94,7 @@ public class SpanWhereTests
         result.ToArray().Must().BeEnumerableOf<int>();
     }
     
-    [Test]
-    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Where_ShouldReturnWhereListEnumerable((Func<int[]> arrayFactory, string description) testCase)
-    {
-        var list = new List<int>(testCase.arrayFactory());
-        var result = list.Where(x => x % 2 == 0);
-        
-        result.Must().BeOfType<WhereListEnumerable<int>>();
-    }
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
     public void Memory_Where_ShouldReturnWhereMemoryEnumerable((Func<int[]> arrayFactory, string description) testCase)

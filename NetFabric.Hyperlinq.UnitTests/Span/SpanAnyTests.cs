@@ -38,8 +38,8 @@ public class SpanAnyTests
     {
         var list = new List<int>(testCase.arrayFactory());
         
-        var hyperlinqResult = list.Where(x => x % 2 == 0).Any();
-        var linqResult = list.Where(x => x % 2 == 0).Any();
+        var hyperlinqResult = list.AsValueEnumerable().Where(x => x % 2 == 0).Any();
+        var linqResult = list.AsValueEnumerable().Where(x => x % 2 == 0).Any();
         
         hyperlinqResult.Must().BeEqualTo(linqResult);
     }

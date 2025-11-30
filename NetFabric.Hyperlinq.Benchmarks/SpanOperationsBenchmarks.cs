@@ -104,7 +104,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public int Span_WhereSelect_Hyperlinq_Array()
         {
             var sum = 0;
-            foreach (var item in array.Where(x => x % 2 == 0).Select(x => x * 2))
+            foreach (var item in array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2))
                 sum += item;
             return sum;
         }
@@ -146,7 +146,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("Span_WhereSelectSum"), Benchmark]
         public int Span_WhereSelectSum_Hyperlinq_Array()
         {
-            return array.Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+            return array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2).Sum();
         }
 
         // ===== Span_SelectCount =====

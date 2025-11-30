@@ -62,7 +62,7 @@ public class SpanSelectTests
         var hyperlinqResult = list.Select(x => x * 3);
         var linqResult = Enumerable.Select(list, x => x * 3);
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -96,71 +96,9 @@ public class SpanSelectTests
             .BeEqualTo(linqResult);
     }
     
-    // ===== WhereSelect Fusion Tests =====
+
     
-    [Test]
-    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_WhereSelect_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
-    {
-        var array = testCase.arrayFactory();
-        
-        var hyperlinqResult = array
-            .Where(x => x % 2 == 0)
-            .Select(x => x * 10);
-        
-        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 10);
-        
-        hyperlinqResult.ToArray().Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(linqResult);
-    }
-    
-    [Test]
-    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_WhereSelect_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
-    {
-        var list = new List<int>(testCase.arrayFactory());
-        
-        var hyperlinqResult = list
-            .Where(x => x > 4)
-            .Select(x => x * 2);
-        
-        var linqResult = Enumerable.Select(Enumerable.Where(list, x => x > 4), x => x * 2);
-        
-        hyperlinqResult.Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(linqResult);
-    }
-    
-    [Test]
-    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_WhereSelect_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
-    {
-        var array = testCase.arrayFactory();
-        
-        var hyperlinqResult = array
-            .Where(x => x > 10)
-            .Select(x => x * 2);
-        
-        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x > 10), x => x * 2);
-        
-        hyperlinqResult.Count().Must().BeEqualTo(linqResult.Count());
-    }
-    
-    [Test]
-    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_WhereSelect_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
-    {
-        var array = testCase.arrayFactory();
-        
-        var hyperlinqResult = array
-            .Where(x => x > 1000)
-            .Select(x => x * 2);
-        
-        var linqResult = Enumerable.Select(Enumerable.Where(array, x => x > 1000), x => x * 2);
-        
-        hyperlinqResult.Any().Must().BeEqualTo(linqResult.Any());
-    }
+
     
     // ===== Type-Specific Tests =====
     
@@ -185,7 +123,7 @@ public class SpanSelectTests
         var hyperlinqResult = list.Select(x => x.ToUpper());
         var linqResult = Enumerable.Select(list, x => x.ToUpper());
         
-        hyperlinqResult.Must()
+        hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<string>()
             .EvaluateTrue(e => e.SequenceEqual(linqResult));
     }

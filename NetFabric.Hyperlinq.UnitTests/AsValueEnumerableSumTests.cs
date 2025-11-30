@@ -107,9 +107,9 @@ public class AsValueEnumerableSumTests
                                   .Select(x => x * 10)
                                   .Sum();
         
-        var linqResult = list.Where(x => x % 2 == 0)
-                            .Select(x => x * 10)
-                            .Sum();
+        var linqResult = list.AsValueEnumerable().Where(x => x % 2 == 0)
+                              .Select(x => x * 10)
+                              .Sum();
         
         hyperlinqResult.Must().BeEqualTo(linqResult);
     }

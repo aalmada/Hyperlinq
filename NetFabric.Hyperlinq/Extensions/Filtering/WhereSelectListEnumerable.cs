@@ -25,6 +25,7 @@ namespace NetFabric.Hyperlinq
 
         internal List<TSource> Source => source;
         internal Func<TSource, bool> Predicate => predicate;
+        internal Func<TSource, TResult> Selector => selector;
 
         public Enumerator GetEnumerator() => new Enumerator(source, predicate, selector);
         IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();

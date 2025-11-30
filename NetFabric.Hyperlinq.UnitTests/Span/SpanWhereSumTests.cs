@@ -8,25 +8,14 @@ namespace NetFabric.Hyperlinq.UnitTests.Span;
 
 public class SpanWhereSumTests
 {
-    [Test]
-    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Where_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
-    {
-        var array = testCase.arrayFactory();
-        
-        var result = array.Where(x => x % 2 == 0).Sum();
-        var expected = Enumerable.Where(array, x => x % 2 == 0).Sum();
-        
-        result.Must().BeEqualTo(expected);
-    }
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void List_Where_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var list = new List<int>(testCase.arrayFactory());
         
-        var result = list.Where(x => x % 2 == 0).Sum();
+        var result = list.AsValueEnumerable().Where(x => x % 2 == 0).Sum();
         var expected = Enumerable.Where(list, x => x % 2 == 0).Sum();
         
         result.Must().BeEqualTo(expected);

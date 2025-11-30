@@ -18,17 +18,6 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult Sum()
-        {
-            var sum = TResult.AdditiveIdentity;
-            foreach (var item in source)
-            {
-                sum += item;
-            }
-            return sum;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count()
         {
             var count = 0;
@@ -53,15 +42,15 @@ namespace NetFabric.Hyperlinq
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TResult First()
-            => source.FirstOrNone(predicate).Value;
+            => FirstOrNone().Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> FirstOrDefault()
-            => source.FirstOrNone(predicate).ValueOrDefault();
+        public TResult FirstOrDefault()
+            => FirstOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> FirstOrDefault(TResult defaultValue)
-            => source.FirstOrNone(predicate).ValueOrDefault(defaultValue);
+        public TResult FirstOrDefault(TResult defaultValue)
+            => FirstOrNone().GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<TResult> FirstOrNone()
@@ -76,15 +65,15 @@ namespace NetFabric.Hyperlinq
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TResult Single()
-            => source.SingleOrNone(predicate).Value;
+            => SingleOrNone().Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> SingleOrDefault()
-            => source.SingleOrNone(predicate).ValueOrDefault();
+        public TResult SingleOrDefault()
+            => SingleOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> SingleOrDefault(TResult defaultValue)
-            => source.SingleOrNone(predicate).ValueOrDefault(defaultValue);
+        public TResult SingleOrDefault(TResult defaultValue)
+            => SingleOrNone().GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<TResult> SingleOrNone()
@@ -103,6 +92,21 @@ namespace NetFabric.Hyperlinq
                 }
             }
             return found ? Option<TResult>.Some(result!) : Option<TResult>.None();
+        }
+
+        public TResult Sum()
+        {
+            if (typeof(TResult) == typeof(int))
+            {
+                var sum = 0;
+                foreach (var item in source)
+                {
+                    if (predicate(item))
+                        sum += (int)(object)selector(item)!;
+                }
+                return (TResult)(object)sum;
+            }
+            throw new NotSupportedException($"Sum is not supported for type {typeof(TResult)}");
         }
 
         public TResult[] ToArray()

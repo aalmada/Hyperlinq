@@ -25,10 +25,7 @@ namespace NetFabric.Hyperlinq
                 }
                 return sum;
             }
-        }
 
-        extension<T>(ListValueEnumerable<T> source)
-        {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool Any(Func<T, bool> predicate)
             {
@@ -131,6 +128,28 @@ namespace NetFabric.Hyperlinq
                 }
                 return found ? Option<T>.Some(result!) : Option<T>.None();
             }
+        }
+
+        // Direct List extensions returning ref struct enumerables (maximum performance, foreach-only)
+        extension<TSource>(List<TSource> source)
+        {
+            /// <summary>
+            /// Projects each element of a List into a new form using ref struct enumerable.
+            /// For maximum performance in foreach-only scenarios.
+            /// Use AsValueEnumerable().Select() if you need to chain operations.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public SelectListRefStructEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
+                => new SelectListRefStructEnumerable<TSource, TResult>(source, selector);
+
+            /// <summary>
+            /// Filters a List based on a predicate using ref struct enumerable.
+            /// For maximum performance in foreach-only scenarios.
+            /// Use AsValueEnumerable().Where() if you need to chain operations.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereListRefStructEnumerable<TSource> Where(Func<TSource, bool> predicate)
+                => new WhereListRefStructEnumerable<TSource>(source, predicate);
         }
     }
 }

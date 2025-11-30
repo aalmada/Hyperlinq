@@ -10,38 +10,17 @@ public class SpanWhereSelectSumTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_WhereSelect_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_WhereSelect_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
+        ReadOnlyMemory<int> memory = array.AsMemory();
         
-        var result = array
-            .Where(x => x % 2 == 0)
-            .Select(x => x * 2)
-            .Sum();
-        
-        var expected = array
-            .Where(x => x % 2 == 0)
-            .Select(x => x * 2)
-            .Sum();
-        
-        result.Must().BeEqualTo(expected);
-    }
-    
-    [Test]
-    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_WhereSelect_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
-    {
-        var list = new List<int>(testCase.arrayFactory());
-        
-        var result = list
+        var result = memory
             .Where(x => x % 2 == 0)
             .Select(x => x * 2)
             .Sum();
             
-        var expected = list
-            .Where(x => x % 2 == 0)
-            .Select(x => x * 2)
-            .Sum();
+        var expected = Enumerable.Sum(Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
         
         result.Must().BeEqualTo(expected);
     }

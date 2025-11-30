@@ -157,5 +157,27 @@ namespace NetFabric.Hyperlinq
                 throw new InvalidOperationException("Sequence contains no matching element");
             }
         }
+
+        // Direct array extensions returning ref struct enumerables (maximum performance, foreach-only)
+        extension<TSource>(TSource[] source)
+        {
+            /// <summary>
+            /// Projects each element of an array into a new form using ref struct enumerable.
+            /// For maximum performance in foreach-only scenarios.
+            /// Use AsValueEnumerable().Select() if you need to chain operations.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public SelectArrayRefStructEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
+                => new SelectArrayRefStructEnumerable<TSource, TResult>(source, selector);
+
+            /// <summary>
+            /// Filters an array based on a predicate using ref struct enumerable.
+            /// For maximum performance in foreach-only scenarios.
+            /// Use AsValueEnumerable().Where() if you need to chain operations.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereArrayRefStructEnumerable<TSource> Where(Func<TSource, bool> predicate)
+                => new WhereArrayRefStructEnumerable<TSource>(source, predicate);
+        }
     }
 }

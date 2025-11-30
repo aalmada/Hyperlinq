@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -6,6 +7,7 @@ namespace NetFabric.Hyperlinq
 {
     public static partial class ReadOnlySpanExtensions
     {
+        // Constrained extension block - only for Sum operations
         extension<T>(ReadOnlySpan<T> source)
             where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
         {
@@ -22,7 +24,11 @@ namespace NetFabric.Hyperlinq
                 }
                 return sum;
             }
+        }
 
+        // Unconstrained extension block - for all other operations
+        extension<T>(ReadOnlySpan<T> source)
+        {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool Any()
                 => source.Length > 0;
@@ -173,25 +179,34 @@ namespace NetFabric.Hyperlinq
                 throw new InvalidOperationException("Sequence contains no matching element");
             }
 
-            public TSource[] ToArray(Func<T, bool> predicate)
-            {
-                var count = Count();
-                if (count == 0)
-                    return Array.Empty<TSource>();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> LastOrNone()
+                => source.Length == 0 ? Option<T>.None() : Option<T>.Some(source[^1]);
 
-                var array = new TSource[count];
-                var index = 0;
+            public Option<T> LastOrNone(Func<T, bool> predicate)
+            {
+                for (var index = source.Length - 1; index >= 0; index--)
+                {
+                    if (predicate(source[index]))
+                        return Option<T>.Some(source[index]);
+                }
+                return Option<T>.None();
+            }
+
+            public T[] ToArray(Func<T, bool> predicate)
+            {
+                var list = new List<T>();
                 foreach (var item in source)
                 {
                     if (predicate(item))
-                        array[index++] = item;
+                        list.Add(item);
                 }
-                return array;
+                return list.ToArray();
             }
 
-            public List<TSource> ToList(Func<T, bool> predicate)
+            public List<T> ToList(Func<T, bool> predicate)
             {
-                var list = new List<TSource>();
+                var list = new List<T>();
                 foreach (var item in source)
                 {
                     if (predicate(item))
@@ -199,7 +214,6 @@ namespace NetFabric.Hyperlinq
                 }
                 return list;
             }
-
         }
     }
 }

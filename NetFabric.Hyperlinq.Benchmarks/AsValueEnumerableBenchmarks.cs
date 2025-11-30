@@ -46,13 +46,13 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("Array_WhereSelectSum"), Benchmark(Baseline = true)]
         public int Array_LINQ_WhereSelectSum()
         {
-            return array.Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+            return Enumerable.Sum(Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
         }
 
         [BenchmarkCategory("Array_WhereSelectSum"), Benchmark]
         public int Array_Hyperlinq_WhereSelectSum()
         {
-            return array.Where(x => x % 2 == 0).Select(x => x * 2).Sum();  // Hyperlinq extensions
+            return array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2).Sum();  // Hyperlinq extensions
         }
 
         // ===== IEnumerable_Sum =====
@@ -130,13 +130,13 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [BenchmarkCategory("List_WhereSelectSum"), Benchmark(Baseline = true)]
         public int List_LINQ_WhereSelectSum()
         {
-            return list.Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+            return Enumerable.Sum(Enumerable.Select(Enumerable.Where(list, x => x % 2 == 0), x => x * 2));
         }
 
         [BenchmarkCategory("List_WhereSelectSum"), Benchmark]
         public int List_Hyperlinq_WhereSelectSum()
         {
-            return list.Where(x => x % 2 == 0).Select(x => x * 2).Sum();  // Hyperlinq extensions
+            return list.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2).Sum();  // Hyperlinq extensions
         }
 
         // ===== IEnumerable_Select =====
