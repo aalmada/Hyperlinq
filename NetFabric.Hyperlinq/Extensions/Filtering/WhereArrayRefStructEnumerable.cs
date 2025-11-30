@@ -97,21 +97,6 @@ namespace NetFabric.Hyperlinq
             return found ? Option<TSource>.Some(result) : Option<TSource>.None();
         }
 
-        public TSource Sum()
-        {
-            if (typeof(TSource) == typeof(int))
-            {
-                var sum = 0;
-                for (var i = 0; i < source.Length; i++)
-                {
-                    if (predicate(source[i]))
-                        sum += (int)(object)source[i]!;
-                }
-                return (TSource)(object)sum;
-            }
-            throw new NotSupportedException($"Sum is not supported for type {typeof(TSource)}");
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TSource Last()
         {

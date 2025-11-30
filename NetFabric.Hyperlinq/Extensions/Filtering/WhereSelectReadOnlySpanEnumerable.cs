@@ -94,21 +94,6 @@ namespace NetFabric.Hyperlinq
             return found ? Option<TResult>.Some(result!) : Option<TResult>.None();
         }
 
-        public TResult Sum()
-        {
-            if (typeof(TResult) == typeof(int))
-            {
-                var sum = 0;
-                foreach (var item in source)
-                {
-                    if (predicate(item))
-                        sum += (int)(object)selector(item)!;
-                }
-                return (TResult)(object)sum;
-            }
-            throw new NotSupportedException($"Sum is not supported for type {typeof(TResult)}");
-        }
-
         public TResult[] ToArray()
         {
             var list = new List<TResult>();
