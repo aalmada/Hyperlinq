@@ -22,10 +22,7 @@ namespace NetFabric.Hyperlinq
                 }
                 return sum;
             }
-        }
 
-        extension<T>(ReadOnlySpan<T> source)
-        {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool Any()
                 => source.Length > 0;
@@ -175,6 +172,34 @@ namespace NetFabric.Hyperlinq
                 }
                 throw new InvalidOperationException("Sequence contains no matching element");
             }
+
+            public TSource[] ToArray(Func<T, bool> predicate)
+            {
+                var count = Count();
+                if (count == 0)
+                    return Array.Empty<TSource>();
+
+                var array = new TSource[count];
+                var index = 0;
+                foreach (var item in source)
+                {
+                    if (predicate(item))
+                        array[index++] = item;
+                }
+                return array;
+            }
+
+            public List<TSource> ToList(Func<T, bool> predicate)
+            {
+                var list = new List<TSource>();
+                foreach (var item in source)
+                {
+                    if (predicate(item))
+                        list.Add(item);
+                }
+                return list;
+            }
+
         }
     }
 }

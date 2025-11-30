@@ -37,42 +37,18 @@ namespace NetFabric.Hyperlinq
         public Option<TSource> SingleOrNone() => source.SingleOrNone(predicate);
 
         public TSource[] ToArray()
-        {
-            var count = Count();
-            if (count == 0)
-                return Array.Empty<TSource>();
-
-            var array = new TSource[count];
-            var index = 0;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    array[index++] = item;
-            }
-            return array;
-        }
+            => source.ToArray(predicate);
 
         public List<TSource> ToList()
-        {
-            var list = new List<TSource>();
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    list.Add(item);
-            }
-            return list;
-        }
+            => source.ToList(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TSource Last()
-        {
-            for (var index = source.Length - 1; index >= 0; index--)
-            {
-                if (predicate(source[index]))
-                    return source[index];
-            }
-            throw new InvalidOperationException("Sequence contains no matching element");
-        }
+            => source.Last(predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<TSource> LastOrNone()
+            => source.LastOrNone(predicate);
 
         public Enumerator GetEnumerator() => new Enumerator(source, predicate);
 

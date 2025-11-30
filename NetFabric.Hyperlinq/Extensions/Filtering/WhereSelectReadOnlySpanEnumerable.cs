@@ -18,6 +18,17 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TResult Sum()
+        {
+            var sum = TResult.AdditiveIdentity;
+            foreach (var item in source)
+            {
+                sum += item;
+            }
+            return sum;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count()
         {
             var count = 0;
@@ -42,14 +53,15 @@ namespace NetFabric.Hyperlinq
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TResult First()
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    return selector(item);
-            }
-            throw new InvalidOperationException("Sequence contains no matching element");
-        }
+            => source.FirstOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<TResult> FirstOrDefault()
+            => source.FirstOrNone(predicate).ValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<TResult> FirstOrDefault(TResult defaultValue)
+            => source.FirstOrNone(predicate).ValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<TResult> FirstOrNone()
@@ -64,24 +76,15 @@ namespace NetFabric.Hyperlinq
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TResult Single()
-        {
-            var found = false;
-            var result = default(TResult);
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                {
-                    if (found)
-                        throw new InvalidOperationException("Sequence contains more than one matching element");
-                    
-                    found = true;
-                    result = selector(item);
-                }
-            }
-            if (!found)
-                throw new InvalidOperationException("Sequence contains no matching element");
-            return result!;
-        }
+            => source.SingleOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<TResult> SingleOrDefault()
+            => source.SingleOrNone(predicate).ValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<TResult> SingleOrDefault(TResult defaultValue)
+            => source.SingleOrNone(predicate).ValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<TResult> SingleOrNone()
