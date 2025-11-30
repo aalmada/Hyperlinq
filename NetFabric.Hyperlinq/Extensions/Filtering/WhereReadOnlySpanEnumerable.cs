@@ -8,47 +8,16 @@ namespace NetFabric.Hyperlinq
         readonly ReadOnlySpan<TSource> source;
         readonly Func<TSource, bool> predicate;
 
+        internal ReadOnlySpan<TSource> Source => source;
+        internal Func<TSource, bool> Predicate => predicate;
+
         public WhereReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
         {
             this.source = source;
             this.predicate = predicate;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereSelectReadOnlySpanEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
-            => new WhereSelectReadOnlySpanEnumerable<TSource, TResult>(source, predicate, selector);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Count() => source.Count(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Any() => source.Any(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TSource First() => source.First(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TSource> FirstOrNone() => source.FirstOrNone(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TSource Single() => source.Single(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TSource> SingleOrNone() => source.SingleOrNone(predicate);
-
-        public TSource[] ToArray()
-            => source.ToArray(predicate);
-
-        public List<TSource> ToList()
-            => source.ToList(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TSource Last()
-            => source.Last(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TSource> LastOrNone()
-            => source.LastOrNone(predicate);
 
         public Enumerator GetEnumerator() => new Enumerator(source, predicate);
 

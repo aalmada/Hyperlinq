@@ -10,6 +10,10 @@ namespace NetFabric.Hyperlinq
         readonly Func<TSource, bool> predicate;
         readonly Func<TSource, TResult> selector;
 
+        internal ReadOnlySpan<TSource> Source => source;
+        internal Func<TSource, bool> Predicate => predicate;
+        internal Func<TSource, TResult> Selector => selector;
+
         public WhereSelectReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
         {
             this.source = source;
@@ -17,104 +21,7 @@ namespace NetFabric.Hyperlinq
             this.selector = selector;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Count()
-        {
-            var count = 0;
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    count++;
-            }
-            return count;
-        }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Any()
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    return true;
-            }
-            return false;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult First()
-            => FirstOrNone().Value;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult FirstOrDefault()
-            => FirstOrNone().GetValueOrDefault();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult FirstOrDefault(TResult defaultValue)
-            => FirstOrNone().GetValueOrDefault(defaultValue);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> FirstOrNone()
-        {
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    return Option<TResult>.Some(selector(item));
-            }
-            return Option<TResult>.None();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult Single()
-            => SingleOrNone().Value;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult SingleOrDefault()
-            => SingleOrNone().GetValueOrDefault();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult SingleOrDefault(TResult defaultValue)
-            => SingleOrNone().GetValueOrDefault(defaultValue);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> SingleOrNone()
-        {
-            var found = false;
-            var result = default(TResult);
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                {
-                    if (found)
-                        throw new InvalidOperationException("Sequence contains more than one matching element");
-                    
-                    found = true;
-                    result = selector(item);
-                }
-            }
-            return found ? Option<TResult>.Some(result!) : Option<TResult>.None();
-        }
-
-        public TResult[] ToArray()
-        {
-            var list = new List<TResult>();
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    list.Add(selector(item));
-            }
-            return list.ToArray();
-        }
-
-        public List<TResult> ToList()
-        {
-            var list = new List<TResult>();
-            foreach (var item in source)
-            {
-                if (predicate(item))
-                    list.Add(selector(item));
-            }
-            return list;
-        }
 
         public Enumerator GetEnumerator() => new Enumerator(source, predicate, selector);
 

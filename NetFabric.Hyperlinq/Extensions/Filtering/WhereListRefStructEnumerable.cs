@@ -14,143 +14,16 @@ namespace NetFabric.Hyperlinq
         readonly List<TSource> source;
         readonly Func<TSource, bool> predicate;
 
+        internal List<TSource> Source => source;
+        internal Func<TSource, bool> Predicate => predicate;
+
         public WhereListRefStructEnumerable(List<TSource> source, Func<TSource, bool> predicate)
         {
             this.source = source;
             this.predicate = predicate;
         }
 
-        public int Count()
-        {
-            var count = 0;
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate(span[i]))
-                    count++;
-            }
-            return count;
-        }
 
-        public bool Any()
-        {
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate(span[i]))
-                    return true;
-            }
-            return false;
-        }
-
-        public TSource First()
-        {
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate(span[i]))
-                    return span[i];
-            }
-            throw new InvalidOperationException("Sequence contains no elements");
-        }
-
-        public Option<TSource> FirstOrNone()
-        {
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate(span[i]))
-                    return Option<TSource>.Some(span[i]);
-            }
-            return Option<TSource>.None();
-        }
-
-        public TSource Single()
-        {
-            var found = false;
-            var result = default(TSource);
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate(span[i]))
-                {
-                    if (found)
-                        throw new InvalidOperationException("Sequence contains more than one element");
-                    result = span[i];
-                    found = true;
-                }
-            }
-            if (!found)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return result!;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TSource> SingleOrNone()
-        {
-            var span = CollectionsMarshal.AsSpan(source);
-            var found = false;
-            TSource result = default!;
-            foreach (var item in span)
-            {
-                if (predicate(item))
-                {
-                    if (found)
-                        throw new InvalidOperationException("Sequence contains more than one matching element");
-                    found = true;
-                    result = item;
-                }
-            }
-            return found ? Option<TSource>.Some(result) : Option<TSource>.None();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TSource Last()
-        {
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var index = span.Length - 1; index >= 0; index--)
-            {
-                if (predicate(span[index]))
-                    return span[index];
-            }
-            throw new InvalidOperationException("Sequence contains no matching element");
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TSource> LastOrNone()
-        {
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var index = span.Length - 1; index >= 0; index--)
-            {
-                if (predicate(span[index]))
-                    return Option<TSource>.Some(span[index]);
-            }
-            return Option<TSource>.None();
-        }
-
-        public TSource[] ToArray()
-        {
-            var list = new List<TSource>();
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate(span[i]))
-                    list.Add(span[i]);
-            }
-            return list.ToArray();
-        }
-
-        public List<TSource> ToList()
-        {
-            var list = new List<TSource>();
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate(span[i]))
-                    list.Add(span[i]);
-            }
-            return list;
-        }
 
         public Enumerator GetEnumerator() => new Enumerator(source, predicate);
 

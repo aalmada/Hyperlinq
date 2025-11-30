@@ -14,67 +14,16 @@ namespace NetFabric.Hyperlinq
         readonly List<TSource> source;
         readonly Func<TSource, TResult> selector;
 
+        internal List<TSource> Source => source;
+        internal Func<TSource, TResult> Selector => selector;
+
         public SelectListRefStructEnumerable(List<TSource> source, Func<TSource, TResult> selector)
         {
             this.source = source;
             this.selector = selector;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Count() => source.Count;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Any() => source.Count > 0;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult First()
-        {
-            if (source.Count == 0)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return selector(source[0]);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> FirstOrNone()
-            => source.Count == 0 ? Option<TResult>.None() : Option<TResult>.Some(selector(source[0]));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TResult Single()
-        {
-            if (source.Count == 0)
-                throw new InvalidOperationException("Sequence contains no elements");
-            if (source.Count > 1)
-                throw new InvalidOperationException("Sequence contains more than one element");
-            return selector(source[0]);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Option<TResult> SingleOrNone()
-        {
-            if (source.Count == 0)
-                return Option<TResult>.None();
-            if (source.Count > 1)
-                throw new InvalidOperationException("Sequence contains more than one element");
-            return Option<TResult>.Some(selector(source[0]));
-        }
-
-        public TResult[] ToArray()
-        {
-            var array = new TResult[source.Count];
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-                array[i] = selector(span[i]);
-            return array;
-        }
-
-        public List<TResult> ToList()
-        {
-            var list = new List<TResult>(source.Count);
-            var span = CollectionsMarshal.AsSpan(source);
-            for (var i = 0; i < span.Length; i++)
-                list.Add(selector(span[i]));
-            return list;
-        }
 
         public Enumerator GetEnumerator() => new Enumerator(source, selector);
 

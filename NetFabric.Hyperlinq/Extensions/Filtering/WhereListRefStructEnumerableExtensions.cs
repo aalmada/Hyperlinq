@@ -22,5 +22,152 @@ namespace NetFabric.Hyperlinq
             }
             return sum;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Count<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var count = 0;
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    count++;
+            }
+            return count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Any<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    return true;
+            }
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource First<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    return span[i];
+            }
+            throw new InvalidOperationException("Sequence contains no elements");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TSource> FirstOrNone<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    return Option<TSource>.Some(span[i]);
+            }
+            return Option<TSource>.None();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource Single<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var found = false;
+            var result = default(TSource);
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                {
+                    if (found)
+                        throw new InvalidOperationException("Sequence contains more than one element");
+                    result = span[i];
+                    found = true;
+                }
+            }
+            if (!found)
+                throw new InvalidOperationException("Sequence contains no elements");
+            return result!;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TSource> SingleOrNone<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            var found = false;
+            var result = default(TSource);
+            foreach (var item in span)
+            {
+                if (predicate(item))
+                {
+                    if (found)
+                        throw new InvalidOperationException("Sequence contains more than one matching element");
+                    found = true;
+                    result = item;
+                }
+            }
+            return found ? Option<TSource>.Some(result!) : Option<TSource>.None();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource Last<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var index = span.Length - 1; index >= 0; index--)
+            {
+                if (predicate(span[index]))
+                    return span[index];
+            }
+            throw new InvalidOperationException("Sequence contains no matching element");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TSource> LastOrNone<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var index = span.Length - 1; index >= 0; index--)
+            {
+                if (predicate(span[index]))
+                    return Option<TSource>.Some(span[index]);
+            }
+            return Option<TSource>.None();
+        }
+
+        public static TSource[] ToArray<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var list = new List<TSource>();
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    list.Add(span[i]);
+            }
+            return list.ToArray();
+        }
+
+        public static List<TSource> ToList<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        {
+            var list = new List<TSource>();
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    list.Add(span[i]);
+            }
+            return list;
+        }
     }
 }
