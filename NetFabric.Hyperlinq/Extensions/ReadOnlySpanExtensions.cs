@@ -283,7 +283,7 @@ namespace NetFabric.Hyperlinq
                             // Grow buffer if needed
                             if (count == buffer.Length)
                             {
-                                var newCapacity = PooledBuffer<T>.GetNextCapacity(capacity);
+                                var newCapacity = PooledBuffer<T>.GetNextCapacity(buffer.Length);
                                 var newBuffer = poolToUse.Rent(newCapacity);
                                 
                                 // Copy existing elements

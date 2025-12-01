@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -142,6 +143,47 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public WhereEnumerable<T> Where(Func<T, bool> predicate)
                 => new WhereEnumerable<T>(source.Source, predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToArrayPooled()
+                => source.ToArrayPooled((ArrayPool<T>?)null);
+
+            public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool)
+            {
+                pool ??= ArrayPool<T>.Shared;
+                var result = pool.Rent(PooledBuffer<T>.GetDefaultInitialCapacity());
+                var index = 0;
+                try
+                {
+                    foreach (var item in source)
+                    {
+                        if (index == result.Length)
+                        {
+                            var newCapacity = PooledBuffer<T>.GetNextCapacity(result.Length);
+                            var newBuffer = pool.Rent(newCapacity);
+                            Array.Copy(result, newBuffer, index);
+                            pool.Return(result, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                            result = newBuffer;
+                        }
+
+                        result[index++] = item;
+                    }
+                    return new PooledBuffer<T>(result, index, pool);
+                }
+                catch
+                {
+                    pool.Return(result, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                    throw;
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToListPooled()
+                => source.ToArrayPooled((ArrayPool<T>?)null);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToListPooled(ArrayPool<T>? pool)
+                => source.ToArrayPooled(pool);
         }
     }
 }
