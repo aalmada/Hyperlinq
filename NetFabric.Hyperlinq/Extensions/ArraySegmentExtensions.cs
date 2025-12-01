@@ -128,8 +128,8 @@ namespace NetFabric.Hyperlinq
             /// Projects each element into a new form.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SelectMemoryEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
-                => new SelectMemoryEnumerable<T, TResult>(source.AsMemory(), selector);
+            public SelectReadOnlySpanEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
+                => new SelectReadOnlySpanEnumerable<T, TResult>(source.AsSpan(), selector);
 
             /// <summary>
             /// Returns the only element of a sequence.
@@ -191,8 +191,8 @@ namespace NetFabric.Hyperlinq
             /// Filters elements based on a predicate.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public WhereMemoryEnumerable<T> Where(Func<T, bool> predicate)
-                => new WhereMemoryEnumerable<T>(source.AsMemory(), predicate);
+            public WhereReadOnlySpanEnumerable<T> Where(Func<T, bool> predicate)
+                => new WhereReadOnlySpanEnumerable<T>(source.AsSpan(), predicate);
         }
     }
 }

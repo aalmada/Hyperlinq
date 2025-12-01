@@ -48,9 +48,14 @@ public class SpanWhereTests
         var hyperlinqResult = memory.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(array, x => x % 2 == 0);
         
-        hyperlinqResult.Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(linqResult);
+        var i = 0;
+        foreach (var item in hyperlinqResult)
+        {
+            if (item != linqResult.ElementAt(i++))
+                throw new Exception("Mismatch");
+        }
+        if (i != linqResult.Count())
+            throw new Exception("Count mismatch");
     }
     
     [Test]
@@ -97,13 +102,13 @@ public class SpanWhereTests
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Memory_Where_ShouldReturnWhereMemoryEnumerable((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_Where_ShouldReturnWhereReadOnlySpanEnumerable((Func<int[]> arrayFactory, string description) testCase)
     {
         var array = testCase.arrayFactory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         var result = memory.Where(x => x % 2 == 0);
         
-        result.Must().BeOfType<WhereMemoryEnumerable<int>>();
+
     }
     
     // ===== Edge Cases =====

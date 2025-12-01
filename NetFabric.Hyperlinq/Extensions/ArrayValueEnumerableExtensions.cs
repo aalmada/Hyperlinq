@@ -75,9 +75,7 @@ namespace NetFabric.Hyperlinq
             public SelectArrayEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
                 => new SelectArrayEnumerable<T, TResult>(source.Source, selector);
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public WhereMemoryEnumerable<T> Where(Func<T, bool> predicate)
-                => new WhereMemoryEnumerable<T>(source.Source, predicate);
+
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T First(Func<T, bool> predicate)

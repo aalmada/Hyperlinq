@@ -91,9 +91,14 @@ public class SpanSelectTests
         var hyperlinqResult = memory.Select(x => x + 10);
         var linqResult = Enumerable.Select(array, x => x + 10);
         
-        hyperlinqResult.Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(linqResult);
+        var i = 0;
+        foreach (var item in hyperlinqResult)
+        {
+            if (item != linqResult.ElementAt(i++))
+                throw new Exception("Mismatch");
+        }
+        if (i != linqResult.Count())
+            throw new Exception("Count mismatch");
     }
     
 

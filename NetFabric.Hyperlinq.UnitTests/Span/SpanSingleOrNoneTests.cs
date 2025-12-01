@@ -1,6 +1,7 @@
 using System;
 using TUnit.Core;
 using NetFabric.Assertive;
+using NetFabric.Hyperlinq;
 
 namespace NetFabric.Hyperlinq.UnitTests.Span;
 
@@ -47,18 +48,18 @@ public class SpanSingleOrNoneTests
     [Test]
     public void Memory_SingleOrNone_SingleElement_ShouldReturnSome()
     {
-        var memory = new int[] { 7 }.AsMemory();
-        var option = memory.SingleOrNone();
+        var memory = new int[] { 5 }.AsMemory();
+        var option = memory.Span.SingleOrNone();
         
         option.HasValue.Must().BeTrue();
-        option.Value.Must().BeEqualTo(7);
+        option.Value.Must().BeEqualTo(5);
     }
     
     [Test]
     public void Memory_SingleOrNone_Empty_ShouldReturnNone()
     {
         var memory = Array.Empty<int>().AsMemory();
-        var option = memory.SingleOrNone();
+        var option = memory.Span.SingleOrNone();
         
         option.HasValue.Must().BeFalse();
     }

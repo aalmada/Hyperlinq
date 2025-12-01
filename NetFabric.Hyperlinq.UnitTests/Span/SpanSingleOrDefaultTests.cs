@@ -1,6 +1,7 @@
 using System;
 using TUnit.Core;
 using NetFabric.Assertive;
+using NetFabric.Hyperlinq;
 
 namespace NetFabric.Hyperlinq.UnitTests.Span;
 
@@ -18,8 +19,8 @@ public class SpanSingleOrDefaultTests
     [Test]
     public void Array_SingleOrDefault_Empty_ShouldReturnDefault()
     {
-        var array = Array.Empty<int>();
-        var result = array.SingleOrDefault();
+        var memory = Array.Empty<int>().AsMemory();
+        var result = memory.Span.SingleOrDefault();
         
         result.Must().BeEqualTo(0);
     }
@@ -54,9 +55,9 @@ public class SpanSingleOrDefaultTests
     [Test]
     public void Memory_SingleOrDefault_SingleElement_ShouldReturnElement()
     {
-        var memory = new int[] { 7 }.AsMemory();
-        var result = memory.SingleOrDefault();
+        var memory = new int[] { 5 }.AsMemory();
+        var result = memory.Span.SingleOrDefault();
         
-        result.Must().BeEqualTo(7);
+        result.Must().BeEqualTo(5);
     }
 }

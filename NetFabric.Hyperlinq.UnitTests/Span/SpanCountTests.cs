@@ -39,7 +39,7 @@ public class SpanCountTests
         var array = testCase.arrayFactory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
-        var hyperlinqResult = memory.Count();
+        var hyperlinqResult = memory.Span.Count();
         var linqResult = Enumerable.Count(array);
         
         hyperlinqResult.Must().BeEqualTo(linqResult);

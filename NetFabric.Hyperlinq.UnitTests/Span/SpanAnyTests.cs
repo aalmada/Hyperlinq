@@ -14,7 +14,7 @@ public class SpanAnyTests
     {
         var array = testCase.arrayFactory();
         
-        var hyperlinqResult = array.Any();
+        var hyperlinqResult = array.AsSpan().Any();
         var linqResult = Enumerable.Any(array);
         
         hyperlinqResult.Must().BeEqualTo(linqResult);

@@ -25,24 +25,7 @@ namespace NetFabric.Hyperlinq
             return false;
         }
 
-        /// <summary>
-        /// Determines whether any element satisfies the predicate.
-        /// Optimized to ignore the selector since Any doesn't need projected values.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Any<TSource, TResult>(this WhereSelectMemoryEnumerable<TSource, TResult> source)
-        {
-            var span = source.Source.Span;
-            ref var spanRef = ref MemoryMarshal.GetReference(span);
-            var length = span.Length;
 
-            for (var i = 0; i < length; i++)
-            {
-                if (source.Predicate(Unsafe.Add(ref spanRef, i)))
-                    return true;
-            }
-            return false;
-        }
 
         /// <summary>
         /// Determines whether any element satisfies the predicate.

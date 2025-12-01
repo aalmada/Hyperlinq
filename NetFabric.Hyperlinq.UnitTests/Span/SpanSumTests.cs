@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TUnit.Core;
 using NetFabric.Assertive;
+using NetFabric.Hyperlinq;
 
 namespace NetFabric.Hyperlinq.UnitTests.Span;
 
@@ -53,7 +54,7 @@ public class SpanSumTests
         var array = testCase.arrayFactory();
         Memory<int> memory = array.AsMemory();
         
-        var result = memory.Sum();
+        var result = memory.Span.Sum();
         var linqResult = Enumerable.Sum(array);
         
         result.Must().BeEqualTo(linqResult);
@@ -107,9 +108,8 @@ public class SpanSumTests
     [Test]
     public void Long_Sum_ShouldWork()
     {
-        var array = new long[] { 1L, 2L, 3L, 4L, 5L };
-        
-        var result = array.Sum();
+        var memory = new long[] { 1L, 2L, 3L, 4L, 5L }.AsMemory();
+        var result = memory.Span.Sum();
         
         result.Must().BeEqualTo(15L);
     }
