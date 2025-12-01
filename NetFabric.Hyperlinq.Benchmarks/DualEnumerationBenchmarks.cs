@@ -20,7 +20,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            array = Enumerable.Range(0, Count).ToArray();
+            array = ValueEnumerable.Range(0, Count).ToArray();
             list = array.ToList();
         }
 

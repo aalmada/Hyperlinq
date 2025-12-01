@@ -22,7 +22,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            enumerable = Enumerable.Range(0, Count);
+            enumerable = ValueEnumerable.Range(0, Count);
             list = enumerable.ToList();
             array = enumerable.ToArray();
         }
