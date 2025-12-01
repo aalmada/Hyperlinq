@@ -50,6 +50,14 @@ namespace NetFabric.Hyperlinq
             => source.Source.ToList(source.Predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereReadOnlySpanEnumerable<TSource> source)
+            => source.Source.ToArrayPooled(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereReadOnlySpanEnumerable<TSource> source)
+            => source.Source.ToListPooled(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Sum<TSource>(this WhereReadOnlySpanEnumerable<TSource> source)
             where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
         {

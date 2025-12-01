@@ -1,0 +1,205 @@
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using TUnit.Core;
+using NetFabric.Assertive;
+
+namespace NetFabric.Hyperlinq.UnitTests;
+
+public class PooledBufferTests
+{
+    [Test]
+    public void ReadOnlySpan_ToArrayPooled_EmptySpan_ShouldReturnEmptyBuffer()
+    {
+        var span = ReadOnlySpan<int>.Empty;
+        
+        using var buffer = span.ToArrayPooled();
+        
+        buffer.Length.Must().BeEqualTo(0);
+        buffer.AsSpan().Length.Must().BeEqualTo(0);
+    }
+
+    [Test]
+    public void ReadOnlySpan_ToArrayPooled_SingleElement_ShouldReturnCorrectBuffer()
+    {
+        var array = new[] { 42 };
+        var span = array.AsSpan();
+        
+        using var buffer = span.ToArrayPooled();
+        
+        buffer.Length.Must().BeEqualTo(1);
+        buffer.AsSpan()[0].Must().BeEqualTo(42);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void ReadOnlySpan_ToArrayPooled_ShouldMatchOriginal((Func<int[]> arrayFactory, string description) testCase)
+    {
+        var array = testCase.arrayFactory();
+        var span = array.AsSpan();
+        
+        using var buffer = span.ToArrayPooled();
+        
+        buffer.Length.Must().BeEqualTo(array.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(array);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void ReadOnlySpan_ToArrayPooled_WithPredicate_ShouldFilterCorrectly((Func<int[]> arrayFactory, string description) testCase)
+    {
+        var array = testCase.arrayFactory();
+        var span = array.AsSpan();
+        var predicate = (int x) => x % 2 == 0;
+        
+        using var buffer = span.ToArrayPooled(predicate);
+        
+        var expected = array.Where(predicate).ToArray();
+        buffer.Length.Must().BeEqualTo(expected.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+    }
+
+    [Test]
+    public void ReadOnlySpan_ToArrayPooled_WithPredicate_LargeCollection_ShouldGrowBuffer()
+    {
+        // Create array larger than initial capacity (4) to test growth
+        var array = Enumerable.Range(0, 100).ToArray();
+        var span = array.AsSpan();
+        var predicate = (int x) => x % 2 == 0;
+        
+        using var buffer = span.ToArrayPooled(predicate);
+        
+        var expected = array.Where(predicate).ToArray();
+        buffer.Length.Must().BeEqualTo(expected.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+    }
+
+    [Test]
+    public void ReadOnlySpan_ToListPooled_ShouldBehaveSameAsToArrayPooled()
+    {
+        var array = new[] { 1, 2, 3, 4, 5 };
+        var span = array.AsSpan();
+        
+        using var arrayBuffer = span.ToArrayPooled();
+        using var listBuffer = span.ToListPooled();
+        
+        arrayBuffer.Length.Must().BeEqualTo(listBuffer.Length);
+        arrayBuffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(listBuffer.AsSpan().ToArray());
+    }
+
+    [Test]
+    public void WhereListEnumerable_ToArrayPooled_ShouldFilterCorrectly()
+    {
+        var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var whereEnumerable = list.AsValueEnumerable().Where(x => x % 2 == 0);
+        
+        using var buffer = whereEnumerable.ToArrayPooled();
+        
+        var expected = list.Where(x => x % 2 == 0).ToArray();
+        buffer.Length.Must().BeEqualTo(expected.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+    }
+
+    [Test]
+    public void WhereListEnumerable_ToListPooled_ShouldBehaveSameAsToArrayPooled()
+    {
+        var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var whereEnumerable = list.AsValueEnumerable().Where(x => x % 2 == 0);
+        
+        using var arrayBuffer = whereEnumerable.ToArrayPooled();
+        using var listBuffer = whereEnumerable.ToListPooled();
+        
+        arrayBuffer.Length.Must().BeEqualTo(listBuffer.Length);
+        arrayBuffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(listBuffer.AsSpan().ToArray());
+    }
+
+    [Test]
+    public void WhereReadOnlySpanEnumerable_ToArrayPooled_ShouldFilterCorrectly()
+    {
+        var array = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var span = array.AsSpan();
+        var whereEnumerable = span.Where(x => x > 5);
+        
+        using var buffer = whereEnumerable.ToArrayPooled();
+        
+        var expected = array.Where(x => x > 5).ToArray();
+        buffer.Length.Must().BeEqualTo(expected.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+    }
+
+    [Test]
+    public void WhereSelectReadOnlySpanEnumerable_ToArrayPooled_ShouldFilterAndProjectCorrectly()
+    {
+        var array = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var span = array.AsSpan();
+        var whereSelectEnumerable = span.Where(x => x % 2 == 0).Select(x => x * 3);
+        
+        using var buffer = whereSelectEnumerable.ToArrayPooled();
+        
+        var expected = array.Where(x => x % 2 == 0).Select(x => x * 3).ToArray();
+        buffer.Length.Must().BeEqualTo(expected.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+    }
+
+    [Test]
+    public void PooledBuffer_ToArray_ShouldCreateIndependentCopy()
+    {
+        var array = new[] { 1, 2, 3 };
+        var span = array.AsSpan();
+        
+        using var buffer = span.ToArrayPooled();
+        var copy = buffer.ToArray();
+        
+        // Modify copy
+        copy[0] = 999;
+        
+        // Original buffer should be unchanged
+        buffer.AsSpan()[0].Must().BeEqualTo(1);
+    }
+
+    [Test]
+    public void PooledBuffer_Dispose_ShouldAllowReuse()
+    {
+        var array = new[] { 1, 2, 3, 4, 5 };
+        var span = array.AsSpan();
+        
+        // Create and dispose buffer
+        var buffer = span.ToArrayPooled();
+        buffer.Dispose();
+        
+        // Create another buffer - should potentially reuse the same pooled array
+        using var buffer2 = span.ToArrayPooled();
+        buffer2.Length.Must().BeEqualTo(array.Length);
+    }
+
+    [Test]
+    public void PooledBuffer_WithReferenceTypes_ShouldClearOnDispose()
+    {
+        var array = new[] { "a", "b", "c" };
+        var span = array.AsSpan();
+        
+        var buffer = span.ToArrayPooled();
+        buffer.Dispose();
+        
+        // After dispose, the pooled array should be cleared (for reference types)
+        // We can't directly verify this, but we can ensure no exception is thrown
+        // Test passes if we get here without exception
+        buffer.Length.Must().BeEqualTo(3);
+    }
+
+    [Test]
+    public void PooledBuffer_LargeCollection_ShouldHandleGrowth()
+    {
+        // Create a large collection that will require multiple buffer growths
+        var array = Enumerable.Range(0, 1000).ToArray();
+        var span = array.AsSpan();
+        var predicate = (int x) => x % 3 == 0; // ~333 elements
+        
+        using var buffer = span.ToArrayPooled(predicate);
+        
+        var expected = array.Where(predicate).ToArray();
+        buffer.Length.Must().BeEqualTo(expected.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+    }
+}

@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -232,6 +233,77 @@ namespace NetFabric.Hyperlinq
                 }
                 return list;
             }
+
+            /// <summary>
+            /// Materializes the span into a pooled buffer. The buffer must be disposed to return memory to the pool.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToArrayPooled()
+            {
+                var buffer = ArrayPool<T>.Shared.Rent(source.Length);
+                source.CopyTo(buffer);
+                return new PooledBuffer<T>(buffer, source.Length);
+            }
+
+            /// <summary>
+            /// Filters and materializes the span into a pooled buffer. The buffer must be disposed to return memory to the pool.
+            /// Uses dynamic growth strategy since result size is unknown.
+            /// </summary>
+            public PooledBuffer<T> ToArrayPooled(Func<T, bool> predicate)
+            {
+                var capacity = PooledBuffer<T>.GetDefaultInitialCapacity();
+                var buffer = ArrayPool<T>.Shared.Rent(capacity);
+                var count = 0;
+
+                try
+                {
+                    foreach (var item in source)
+                    {
+                        if (predicate(item))
+                        {
+                            // Grow buffer if needed
+                            if (count == buffer.Length)
+                            {
+                                var newCapacity = PooledBuffer<T>.GetNextCapacity(capacity);
+                                var newBuffer = ArrayPool<T>.Shared.Rent(newCapacity);
+                                
+                                // Copy existing elements
+                                Array.Copy(buffer, newBuffer, count);
+                                
+                                // Return old buffer
+                                ArrayPool<T>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                                
+                                buffer = newBuffer;
+                                capacity = newCapacity;
+                            }
+
+                            buffer[count++] = item;
+                        }
+                    }
+
+                    return new PooledBuffer<T>(buffer, count);
+                }
+                catch
+                {
+                    // Return buffer on exception
+                    ArrayPool<T>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                    throw;
+                }
+            }
+
+            /// <summary>
+            /// Alias for ToArrayPooled(). Both return PooledBuffer&lt;T&gt;.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToListPooled()
+                => source.ToArrayPooled();
+
+            /// <summary>
+            /// Alias for ToArrayPooled(predicate). Both return PooledBuffer&lt;T&gt;.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToListPooled(Func<T, bool> predicate)
+                => source.ToArrayPooled(predicate);
         }
     }
 }

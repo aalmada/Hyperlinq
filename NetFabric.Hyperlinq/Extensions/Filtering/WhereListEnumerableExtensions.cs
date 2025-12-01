@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -170,5 +171,54 @@ namespace NetFabric.Hyperlinq
             }
             return list;
         }
+
+        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListEnumerable<TSource> source)
+        {
+            var capacity = PooledBuffer<TSource>.GetDefaultInitialCapacity();
+            var buffer = ArrayPool<TSource>.Shared.Rent(capacity);
+            var count = 0;
+
+            try
+            {
+                var span = CollectionsMarshal.AsSpan(source.Source);
+                var predicate = source.Predicate;
+                
+                for (var i = 0; i < span.Length; i++)
+                {
+                    if (predicate(span[i]))
+                    {
+                        // Grow buffer if needed
+                        if (count == buffer.Length)
+                        {
+                            var newCapacity = PooledBuffer<TSource>.GetNextCapacity(capacity);
+                            var newBuffer = ArrayPool<TSource>.Shared.Rent(newCapacity);
+                            
+                            // Copy existing elements
+                            Array.Copy(buffer, newBuffer, count);
+                            
+                            // Return old buffer
+                            ArrayPool<TSource>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
+                            
+                            buffer = newBuffer;
+                            capacity = newCapacity;
+                        }
+
+                        buffer[count++] = span[i];
+                    }
+                }
+
+                return new PooledBuffer<TSource>(buffer, count);
+            }
+            catch
+            {
+                // Return buffer on exception
+                ArrayPool<TSource>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
+                throw;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereListEnumerable<TSource> source)
+            => source.ToArrayPooled();
     }
 }

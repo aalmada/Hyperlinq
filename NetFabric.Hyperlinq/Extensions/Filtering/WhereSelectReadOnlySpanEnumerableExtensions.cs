@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -136,5 +137,55 @@ namespace NetFabric.Hyperlinq
             }
             return list;
         }
+
+        public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source)
+        {
+            var capacity = PooledBuffer<TResult>.GetDefaultInitialCapacity();
+            var buffer = ArrayPool<TResult>.Shared.Rent(capacity);
+            var count = 0;
+
+            try
+            {
+                var span = source.Source;
+                var predicate = source.Predicate;
+                var selector = source.Selector;
+                
+                foreach (var item in span)
+                {
+                    if (predicate(item))
+                    {
+                        // Grow buffer if needed
+                        if (count == buffer.Length)
+                        {
+                            var newCapacity = PooledBuffer<TResult>.GetNextCapacity(capacity);
+                            var newBuffer = ArrayPool<TResult>.Shared.Rent(newCapacity);
+                            
+                            // Copy existing elements
+                            Array.Copy(buffer, newBuffer, count);
+                            
+                            // Return old buffer
+                            ArrayPool<TResult>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
+                            
+                            buffer = newBuffer;
+                            capacity = newCapacity;
+                        }
+
+                        buffer[count++] = selector(item);
+                    }
+                }
+
+                return new PooledBuffer<TResult>(buffer, count);
+            }
+            catch
+            {
+                // Return buffer on exception
+                ArrayPool<TResult>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
+                throw;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TResult> ToListPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source)
+            => source.ToArrayPooled();
     }
 }
