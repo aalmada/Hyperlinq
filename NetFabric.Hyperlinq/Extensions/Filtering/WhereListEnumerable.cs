@@ -24,9 +24,7 @@ namespace NetFabric.Hyperlinq
         internal List<TSource> Source => source;
         internal Func<TSource, bool> Predicate => predicate;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereSelectListEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
-            => new WhereSelectListEnumerable<TSource, TResult>(source, predicate, selector);
+
 
         public Enumerator GetEnumerator() => new Enumerator(source, predicate);
         IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
