@@ -27,6 +27,26 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(ArrayValueEnumerable<T> source)
+            where T : INumber<T>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Min()
+            {
+                if (source.Count == 0)
+                    throw new InvalidOperationException("Sequence contains no elements");
+                return System.Numerics.Tensors.TensorPrimitives.Min<T>(source.Source);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Max()
+            {
+                if (source.Count == 0)
+                    throw new InvalidOperationException("Sequence contains no elements");
+                return System.Numerics.Tensors.TensorPrimitives.Max<T>(source.Source);
+            }
+        }
+
+        extension<T>(ArrayValueEnumerable<T> source)
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool Any(Func<T, bool> predicate)

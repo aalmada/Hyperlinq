@@ -26,6 +26,24 @@ namespace NetFabric.Hyperlinq
             }
         }
 
+        extension<T>(ReadOnlySpan<T> source)
+            where T : INumber<T>
+        {
+            public T Min()
+            {
+                if (source.Length == 0)
+                    throw new InvalidOperationException("Sequence contains no elements");
+                return System.Numerics.Tensors.TensorPrimitives.Min(source);
+            }
+
+            public T Max()
+            {
+                if (source.Length == 0)
+                    throw new InvalidOperationException("Sequence contains no elements");
+                return System.Numerics.Tensors.TensorPrimitives.Max(source);
+            }
+        }
+
         // Unconstrained extension block - for all other operations
         extension<T>(ReadOnlySpan<T> source)
         {
