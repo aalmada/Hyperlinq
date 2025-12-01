@@ -10,7 +10,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
     {
         public static void Main(string[] args)
         {
-            BenchmarkRunner.Run<AsValueEnumerableBenchmarks>();
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
         }
     }
 }
