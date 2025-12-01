@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -54,8 +55,16 @@ namespace NetFabric.Hyperlinq
             => source.Source.ToArrayPooled(source.Predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereReadOnlySpanEnumerable<TSource> source, ArrayPool<TSource>? pool)
+            => source.Source.ToArrayPooled(source.Predicate, pool);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereReadOnlySpanEnumerable<TSource> source)
             => source.Source.ToListPooled(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereReadOnlySpanEnumerable<TSource> source, ArrayPool<TSource>? pool)
+            => source.Source.ToListPooled(source.Predicate, pool);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Sum<TSource>(this WhereReadOnlySpanEnumerable<TSource> source)

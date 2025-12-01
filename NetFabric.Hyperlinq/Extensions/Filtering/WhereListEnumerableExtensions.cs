@@ -173,9 +173,13 @@ namespace NetFabric.Hyperlinq
         }
 
         public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListEnumerable<TSource> source)
+            => source.ToArrayPooled((ArrayPool<TSource>?)null);
+
+        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListEnumerable<TSource> source, ArrayPool<TSource>? pool)
         {
+            var poolToUse = pool ?? ArrayPool<TSource>.Shared;
             var capacity = PooledBuffer<TSource>.GetDefaultInitialCapacity();
-            var buffer = ArrayPool<TSource>.Shared.Rent(capacity);
+            var buffer = poolToUse.Rent(capacity);
             var count = 0;
 
             try
@@ -191,13 +195,13 @@ namespace NetFabric.Hyperlinq
                         if (count == buffer.Length)
                         {
                             var newCapacity = PooledBuffer<TSource>.GetNextCapacity(capacity);
-                            var newBuffer = ArrayPool<TSource>.Shared.Rent(newCapacity);
+                            var newBuffer = poolToUse.Rent(newCapacity);
                             
                             // Copy existing elements
                             Array.Copy(buffer, newBuffer, count);
                             
                             // Return old buffer
-                            ArrayPool<TSource>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
+                            poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
                             
                             buffer = newBuffer;
                             capacity = newCapacity;
@@ -207,12 +211,12 @@ namespace NetFabric.Hyperlinq
                     }
                 }
 
-                return new PooledBuffer<TSource>(buffer, count);
+                return new PooledBuffer<TSource>(buffer, count, pool);
             }
             catch
             {
                 // Return buffer on exception
-                ArrayPool<TSource>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
+                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
                 throw;
             }
         }
@@ -220,5 +224,9 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereListEnumerable<TSource> source)
             => source.ToArrayPooled();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereListEnumerable<TSource> source, ArrayPool<TSource>? pool)
+            => source.ToArrayPooled(pool);
     }
 }

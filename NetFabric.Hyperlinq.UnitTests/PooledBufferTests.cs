@@ -189,6 +189,39 @@ public class PooledBufferTests
     }
 
     [Test]
+    public void PooledBuffer_WithCustomPool_ShouldUseSpecifiedPool()
+    {
+        // Create a custom pool
+        var customPool = ArrayPool<int>.Create(maxArrayLength: 1024, maxArraysPerBucket: 10);
+        
+        var array = new[] { 1, 2, 3, 4, 5 };
+        var span = array.AsSpan();
+        
+        // Use custom pool
+        using var buffer = span.ToArrayPooled(customPool);
+        
+        buffer.Length.Must().BeEqualTo(array.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(array);
+        
+        // Buffer will be returned to custom pool on dispose
+    }
+
+    [Test]
+    public void PooledBuffer_WithCustomPool_AndPredicate_ShouldUseSpecifiedPool()
+    {
+        var customPool = ArrayPool<int>.Create();
+        var array = Enumerable.Range(0, 50).ToArray();
+        var span = array.AsSpan();
+        var predicate = (int x) => x % 2 == 0;
+        
+        using var buffer = span.ToArrayPooled(predicate, customPool);
+        
+        var expected = array.Where(predicate).ToArray();
+        buffer.Length.Must().BeEqualTo(expected.Length);
+        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+    }
+
+    [Test]
     public void PooledBuffer_LargeCollection_ShouldHandleGrowth()
     {
         // Create a large collection that will require multiple buffer growths

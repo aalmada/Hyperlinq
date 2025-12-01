@@ -139,9 +139,13 @@ namespace NetFabric.Hyperlinq
         }
 
         public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source)
+            => source.ToArrayPooled((ArrayPool<TResult>?)null);
+
+        public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source, ArrayPool<TResult>? pool)
         {
+            var poolToUse = pool ?? ArrayPool<TResult>.Shared;
             var capacity = PooledBuffer<TResult>.GetDefaultInitialCapacity();
-            var buffer = ArrayPool<TResult>.Shared.Rent(capacity);
+            var buffer = poolToUse.Rent(capacity);
             var count = 0;
 
             try
@@ -158,13 +162,13 @@ namespace NetFabric.Hyperlinq
                         if (count == buffer.Length)
                         {
                             var newCapacity = PooledBuffer<TResult>.GetNextCapacity(capacity);
-                            var newBuffer = ArrayPool<TResult>.Shared.Rent(newCapacity);
+                            var newBuffer = poolToUse.Rent(newCapacity);
                             
                             // Copy existing elements
                             Array.Copy(buffer, newBuffer, count);
                             
                             // Return old buffer
-                            ArrayPool<TResult>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
+                            poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
                             
                             buffer = newBuffer;
                             capacity = newCapacity;
@@ -174,12 +178,12 @@ namespace NetFabric.Hyperlinq
                     }
                 }
 
-                return new PooledBuffer<TResult>(buffer, count);
+                return new PooledBuffer<TResult>(buffer, count, pool);
             }
             catch
             {
                 // Return buffer on exception
-                ArrayPool<TResult>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
+                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
                 throw;
             }
         }
@@ -187,5 +191,9 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PooledBuffer<TResult> ToListPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source)
             => source.ToArrayPooled();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PooledBuffer<TResult> ToListPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source, ArrayPool<TResult>? pool)
+            => source.ToArrayPooled(pool);
     }
 }

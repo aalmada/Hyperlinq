@@ -239,10 +239,19 @@ namespace NetFabric.Hyperlinq
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public PooledBuffer<T> ToArrayPooled()
+                => source.ToArrayPooled((ArrayPool<T>?)null);
+
+            /// <summary>
+            /// Materializes the span into a pooled buffer using the specified pool. The buffer must be disposed to return memory to the pool.
+            /// </summary>
+            /// <param name="pool">The ArrayPool to use, or null to use ArrayPool.Shared.</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool)
             {
-                var buffer = ArrayPool<T>.Shared.Rent(source.Length);
+                var poolToUse = pool ?? ArrayPool<T>.Shared;
+                var buffer = poolToUse.Rent(source.Length);
                 source.CopyTo(buffer);
-                return new PooledBuffer<T>(buffer, source.Length);
+                return new PooledBuffer<T>(buffer, source.Length, pool);
             }
 
             /// <summary>
@@ -250,9 +259,19 @@ namespace NetFabric.Hyperlinq
             /// Uses dynamic growth strategy since result size is unknown.
             /// </summary>
             public PooledBuffer<T> ToArrayPooled(Func<T, bool> predicate)
+                => source.ToArrayPooled(predicate, (ArrayPool<T>?)null);
+
+            /// <summary>
+            /// Filters and materializes the span into a pooled buffer using the specified pool. The buffer must be disposed to return memory to the pool.
+            /// Uses dynamic growth strategy since result size is unknown.
+            /// </summary>
+            /// <param name="predicate">The filter predicate.</param>
+            /// <param name="pool">The ArrayPool to use, or null to use ArrayPool.Shared.</param>
+            public PooledBuffer<T> ToArrayPooled(Func<T, bool> predicate, ArrayPool<T>? pool)
             {
+                var poolToUse = pool ?? ArrayPool<T>.Shared;
                 var capacity = PooledBuffer<T>.GetDefaultInitialCapacity();
-                var buffer = ArrayPool<T>.Shared.Rent(capacity);
+                var buffer = poolToUse.Rent(capacity);
                 var count = 0;
 
                 try
@@ -265,13 +284,13 @@ namespace NetFabric.Hyperlinq
                             if (count == buffer.Length)
                             {
                                 var newCapacity = PooledBuffer<T>.GetNextCapacity(capacity);
-                                var newBuffer = ArrayPool<T>.Shared.Rent(newCapacity);
+                                var newBuffer = poolToUse.Rent(newCapacity);
                                 
                                 // Copy existing elements
                                 Array.Copy(buffer, newBuffer, count);
                                 
                                 // Return old buffer
-                                ArrayPool<T>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                                 
                                 buffer = newBuffer;
                                 capacity = newCapacity;
@@ -281,12 +300,12 @@ namespace NetFabric.Hyperlinq
                         }
                     }
 
-                    return new PooledBuffer<T>(buffer, count);
+                    return new PooledBuffer<T>(buffer, count, pool);
                 }
                 catch
                 {
                     // Return buffer on exception
-                    ArrayPool<T>.Shared.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                    poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                     throw;
                 }
             }
@@ -299,11 +318,25 @@ namespace NetFabric.Hyperlinq
                 => source.ToArrayPooled();
 
             /// <summary>
+            /// Alias for ToArrayPooled(pool). Both return PooledBuffer&lt;T&gt;.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToListPooled(ArrayPool<T>? pool)
+                => source.ToArrayPooled(pool);
+
+            /// <summary>
             /// Alias for ToArrayPooled(predicate). Both return PooledBuffer&lt;T&gt;.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public PooledBuffer<T> ToListPooled(Func<T, bool> predicate)
                 => source.ToArrayPooled(predicate);
+
+            /// <summary>
+            /// Alias for ToArrayPooled(predicate, pool). Both return PooledBuffer&lt;T&gt;.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToListPooled(Func<T, bool> predicate, ArrayPool<T>? pool)
+                => source.ToArrayPooled(predicate, pool);
         }
     }
 }

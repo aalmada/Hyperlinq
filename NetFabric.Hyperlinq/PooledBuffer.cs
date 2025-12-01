@@ -13,15 +13,17 @@ namespace NetFabric.Hyperlinq
     {
         private readonly T[]? buffer;
         private readonly int length;
+        private readonly ArrayPool<T>? pool;
 
         // Growth strategy constants
         private const int DefaultInitialCapacity = 4;
         private const int MaxArrayLength = 0x7FFFFFC7; // Array.MaxLength
 
-        internal PooledBuffer(T[] buffer, int length)
+        internal PooledBuffer(T[] buffer, int length, ArrayPool<T>? pool = null)
         {
             this.buffer = buffer;
             this.length = length;
+            this.pool = pool;
         }
 
         /// <summary>
@@ -49,7 +51,8 @@ namespace NetFabric.Hyperlinq
             {
                 // Clear the array only if it contains references to prevent memory leaks
                 var clearArray = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-                ArrayPool<T>.Shared.Return(buffer, clearArray);
+                var poolToUse = pool ?? ArrayPool<T>.Shared;
+                poolToUse.Return(buffer, clearArray);
             }
         }
 

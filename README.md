@@ -10,6 +10,7 @@ High-performance LINQ-style operations using value-type enumerables and span-bas
 - ✅ **SIMD Optimization** - Vectorized operations for numeric types
 - ✅ **Generic Math** - `Sum()` works with any numeric type (int, double, BigInteger, etc.)
 - ✅ **Operation Fusion** - Automatic fusion of `Where().Select().Sum()` chains
+- ✅ **Pooled Memory** - `ToArrayPooled()` and `ToListPooled()` to reduce GC pressure
 - ✅ **Roslyn Analyzer** - Suggests optimizations automatically
 
 ## 🚀 Quick Start
@@ -58,6 +59,7 @@ See [benchmarks](docs/benchmarks/) for detailed results.
 - **[Getting Started](docs/getting-started/)** - Installation and quick start
 - **[Guides](docs/guides/)** - In-depth usage guides
   - [Fusion Operations](docs/guides/fusion-operations.md)
+  - [Pooled Memory](docs/guides/pooled-memory.md)
 - **[Architecture](docs/architecture/)** - Design principles and internals
 - **[API Reference](docs/api/)** - Complete API documentation
 - **[Benchmarks](docs/benchmarks/)** - Performance benchmarks
@@ -97,6 +99,24 @@ var doubleSum = doubles.Sum(); // 7.5
 
 BigInteger[] bigInts = { new(1), new(2), new(3) };
 var bigSum = bigInts.Sum(); // 6
+```
+
+### Pooled Memory
+Reduce GC pressure by using pooled buffers for temporary materialization:
+```csharp
+using NetFabric.Hyperlinq;
+
+var largeArray = GetLargeArray();
+
+// Materialize to a pooled buffer instead of allocating a new array
+using var buffer = largeArray.AsSpan()
+    .Where(x => x % 2 == 0)
+    .ToArrayPooled(); // Returns PooledBuffer<T>
+
+// Use the buffer
+Process(buffer.AsSpan());
+
+// Buffer is automatically returned to the pool when disposed
 ```
 
 ### Roslyn Analyzer
