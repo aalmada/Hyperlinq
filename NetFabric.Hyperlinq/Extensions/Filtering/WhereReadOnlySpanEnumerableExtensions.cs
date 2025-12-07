@@ -71,5 +71,15 @@ namespace NetFabric.Hyperlinq
             }
             return sum;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource Min<TSource>(this WhereReadOnlySpanEnumerable<TSource> source)
+            where TSource : INumber<TSource>
+            => source.Source.Min(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource Max<TSource>(this WhereReadOnlySpanEnumerable<TSource> source)
+            where TSource : INumber<TSource>
+            => source.Source.Max(source.Predicate);
     }
 }

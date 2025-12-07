@@ -27,6 +27,38 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(List<T> source)
+            where T : INumber<T>
+        {
+            /// <summary>
+            /// Returns the minimum value in a list using SIMD acceleration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Min()
+                => CollectionsMarshal.AsSpan(source).Min();
+
+            /// <summary>
+            /// Returns the minimum value that satisfies a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Min(Func<T, bool> predicate)
+                => CollectionsMarshal.AsSpan(source).Min(predicate);
+
+            /// <summary>
+            /// Returns the maximum value in a list using SIMD acceleration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Max()
+                => CollectionsMarshal.AsSpan(source).Max();
+
+            /// <summary>
+            /// Returns the maximum value that satisfies a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Max(Func<T, bool> predicate)
+                => CollectionsMarshal.AsSpan(source).Max(predicate);
+        }
+
+        extension<T>(List<T> source)
         {
             /// <summary>
             /// Determines whether a sequence contains any elements.

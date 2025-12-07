@@ -108,6 +108,62 @@ namespace NetFabric.Hyperlinq
             return found ? Option<TResult>.Some(result!) : Option<TResult>.None();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TResult Min<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
+            where TResult : INumber<TResult>
+        {
+            var hasValue = false;
+            var min = default(TResult);
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            var selector = source.Selector;
+            
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                {
+                    var value = selector(span[i]);
+                    if (!hasValue || value < min!)
+                    {
+                        min = value;
+                        hasValue = true;
+                    }
+                }
+            }
+            
+            if (!hasValue)
+                throw new InvalidOperationException("Sequence contains no elements");
+            return min!;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TResult Max<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
+            where TResult : INumber<TResult>
+        {
+            var hasValue = false;
+            var max = default(TResult);
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            var selector = source.Selector;
+            
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                {
+                    var value = selector(span[i]);
+                    if (!hasValue || value > max!)
+                    {
+                        max = value;
+                        hasValue = true;
+                    }
+                }
+            }
+            
+            if (!hasValue)
+                throw new InvalidOperationException("Sequence contains no elements");
+            return max!;
+        }
+
         public static TResult[] ToArray<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
         {
             var list = new List<TResult>();

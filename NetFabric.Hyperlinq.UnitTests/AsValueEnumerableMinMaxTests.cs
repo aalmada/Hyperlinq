@@ -85,4 +85,5 @@ public class AsValueEnumerableMinMaxTests
 
         Assert.Throws<InvalidOperationException>(() => valueEnum.Min());
     }
+
 }

@@ -37,11 +37,57 @@ namespace NetFabric.Hyperlinq
                 return System.Numerics.Tensors.TensorPrimitives.Min(source);
             }
 
+            public T Min(Func<T, bool> predicate)
+            {
+                var hasValue = false;
+                var min = default(T);
+                
+                foreach (var item in source)
+                {
+                    if (predicate(item))
+                    {
+                        if (!hasValue || item < min!)
+                        {
+                            min = item;
+                            hasValue = true;
+                        }
+                    }
+                }
+                
+                if (!hasValue)
+                    throw new InvalidOperationException("Sequence contains no matching element");
+                
+                return min!;
+            }
+
             public T Max()
             {
                 if (source.Length == 0)
                     throw new InvalidOperationException("Sequence contains no elements");
                 return System.Numerics.Tensors.TensorPrimitives.Max(source);
+            }
+
+            public T Max(Func<T, bool> predicate)
+            {
+                var hasValue = false;
+                var max = default(T);
+                
+                foreach (var item in source)
+                {
+                    if (predicate(item))
+                    {
+                        if (!hasValue || item > max!)
+                        {
+                            max = item;
+                            hasValue = true;
+                        }
+                    }
+                }
+                
+                if (!hasValue)
+                    throw new InvalidOperationException("Sequence contains no matching element");
+                
+                return max!;
             }
         }
 

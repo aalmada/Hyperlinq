@@ -25,6 +25,38 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(ReadOnlyMemory<T> source)
+            where T : INumber<T>
+        {
+            /// <summary>
+            /// Returns the minimum value in a memory using SIMD acceleration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Min()
+                => source.Span.Min();
+
+            /// <summary>
+            /// Returns the minimum value that satisfies a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Min(Func<T, bool> predicate)
+                => source.Span.Min(predicate);
+
+            /// <summary>
+            /// Returns the maximum value in a memory using SIMD acceleration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Max()
+                => source.Span.Max();
+
+            /// <summary>
+            /// Returns the maximum value that satisfies a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Max(Func<T, bool> predicate)
+                => source.Span.Max(predicate);
+        }
+
+        extension<T>(ReadOnlyMemory<T> source)
         {
             /// <summary>
             /// Determines whether a sequence contains any elements.

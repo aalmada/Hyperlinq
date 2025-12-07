@@ -26,6 +26,44 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource Min<TSource>(this WhereListEnumerable<TSource> source)
+            where TSource : INumber<TSource>
+        {
+            var hasValue = false;
+            var min = default(TSource);
+            foreach (var item in source)
+            {
+                if (!hasValue || item < min!)
+                {
+                    min = item;
+                    hasValue = true;
+                }
+            }
+            if (!hasValue)
+                throw new InvalidOperationException("Sequence contains no elements");
+            return min!;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource Max<TSource>(this WhereListEnumerable<TSource> source)
+            where TSource : INumber<TSource>
+        {
+            var hasValue = false;
+            var max = default(TSource);
+            foreach (var item in source)
+            {
+                if (!hasValue || item > max!)
+                {
+                    max = item;
+                    hasValue = true;
+                }
+            }
+            if (!hasValue)
+                throw new InvalidOperationException("Sequence contains no elements");
+            return max!;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Count<TSource>(this WhereListEnumerable<TSource> source)
         {
             var count = 0;
