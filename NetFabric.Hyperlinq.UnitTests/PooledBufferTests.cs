@@ -75,18 +75,7 @@ public class PooledBufferTests
         buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
-    [Test]
-    public void ReadOnlySpan_ToListPooled_ShouldBehaveSameAsToArrayPooled()
-    {
-        var array = new[] { 1, 2, 3, 4, 5 };
-        var span = array.AsSpan();
-        
-        using var arrayBuffer = span.ToArrayPooled();
-        using var listBuffer = span.ToListPooled();
-        
-        arrayBuffer.Length.Must().BeEqualTo(listBuffer.Length);
-        arrayBuffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(listBuffer.AsSpan().ToArray());
-    }
+
 
     [Test]
     public void WhereListEnumerable_ToArrayPooled_ShouldFilterCorrectly()
@@ -101,18 +90,7 @@ public class PooledBufferTests
         buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
-    [Test]
-    public void WhereListEnumerable_ToListPooled_ShouldBehaveSameAsToArrayPooled()
-    {
-        var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        var whereEnumerable = list.AsValueEnumerable().Where(x => x % 2 == 0);
-        
-        using var arrayBuffer = whereEnumerable.ToArrayPooled();
-        using var listBuffer = whereEnumerable.ToListPooled();
-        
-        arrayBuffer.Length.Must().BeEqualTo(listBuffer.Length);
-        arrayBuffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(listBuffer.AsSpan().ToArray());
-    }
+
 
     [Test]
     public void WhereReadOnlySpanEnumerable_ToArrayPooled_ShouldFilterCorrectly()

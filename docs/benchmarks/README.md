@@ -91,6 +91,43 @@ dotnet run -c Release --filter '*AsValueEnumerable*'
 - **AsValueEnumerableBenchmarks** - IEnumerable via AsValueEnumerable()
 - **HyperlinkBenchmarks** - Core operations (Where, Select, Sum, Count, Any)
 - **LastOperationsBenchmarks** - Last() methods for various types
+- **MinMaxBenchmarks** - Min/Max operations on arrays and lists
+- **PooledBenchmarks** - Pooled memory (`ToArrayPooled`) vs regular materialization
+- **NonPrimitiveSumBenchmarks** - Sum operations with custom numeric types
+
+### Pooled Memory Performance
+
+Pooled memory operations (`ToArrayPooled`) provide significant allocation reductions for temporary materialization:
+
+```bash
+# Run pooled memory benchmarks
+dotnet run -c Release --filter '*PooledBenchmarks*'
+```
+
+**Key Benefits:**
+- **Zero allocations** for temporary buffers (uses `ArrayPool<T>`)
+- **Reduced GC pressure** in high-throughput scenarios
+- **Same performance** as regular `ToArray`/`ToList` for known-count scenarios
+- **Automatic cleanup** via `IDisposable` pattern
+
+**Use Cases:**
+- Temporary materialization for processing
+- High-frequency operations where GC pressure matters
+- Scenarios where you need an array/list but don't need to keep it
+
+### ValueEnumerable.Range Performance
+
+`ValueEnumerable.Range` provides optimized sequence generation:
+
+- **Zero-allocation enumeration** (value-type enumerator)
+- **O(1) indexing** via `IValueReadOnlyList<int, Enumerator>`
+- **Optimized materialization** (known count, no resizing)
+- **Faster than** `Enumerable.Range` for chained operations
+
+```bash
+# Run range benchmarks
+dotnet run -c Release --filter '*Range*'
+```
 
 ---
 

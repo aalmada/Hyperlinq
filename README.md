@@ -10,7 +10,7 @@ High-performance LINQ-style operations using value-type enumerables and span-bas
 - ✅ **SIMD Optimization** - Vectorized operations for numeric types
 - ✅ **Generic Math** - `Sum()` works with any numeric type (int, double, BigInteger, etc.)
 - ✅ **Operation Fusion** - Automatic fusion of `Where().Select().Sum()` chains
-- ✅ **Pooled Memory** - `ToArrayPooled()` and `ToListPooled()` to reduce GC pressure
+- ✅ **Pooled Memory** - `ToArrayPooled()` to reduce GC pressure
 - ✅ **Roslyn Analyzer** - Suggests optimizations automatically
 
 ## 🚀 Quick Start
@@ -117,6 +117,27 @@ using var buffer = largeArray.AsSpan()
 Process(buffer.AsSpan());
 
 // Buffer is automatically returned to the pool when disposed
+```
+
+### Value Enumerable Factories
+Generate sequences efficiently with zero-allocation enumeration:
+```csharp
+using NetFabric.Hyperlinq;
+
+// Generate a range of integers
+var range = ValueEnumerable.Range(0, 100);
+
+// Supports indexing (IValueReadOnlyList)
+var tenth = range[10]; // 10
+
+// Optimized materialization (knows count upfront)
+var array = range.ToArray(); // No resizing needed
+
+// Chain operations
+var evenSquares = range
+    .Where(x => x % 2 == 0)
+    .Select(x => x * x)
+    .ToArray();
 ```
 
 ### Roslyn Analyzer

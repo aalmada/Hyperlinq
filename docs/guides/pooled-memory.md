@@ -1,6 +1,6 @@
 # Pooled Memory
 
-NetFabric.Hyperlinq provides `ToArrayPooled()` and `ToListPooled()` extension methods that utilize `ArrayPool<T>` for temporary materialization. This significantly reduces Garbage Collector (GC) pressure by reusing arrays instead of allocating new ones for every operation.
+NetFabric.Hyperlinq provides `ToArrayPooled()` extension methods that utilize `ArrayPool<T>` for temporary materialization. This significantly reduces Garbage Collector (GC) pressure by reusing arrays instead of allocating new ones for every operation.
 
 ## Why use Pooled Memory?
 
@@ -10,7 +10,7 @@ Pooled memory allows you to "rent" an array, use it, and "return" it.
 
 ## Basic Usage
 
-The `ToArrayPooled()` and `ToListPooled()` methods return a `PooledBuffer<T>`, which implements `IDisposable`.
+The `ToArrayPooled()` method returns a `PooledBuffer<T>`, which implements `IDisposable`.
 
 > [!IMPORTANT]
 > You **must** dispose of the `PooledBuffer<T>` to return the array to the pool. The `using` statement is the best way to ensure this.

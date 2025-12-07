@@ -221,12 +221,6 @@ namespace NetFabric.Hyperlinq
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereListEnumerable<TSource> source)
-            => source.ToArrayPooled();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PooledBuffer<TSource> ToListPooled<TSource>(this WhereListEnumerable<TSource> source, ArrayPool<TSource>? pool)
-            => source.ToArrayPooled(pool);
     }
 }

@@ -159,8 +159,6 @@ namespace NetFabric.Hyperlinq
             return new PooledBuffer<int>(result, count, pool);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<int> ToListPooled(ArrayPool<int>? pool = null)
-            => ToArrayPooled(pool);
+
     }
 }

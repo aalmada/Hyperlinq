@@ -188,12 +188,6 @@ namespace NetFabric.Hyperlinq
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PooledBuffer<TResult> ToListPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source)
-            => source.ToArrayPooled();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PooledBuffer<TResult> ToListPooled<TSource, TResult>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source, ArrayPool<TResult>? pool)
-            => source.ToArrayPooled(pool);
     }
 }

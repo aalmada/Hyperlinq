@@ -177,13 +177,7 @@ namespace NetFabric.Hyperlinq
                 }
             }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public PooledBuffer<T> ToListPooled()
-                => source.ToArrayPooled((ArrayPool<T>?)null);
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public PooledBuffer<T> ToListPooled(ArrayPool<T>? pool)
-                => source.ToArrayPooled(pool);
         }
     }
 }

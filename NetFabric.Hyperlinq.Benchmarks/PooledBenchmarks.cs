@@ -49,12 +49,6 @@ namespace NetFabric.Hyperlinq.Benchmarks
 
 
 
-        [BenchmarkCategory("ToList"), Benchmark]
-        public void ToListPooled_Hyperlinq()
-        {
-            using var buffer = array.AsSpan().ToListPooled();
-        }
-
         // ===== Where_ToArray =====
 
         [BenchmarkCategory("Where_ToArray"), Benchmark(Baseline = true)]
@@ -81,11 +75,7 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public List<int> Where_ToList_Hyperlinq()
             => array.AsSpan().Where(x => x % 2 == 0).ToList();
 
-        [BenchmarkCategory("Where_ToList"), Benchmark]
-        public void Where_ToListPooled_Hyperlinq()
-        {
-            using var buffer = array.AsSpan().Where(x => x % 2 == 0).ToListPooled();
-        }
+
 
         // ===== List_Where_ToArray =====
 
@@ -129,10 +119,6 @@ namespace NetFabric.Hyperlinq.Benchmarks
         public List<int> Range_ToList_Hyperlinq()
             => ValueEnumerable.Range(0, Count).ToList();
 
-        [BenchmarkCategory("Range_ToList"), Benchmark]
-        public void Range_ToListPooled_Hyperlinq()
-        {
-            using var buffer = ValueEnumerable.Range(0, Count).ToListPooled();
-        }
+
     }
 }

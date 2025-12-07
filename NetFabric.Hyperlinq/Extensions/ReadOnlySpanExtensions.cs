@@ -310,33 +310,7 @@ namespace NetFabric.Hyperlinq
                 }
             }
 
-            /// <summary>
-            /// Alias for ToArrayPooled(). Both return PooledBuffer&lt;T&gt;.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public PooledBuffer<T> ToListPooled()
-                => source.ToArrayPooled();
 
-            /// <summary>
-            /// Alias for ToArrayPooled(pool). Both return PooledBuffer&lt;T&gt;.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public PooledBuffer<T> ToListPooled(ArrayPool<T>? pool)
-                => source.ToArrayPooled(pool);
-
-            /// <summary>
-            /// Alias for ToArrayPooled(predicate). Both return PooledBuffer&lt;T&gt;.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public PooledBuffer<T> ToListPooled(Func<T, bool> predicate)
-                => source.ToArrayPooled(predicate);
-
-            /// <summary>
-            /// Alias for ToArrayPooled(predicate, pool). Both return PooledBuffer&lt;T&gt;.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public PooledBuffer<T> ToListPooled(Func<T, bool> predicate, ArrayPool<T>? pool)
-                => source.ToArrayPooled(predicate, pool);
         }
     }
 }

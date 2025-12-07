@@ -15,7 +15,7 @@ Learn how Hyperlinq automatically fuses operations like `Where().Select().Sum()`
 - Best practices for fusion-friendly code
 
 ### [Pooled Memory](pooled-memory.md)
-Learn how to use `ToArrayPooled()` and `ToListPooled()` to reduce GC pressure by using `ArrayPool<T>`.
+Learn how to use `ToArrayPooled()` to reduce GC pressure by using `ArrayPool<T>`.
 
 **Topics covered:**
 - Why use pooled memory?

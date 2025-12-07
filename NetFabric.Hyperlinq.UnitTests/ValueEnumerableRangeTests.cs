@@ -73,22 +73,7 @@ namespace NetFabric.Hyperlinq.UnitTests
             buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
         }
 
-        [Test]
-        [Arguments(0, 0)]
-        [Arguments(0, 1)]
-        [Arguments(0, 10)]
-        public void Range_ToListPooled_Should_ReturnExpectedBuffer(int start, int count)
-        {
-            // Arrange
-            var expected = Enumerable.Range(start, count).ToArray();
 
-            // Act
-            using var buffer = ValueEnumerable.Range(start, count).ToListPooled();
-
-            // Assert
-            buffer.Length.Must().BeEqualTo(expected.Length);
-            buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
-        }
 
         [Test]
         public void Range_WithNegativeCount_Should_Throw()
