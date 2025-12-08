@@ -12,7 +12,7 @@ namespace NetFabric.Hyperlinq
         readonly List<TSource> source;
         readonly TSelector selector;
 
-        public SelectListInEnumerable(List<TSource> source, TSelector selector)
+        public SelectListInEnumerable(List<TSource> source, in TSelector selector)
         {
             this.source = source;
             this.selector = selector;

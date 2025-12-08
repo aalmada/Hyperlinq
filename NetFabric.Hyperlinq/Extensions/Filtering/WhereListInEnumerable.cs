@@ -17,7 +17,7 @@ namespace NetFabric.Hyperlinq
         readonly List<TSource> source;
         readonly TPredicate predicate;
 
-        public WhereListInEnumerable(List<TSource> source, TPredicate predicate)
+        public WhereListInEnumerable(List<TSource> source, in TPredicate predicate)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
             this.predicate = predicate;

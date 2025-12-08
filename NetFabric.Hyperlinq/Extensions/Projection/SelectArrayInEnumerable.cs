@@ -11,7 +11,7 @@ namespace NetFabric.Hyperlinq
         readonly TSource[] source;
         readonly TSelector selector;
 
-        public SelectArrayInEnumerable(TSource[] source, TSelector selector)
+        public SelectArrayInEnumerable(TSource[] source, in TSelector selector)
         {
             this.source = source;
             this.selector = selector;

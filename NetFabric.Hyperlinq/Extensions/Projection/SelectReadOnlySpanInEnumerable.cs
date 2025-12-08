@@ -9,7 +9,7 @@ namespace NetFabric.Hyperlinq
         readonly ReadOnlySpan<TSource> source;
         readonly TSelector selector;
 
-        public SelectReadOnlySpanInEnumerable(ReadOnlySpan<TSource> source, TSelector selector)
+        public SelectReadOnlySpanInEnumerable(ReadOnlySpan<TSource> source, in TSelector selector)
         {
             this.source = source;
             this.selector = selector;
