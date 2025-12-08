@@ -26,7 +26,7 @@ namespace NetFabric.Hyperlinq
         internal List<TSource> Source => source;
         internal TPredicate Predicate => predicate;
 
-        public Enumerator GetEnumerator() => new Enumerator(source, predicate);
+        public Enumerator GetEnumerator() => new Enumerator(source, in predicate);
         IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -37,7 +37,7 @@ namespace NetFabric.Hyperlinq
             readonly int length;
             int index;
 
-            public Enumerator(List<TSource> list, TPredicate predicate)
+            public Enumerator(List<TSource> list, in TPredicate predicate)
             {
                 this.list = list;
                 this.predicate = predicate;

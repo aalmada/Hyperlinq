@@ -26,7 +26,7 @@ namespace NetFabric.Hyperlinq
             set => throw new NotSupportedException();
         }
 
-        public Enumerator GetEnumerator() => new Enumerator(source, selector);
+        public Enumerator GetEnumerator() => new Enumerator(source, in selector);
         IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -76,7 +76,7 @@ namespace NetFabric.Hyperlinq
             readonly TSelector selector;
             int index;
 
-            public Enumerator(TSource[] source, TSelector selector)
+            public Enumerator(TSource[] source, in TSelector selector)
             {
                 this.source = source;
                 this.selector = selector;
