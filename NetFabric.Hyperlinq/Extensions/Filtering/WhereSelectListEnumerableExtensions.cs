@@ -9,6 +9,24 @@ namespace NetFabric.Hyperlinq
 {
     public static partial class WhereSelectListEnumerableExtensions
     {
+        /// <summary>
+        /// Fuses consecutive Where operations by combining predicates with AND logic.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereSelectListEnumerable<TSource, TResult> Where<TSource, TResult>(
+            this WhereSelectListEnumerable<TSource, TResult> source, 
+            Func<TResult, bool> predicate)
+        {
+            var sourcePredicate = source.Predicate;
+            var selector = source.Selector;
+            // Merge: first apply source predicate, then selector, then new predicate
+            return new WhereSelectListEnumerable<TSource, TResult>(
+                source.Source,
+                item => sourcePredicate(item) && predicate(selector(item)),
+                selector
+            );
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Count<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
         {
@@ -162,6 +180,26 @@ namespace NetFabric.Hyperlinq
             if (!hasValue)
                 throw new InvalidOperationException("Sequence contains no elements");
             return max!;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TResult Sum<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
+            where TResult : IAdditionOperators<TResult, TResult, TResult>, IAdditiveIdentity<TResult, TResult>
+        {
+            var sum = TResult.AdditiveIdentity;
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            var selector = source.Selector;
+            
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                {
+                    sum += selector(span[i]);
+                }
+            }
+            
+            return sum;
         }
 
         public static TResult[] ToArray<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)

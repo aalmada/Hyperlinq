@@ -11,6 +11,8 @@ NetFabric.Hyperlinq is a high-performance LINQ implementation that eliminates he
 - Faster than System.Linq
 - Full LINQ compatibility
 - Type-safe, compile-time optimizations
+- Avoid runtime type checks
+- Prefer compile-time specialization
 
 ---
 
@@ -273,6 +275,90 @@ Use `[MethodImpl(MethodImplOptions.AggressiveInlining)]` on:
 ### 4.3 Advanced Optimizations
 
 For detailed techniques (loop unrolling, branch elimination, SIMD, etc.), see [OPTIMIZATION_GUIDELINES.md](OPTIMIZATION_GUIDELINES.md).
+
+---
+
+## 4. Fusion Policy
+
+### 4.1 The Fusion Challenge
+
+Fusion operations eliminate intermediate allocations and enable single-pass execution, but create exponential complexity:
+- N enumerable types × M operations = N×M implementations
+- Each new operation requires fusion for all enumerable types
+- Each new enumerable type requires all operations
+
+**Strategy**: Implement fusion selectively using a tiered approach.
+
+### 4.2 Fusion Tiers
+
+#### Tier 1: Essential Fusion (Always Implement)
+
+**Criteria**: Operations that eliminate intermediate allocations
+
+**Operations**:
+- `Where().Where()` → Merge predicates
+- `Select().Select()` → Compose selectors
+- `Where().Select()` → Create WhereSelect
+
+**Why**: Core LINQ composition patterns. Without fusion, they create intermediate enumerables.
+
+**Effort**: ~3 fusion methods per enumerable type
+
+#### Tier 2: Performance-Critical Fusion (Implement Selectively)
+
+**Criteria**: Operations where fusion provides significant performance benefit (>2x speedup)
+
+**Operations**:
+- `Where().Count/Any/First/Single/Last` → Single pass vs two passes
+- `WhereSelect().Min/Max/Sum/Count/Any/First/Single` → Single pass vs two passes
+- `Select().Min/Max/Sum` → Apply selector during aggregation
+
+**Why**: Common patterns with measurable performance gains.
+
+**Effort**: ~6 fusion methods per enumerable type
+
+#### Tier 3: Nice-to-Have Fusion (Do NOT Implement)
+
+**Criteria**: Operations where fusion provides minimal benefit or are rarely used
+
+**Examples**:
+- ❌ `Select().Count/Any/First/Single/Last` - Marginal benefit (just skip selector)
+- ❌ `WhereSelect().Last` - Rarely used pattern
+- ❌ Complex chains - e.g., `Where().Select().Where()`
+
+**Why**: Low ROI - complexity cost exceeds performance benefit.
+
+### 4.3 Decision Criteria
+
+Before implementing fusion, ask:
+
+1. **Does it eliminate an allocation?** (Yes → Tier 1)
+2. **Does it reduce passes by 50%+?** (Yes → Tier 2)
+3. **Is it a common usage pattern?** (No → Skip)
+4. **Can we achieve the same with predicate overloads?** (Yes → Use overloads instead)
+
+### 4.4 Implementation Matrix
+
+| Enumerable Type | Consecutive Ops | Terminal Ops |
+|-----------------|-----------------|--------------|
+| **Where** | Where, Select | Min, Max, Sum, Count, Any, First, Single, Last |
+| **WhereSelect** | Where | Min, Max, Sum, Count, Any, First, Single |
+| **Select** | Select | Min, Max, Sum |
+
+**Total**: ~30 fusion methods (vs 48+ with all operations)
+
+### 4.5 LINQ Comparison
+
+**LINQ's approach**: Minimal fusion + predicate overloads
+- `source.Count(predicate)` instead of `source.Where(predicate).Count()`
+- Only fuses Where/Select into intermediate enumerables
+
+**Hyperlinq's approach**: Hybrid strategy
+- ✅ Tier 1 + 2 fusion (essential + performance-critical)
+- ✅ Predicate overloads (like LINQ)
+- ❌ Skip Tier 3 fusion (marginal benefit)
+
+**Advantage**: Value-type enumerators enable true zero-allocation fusion where it matters most.
 
 ---
 

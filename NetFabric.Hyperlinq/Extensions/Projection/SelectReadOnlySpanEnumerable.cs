@@ -14,6 +14,9 @@ namespace NetFabric.Hyperlinq
             this.selector = selector;
         }
 
+        internal ReadOnlySpan<TSource> Source => source;
+        internal Func<TSource, TResult> Selector => selector;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count() => source.Length;
 

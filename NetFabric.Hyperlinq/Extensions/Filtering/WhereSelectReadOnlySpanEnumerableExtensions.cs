@@ -9,6 +9,24 @@ namespace NetFabric.Hyperlinq
     public static partial class WhereSelectReadOnlySpanEnumerableExtensions
     {
         /// <summary>
+        /// Fuses consecutive Where operations by combining predicates with AND logic.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereSelectReadOnlySpanEnumerable<TSource, TResult> Where<TSource, TResult>(
+            this WhereSelectReadOnlySpanEnumerable<TSource, TResult> source, 
+            Func<TResult, bool> predicate)
+        {
+            var sourcePredicate = source.Predicate;
+            var selector = source.Selector;
+            // Merge: first apply source predicate, then selector, then new predicate
+            return new WhereSelectReadOnlySpanEnumerable<TSource, TResult>(
+                source.Source,
+                item => sourcePredicate(item) && predicate(selector(item)),
+                selector
+            );
+        }
+
+        /// <summary>
         /// Computes the sum of a WhereSelectReadOnlySpanEnumerable for numeric result types.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

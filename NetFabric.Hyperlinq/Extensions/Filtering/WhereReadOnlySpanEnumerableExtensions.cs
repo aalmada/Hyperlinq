@@ -8,6 +8,16 @@ namespace NetFabric.Hyperlinq
 {
     public static partial class WhereReadOnlySpanEnumerableExtensions
     {
+        /// <summary>
+        /// Fuses consecutive Where operations by combining predicates with AND logic.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereReadOnlySpanEnumerable<TSource> Where<TSource>(this WhereReadOnlySpanEnumerable<TSource> source, Func<TSource, bool> predicate)
+        {
+            var firstPredicate = source.Predicate;
+            return new WhereReadOnlySpanEnumerable<TSource>(source.Source, item => firstPredicate(item) && predicate(item));
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static WhereSelectReadOnlySpanEnumerable<TSource, TResult> Select<TSource, TResult>(this WhereReadOnlySpanEnumerable<TSource> source, Func<TSource, TResult> selector)
             => new WhereSelectReadOnlySpanEnumerable<TSource, TResult>(source.Source, source.Predicate, selector);

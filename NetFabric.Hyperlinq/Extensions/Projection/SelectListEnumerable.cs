@@ -16,6 +16,9 @@ namespace NetFabric.Hyperlinq
             this.selector = selector;
         }
 
+        internal List<TSource> Source => source;
+        internal Func<TSource, TResult> Selector => selector;
+
         public int Count => source.Count;
 
         public TResult this[int index] => selector(source[index]);

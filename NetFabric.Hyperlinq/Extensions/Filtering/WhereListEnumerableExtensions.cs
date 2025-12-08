@@ -9,6 +9,16 @@ namespace NetFabric.Hyperlinq
 {
     public static partial class WhereListEnumerableExtensions
     {
+        /// <summary>
+        /// Fuses consecutive Where operations by combining predicates with AND logic.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereListEnumerable<TSource> Where<TSource>(this WhereListEnumerable<TSource> source, Func<TSource, bool> predicate)
+        {
+            var firstPredicate = source.Predicate;
+            return new WhereListEnumerable<TSource>(source.Source, item => firstPredicate(item) && predicate(item));
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static WhereSelectListEnumerable<TSource, TResult> Select<TSource, TResult>(this WhereListEnumerable<TSource> source, Func<TSource, TResult> selector)
             => new WhereSelectListEnumerable<TSource, TResult>(source.Source, source.Predicate, selector);
