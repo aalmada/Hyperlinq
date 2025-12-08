@@ -3,31 +3,30 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
-    public readonly ref struct WhereReadOnlySpanEnumerable<TSource>
+    public readonly ref struct WhereReadOnlySpanEnumerable<TSource, TPredicate>
+        where TPredicate : struct, IFunction<TSource, bool>
     {
         readonly ReadOnlySpan<TSource> source;
-        readonly Func<TSource, bool> predicate;
+        readonly TPredicate predicate;
 
         internal ReadOnlySpan<TSource> Source => source;
-        internal Func<TSource, bool> Predicate => predicate;
+        internal TPredicate Predicate => predicate;
 
-        public WhereReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
+        public WhereReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, TPredicate predicate)
         {
             this.source = source;
             this.predicate = predicate;
         }
-
-
 
         public Enumerator GetEnumerator() => new Enumerator(source, predicate);
 
         public ref struct Enumerator
         {
             readonly ReadOnlySpan<TSource> source;
-            readonly Func<TSource, bool> predicate;
+            readonly TPredicate predicate;
             int index;
 
-            public Enumerator(ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
+            public Enumerator(ReadOnlySpan<TSource> source, TPredicate predicate)
             {
                 this.source = source;
                 this.predicate = predicate;
@@ -45,7 +44,7 @@ namespace NetFabric.Hyperlinq
             {
                 while (++index < source.Length)
                 {
-                    if (predicate(source[index]))
+                    if (predicate.Invoke(source[index]))
                         return true;
                 }
                 return false;

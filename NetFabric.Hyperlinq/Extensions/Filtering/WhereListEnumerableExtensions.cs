@@ -13,19 +13,33 @@ namespace NetFabric.Hyperlinq
         /// Fuses consecutive Where operations by combining predicates with AND logic.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static WhereListEnumerable<TSource> Where<TSource>(this WhereListEnumerable<TSource> source, Func<TSource, bool> predicate)
+        public static WhereListEnumerable<TSource, PredicateAnd<TSource, TPredicate, FunctionWrapper<TSource, bool>>> Where<TSource, TPredicate>(
+            this WhereListEnumerable<TSource, TPredicate> source, 
+            Func<TSource, bool> predicate)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
-            var firstPredicate = source.Predicate;
-            return new WhereListEnumerable<TSource>(source.Source, item => firstPredicate(item) && predicate(item));
+            return new WhereListEnumerable<TSource, PredicateAnd<TSource, TPredicate, FunctionWrapper<TSource, bool>>>(
+                source.Source, 
+                new PredicateAnd<TSource, TPredicate, FunctionWrapper<TSource, bool>>(
+                    source.Predicate, 
+                    new FunctionWrapper<TSource, bool>(predicate)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static WhereSelectListEnumerable<TSource, TResult> Select<TSource, TResult>(this WhereListEnumerable<TSource> source, Func<TSource, TResult> selector)
-            => new WhereSelectListEnumerable<TSource, TResult>(source.Source, source.Predicate, selector);
+        public static WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> Select<TSource, TResult, TPredicate, TSelector>(this WhereListEnumerable<TSource, TPredicate> source, TSelector selector)
+            where TPredicate : struct, IFunction<TSource, bool>
+            where TSelector : struct, IFunction<TSource, TResult>
+            => new WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector>(source.Source, source.Predicate, selector);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource Sum<TSource>(this WhereListEnumerable<TSource> source)
+        public static WhereSelectListEnumerable<TSource, TResult, TPredicate, FunctionWrapper<TSource, TResult>> Select<TSource, TResult, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source, Func<TSource, TResult> selector)
+            where TPredicate : struct, IFunction<TSource, bool>
+            => new WhereSelectListEnumerable<TSource, TResult, TPredicate, FunctionWrapper<TSource, TResult>>(source.Source, source.Predicate, new FunctionWrapper<TSource, TResult>(selector));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TSource Sum<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var sum = TSource.AdditiveIdentity;
             foreach (var item in source)
@@ -36,8 +50,9 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource Min<TSource>(this WhereListEnumerable<TSource> source)
+        public static TSource Min<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TSource : INumber<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var hasValue = false;
             var min = default(TSource);
@@ -55,8 +70,9 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource Max<TSource>(this WhereListEnumerable<TSource> source)
+        public static TSource Max<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TSource : INumber<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var hasValue = false;
             var max = default(TSource);
@@ -74,60 +90,65 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Count<TSource>(this WhereListEnumerable<TSource> source)
+        public static int Count<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var count = 0;
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
-                if (predicate(span[i]))
+                if (predicate.Invoke(span[i]))
                     count++;
             }
             return count;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Any<TSource>(this WhereListEnumerable<TSource> source)
+        public static bool Any<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
-                if (predicate(span[i]))
+                if (predicate.Invoke(span[i]))
                     return true;
             }
             return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource First<TSource>(this WhereListEnumerable<TSource> source)
+        public static TSource First<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
-                if (predicate(span[i]))
+                if (predicate.Invoke(span[i]))
                     return span[i];
             }
             throw new InvalidOperationException("Sequence contains no elements");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Option<TSource> FirstOrNone<TSource>(this WhereListEnumerable<TSource> source)
+        public static Option<TSource> FirstOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
-                if (predicate(span[i]))
+                if (predicate.Invoke(span[i]))
                     return Option<TSource>.Some(span[i]);
             }
             return Option<TSource>.None();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource Single<TSource>(this WhereListEnumerable<TSource> source)
+        public static TSource Single<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var found = false;
             var result = default(TSource);
@@ -135,7 +156,7 @@ namespace NetFabric.Hyperlinq
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
-                if (predicate(span[i]))
+                if (predicate.Invoke(span[i]))
                 {
                     if (found)
                         throw new InvalidOperationException("Sequence contains more than one element");
@@ -149,7 +170,8 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Option<TSource> SingleOrNone<TSource>(this WhereListEnumerable<TSource> source)
+        public static Option<TSource> SingleOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
@@ -157,7 +179,7 @@ namespace NetFabric.Hyperlinq
             var result = default(TSource);
             foreach (var item in span)
             {
-                if (predicate(item))
+                if (predicate.Invoke(item))
                 {
                     if (found)
                         throw new InvalidOperationException("Sequence contains more than one matching element");
@@ -169,61 +191,67 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TSource Last<TSource>(this WhereListEnumerable<TSource> source)
+        public static TSource Last<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var index = span.Length - 1; index >= 0; index--)
             {
-                if (predicate(span[index]))
+                if (predicate.Invoke(span[index]))
                     return span[index];
             }
             throw new InvalidOperationException("Sequence contains no matching element");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Option<TSource> LastOrNone<TSource>(this WhereListEnumerable<TSource> source)
+        public static Option<TSource> LastOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var index = span.Length - 1; index >= 0; index--)
             {
-                if (predicate(span[index]))
+                if (predicate.Invoke(span[index]))
                     return Option<TSource>.Some(span[index]);
             }
             return Option<TSource>.None();
         }
 
-        public static TSource[] ToArray<TSource>(this WhereListEnumerable<TSource> source)
+        public static TSource[] ToArray<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var list = new List<TSource>();
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
-                if (predicate(span[i]))
+                if (predicate.Invoke(span[i]))
                     list.Add(span[i]);
             }
             return list.ToArray();
         }
 
-        public static List<TSource> ToList<TSource>(this WhereListEnumerable<TSource> source)
+        public static List<TSource> ToList<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var list = new List<TSource>();
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
-                if (predicate(span[i]))
+                if (predicate.Invoke(span[i]))
                     list.Add(span[i]);
             }
             return list;
         }
 
-        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListEnumerable<TSource> source)
+        public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TPredicate : struct, IFunction<TSource, bool>
             => source.ToArrayPooled((ArrayPool<TSource>?)null);
 
-        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListEnumerable<TSource> source, ArrayPool<TSource>? pool)
+        public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source, ArrayPool<TSource>? pool)
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             var poolToUse = pool ?? ArrayPool<TSource>.Shared;
             var capacity = PooledBuffer<TSource>.GetDefaultInitialCapacity();
@@ -237,7 +265,7 @@ namespace NetFabric.Hyperlinq
                 
                 for (var i = 0; i < span.Length; i++)
                 {
-                    if (predicate(span[i]))
+                    if (predicate.Invoke(span[i]))
                     {
                         // Grow buffer if needed
                         if (count == buffer.Length)

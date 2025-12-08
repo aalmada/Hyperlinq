@@ -10,19 +10,20 @@ namespace NetFabric.Hyperlinq
     /// WhereEnumerable for List sources (uses CollectionsMarshal for zero-copy)
     /// Optimized with 4-way loop unrolling for instruction-level parallelism.
     /// </summary>
-    public readonly struct WhereListEnumerable<TSource> : IValueEnumerable<TSource, WhereListEnumerable<TSource>.Enumerator>
+    public readonly struct WhereListEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereListEnumerable<TSource, TPredicate>.Enumerator>
+        where TPredicate : struct, IFunction<TSource, bool>
     {
         readonly List<TSource> source;
-        readonly Func<TSource, bool> predicate;
+        readonly TPredicate predicate;
 
-        public WhereListEnumerable(List<TSource> source, Func<TSource, bool> predicate)
+        public WhereListEnumerable(List<TSource> source, TPredicate predicate)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
-            this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
+            this.predicate = predicate;
         }
 
         internal List<TSource> Source => source;
-        internal Func<TSource, bool> Predicate => predicate;
+        internal TPredicate Predicate => predicate;
 
 
 
@@ -33,11 +34,11 @@ namespace NetFabric.Hyperlinq
         public struct Enumerator : IEnumerator<TSource>
         {
             readonly List<TSource> list;
-            readonly Func<TSource, bool> predicate;
+            readonly TPredicate predicate;
             readonly int length;
             int index;
 
-            public Enumerator(List<TSource> list, Func<TSource, bool> predicate)
+            public Enumerator(List<TSource> list, TPredicate predicate)
             {
                 this.list = list;
                 this.predicate = predicate;
@@ -60,28 +61,28 @@ namespace NetFabric.Hyperlinq
                 {
                     // Check 4 items in sequence
                     var i0 = index + 1;
-                    if (predicate(Unsafe.Add(ref spanRef, i0)))
+                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i0)))
                     {
                         index = i0;
                         return true;
                     }
                     
                     var i1 = index + 2;
-                    if (predicate(Unsafe.Add(ref spanRef, i1)))
+                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i1)))
                     {
                         index = i1;
                         return true;
                     }
                     
                     var i2 = index + 3;
-                    if (predicate(Unsafe.Add(ref spanRef, i2)))
+                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i2)))
                     {
                         index = i2;
                         return true;
                     }
                     
                     var i3 = index + 4;
-                    if (predicate(Unsafe.Add(ref spanRef, i3)))
+                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i3)))
                     {
                         index = i3;
                         return true;
@@ -92,15 +93,15 @@ namespace NetFabric.Hyperlinq
                 switch (length - index - 1)
                 {
                     case 3:
-                        if (predicate(Unsafe.Add(ref spanRef, ++index)))
+                        if (predicate.Invoke(Unsafe.Add(ref spanRef, ++index)))
                             return true;
                         goto case 2;
                     case 2:
-                        if (predicate(Unsafe.Add(ref spanRef, ++index)))
+                        if (predicate.Invoke(Unsafe.Add(ref spanRef, ++index)))
                             return true;
                         goto case 1;
                     case 1:
-                        if (predicate(Unsafe.Add(ref spanRef, ++index)))
+                        if (predicate.Invoke(Unsafe.Add(ref spanRef, ++index)))
                             return true;
                         break;
                 }

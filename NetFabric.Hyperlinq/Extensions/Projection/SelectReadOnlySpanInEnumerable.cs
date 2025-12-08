@@ -3,13 +3,13 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
-    public readonly ref struct SelectReadOnlySpanEnumerable<TSource, TResult, TSelector>
-        where TSelector : struct, IFunction<TSource, TResult>
+    public readonly ref struct SelectReadOnlySpanInEnumerable<TSource, TResult, TSelector>
+        where TSelector : struct, IFunctionIn<TSource, TResult>
     {
         readonly ReadOnlySpan<TSource> source;
         readonly TSelector selector;
 
-        public SelectReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, TSelector selector)
+        public SelectReadOnlySpanInEnumerable(ReadOnlySpan<TSource> source, TSelector selector)
         {
             this.source = source;
             this.selector = selector;
@@ -29,12 +29,12 @@ namespace NetFabric.Hyperlinq
         {
             if (source.Length == 0)
                 throw new InvalidOperationException("Sequence contains no elements");
-            return selector.Invoke(source[0]);
+            return selector.Invoke(in source[0]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<TResult> FirstOrNone()
-            => source.Length == 0 ? Option<TResult>.None() : Option<TResult>.Some(selector.Invoke(source[0]));
+            => source.Length == 0 ? Option<TResult>.None() : Option<TResult>.Some(selector.Invoke(in source[0]));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TResult Single()
@@ -43,7 +43,7 @@ namespace NetFabric.Hyperlinq
                 throw new InvalidOperationException("Sequence contains no elements");
             if (source.Length > 1)
                 throw new InvalidOperationException("Sequence contains more than one element");
-            return selector.Invoke(source[0]);
+            return selector.Invoke(in source[0]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -53,14 +53,14 @@ namespace NetFabric.Hyperlinq
                 return Option<TResult>.None();
             if (source.Length > 1)
                 throw new InvalidOperationException("Sequence contains more than one element");
-            return Option<TResult>.Some(selector.Invoke(source[0]));
+            return Option<TResult>.Some(selector.Invoke(in source[0]));
         }
 
         public TResult[] ToArray()
         {
             var array = new TResult[source.Length];
             for (var i = 0; i < source.Length; i++)
-                array[i] = selector.Invoke(source[i]);
+                array[i] = selector.Invoke(in source[i]);
             return array;
         }
 
@@ -68,7 +68,7 @@ namespace NetFabric.Hyperlinq
         {
             var list = new List<TResult>(source.Length);
             for (var i = 0; i < source.Length; i++)
-                list.Add(selector.Invoke(source[i]));
+                list.Add(selector.Invoke(in source[i]));
             return list;
         }
 
@@ -90,7 +90,7 @@ namespace NetFabric.Hyperlinq
             public readonly TResult Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => selector.Invoke(source[index]);
+                get => selector.Invoke(in source[index]);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

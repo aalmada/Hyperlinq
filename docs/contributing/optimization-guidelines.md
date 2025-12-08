@@ -64,6 +64,43 @@ public class Enumerator : IEnumerator<T> { }
 
 ---
 
+## Value Delegates
+
+**Reference**: [Zero-Allocation Delegates](https://www.codeproject.com/Articles/5256244/Zero-Allocation-Delegates-in-Csharp)
+
+### Technique
+
+Use `struct` implementations of `IFunction<T, TResult>` instead of `Func<T, TResult>` delegates.
+
+### Implementation Pattern
+
+```csharp
+// ✅ GOOD: Struct value delegate (zero allocations, inlinable)
+public readonly struct DoubleFn : IFunction<int, int>
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Invoke(int item) => item * 2;
+}
+
+// Usage
+source.Select<int, DoubleFn>(new DoubleFn());
+
+// ❌ BAD: Func delegate (delegate allocation, closure allocation, virtual call)
+source.Select(item => item * 2);
+```
+
+### Benefits
+
+- **Zero Allocations**: Avoids delegate instance allocation and closure class allocation.
+- **Inlining**: The JIT can inline the `Invoke` call because the target is a concrete struct method, enabling further optimizations like loop unrolling and constant folding.
+- **State Capture**: Struct fields can capture state without heap allocation.
+
+### When to Apply
+
+✅ **Performance Critical Paths**: When every nanosecond counts.
+✅ **Library Internals**: For internal implementations to maximize performance.
+
+
 ## Operation Fusion
 
 **Reference**: [LINQ Internals](https://aalmada.github.io/posts/LINQ-internals-speed-optimizations/)
@@ -440,6 +477,8 @@ When implementing a new operation:
 7. ✅ Add `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to hot paths
 8. ✅ Benchmark against LINQ baseline
 9. ✅ Verify zero allocations with BenchmarkDotNet `[MemoryDiagnoser]`
+10. ✅ Consider Value Delegates for critical paths
+
 
 ---
 

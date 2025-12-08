@@ -14,6 +14,15 @@ Learn how Hyperlinq automatically fuses operations like `Where().Select().Sum()`
 - Best practices for fusion-friendly code
 - Best practices for fusion-friendly code
 
+### [Value Delegates](value-delegates.md)
+Learn how to use struct implementations of functions for maximum performance.
+
+**Topics covered:**
+- What are value delegates?
+- Performance benefits
+- How to implement `ValueAction<T>`, `ValueFunc<T, TResult>`, etc.
+- Best practices
+
 ### [Pooled Memory](pooled-memory.md)
 Learn how to use `ToArrayPooled()` to reduce GC pressure by using `ArrayPool<T>`.
 

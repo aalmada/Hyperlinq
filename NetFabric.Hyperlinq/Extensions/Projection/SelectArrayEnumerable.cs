@@ -5,12 +5,13 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
 {
-    public readonly struct SelectArrayEnumerable<TSource, TResult> : IValueReadOnlyList<TResult, SelectArrayEnumerable<TSource, TResult>.Enumerator>, IList<TResult>
+    public readonly struct SelectArrayEnumerable<TSource, TResult, TSelector> : IValueReadOnlyList<TResult, SelectArrayEnumerable<TSource, TResult, TSelector>.Enumerator>, IList<TResult>
+        where TSelector : struct, IFunction<TSource, TResult>
     {
         readonly TSource[] source;
-        readonly Func<TSource, TResult> selector;
+        readonly TSelector selector;
 
-        public SelectArrayEnumerable(TSource[] source, Func<TSource, TResult> selector)
+        public SelectArrayEnumerable(TSource[] source, TSelector selector)
         {
             this.source = source;
             this.selector = selector;
@@ -18,7 +19,7 @@ namespace NetFabric.Hyperlinq
 
         public int Count => source.Length;
 
-        public TResult this[int index] => selector(source[index]);
+        public TResult this[int index] => selector.Invoke(source[index]);
         TResult IList<TResult>.this[int index]
         {
             get => this[index];
@@ -39,7 +40,7 @@ namespace NetFabric.Hyperlinq
 
             for (var i = 0; i < source.Length; i++)
             {
-                array[arrayIndex + i] = selector(source[i]);
+                array[arrayIndex + i] = selector.Invoke(source[i]);
             }
         }
 
@@ -47,7 +48,7 @@ namespace NetFabric.Hyperlinq
         {
             for (var i = 0; i < source.Length; i++)
             {
-                if (EqualityComparer<TResult>.Default.Equals(selector(source[i]), item))
+                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(source[i]), item))
                     return true;
             }
             return false;
@@ -57,7 +58,7 @@ namespace NetFabric.Hyperlinq
         {
             for (var i = 0; i < source.Length; i++)
             {
-                if (EqualityComparer<TResult>.Default.Equals(selector(source[i]), item))
+                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(source[i]), item))
                     return i;
             }
             return -1;
@@ -72,17 +73,17 @@ namespace NetFabric.Hyperlinq
         public struct Enumerator : IEnumerator<TResult>
         {
             readonly TSource[] source;
-            readonly Func<TSource, TResult> selector;
+            readonly TSelector selector;
             int index;
 
-            public Enumerator(TSource[] source, Func<TSource, TResult> selector)
+            public Enumerator(TSource[] source, TSelector selector)
             {
                 this.source = source;
                 this.selector = selector;
                 this.index = -1;
             }
 
-            public TResult Current => selector(source[index]);
+            public TResult Current => selector.Invoke(source[index]);
             object? IEnumerator.Current => Current;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

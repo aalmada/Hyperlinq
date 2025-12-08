@@ -58,10 +58,10 @@ namespace NetFabric.Hyperlinq.Analyzer
             if (methodSymbol.ContainingType?.ToString() != "System.Linq.Enumerable")
                 return;
 
-            // Only suggest if using NetFabric.Hyperlinq is NOT present
             // (If it is present, user can choose between direct extensions or AsValueEnumerable)
-            if (HasHyperlinkUsing(context))
-                return;
+            // UPDATE: We now suggest it even if present, to encourage performance.
+            // if (HasHyperlinkUsing(context))
+            //    return;
 
             // Get the receiver type
             var receiverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type;

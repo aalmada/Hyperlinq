@@ -2,16 +2,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq
 {
-    public readonly struct SelectListEnumerable<TSource, TResult, TSelector> : IValueReadOnlyList<TResult, SelectListEnumerable<TSource, TResult, TSelector>.Enumerator>, IList<TResult>
-        where TSelector : struct, IFunction<TSource, TResult>
+    public readonly struct SelectListInEnumerable<TSource, TResult, TSelector> : IValueReadOnlyList<TResult, SelectListInEnumerable<TSource, TResult, TSelector>.Enumerator>, IList<TResult>
+        where TSelector : struct, IFunctionIn<TSource, TResult>
     {
         readonly List<TSource> source;
         readonly TSelector selector;
 
-        public SelectListEnumerable(List<TSource> source, TSelector selector)
+        public SelectListInEnumerable(List<TSource> source, TSelector selector)
         {
             this.source = source;
             this.selector = selector;
@@ -22,7 +23,20 @@ namespace NetFabric.Hyperlinq
 
         public int Count => source.Count;
 
-        public TResult this[int index] => selector.Invoke(source[index]);
+        public TResult this[int index]
+        {
+            get
+            {
+                var span = CollectionsMarshal.AsSpan(source);
+                if ((uint)index >= (uint)span.Length)
+                    ThrowIndexOutOfRangeException();
+                    
+                return selector.Invoke(in span[index]);
+            }
+        }
+        
+        static void ThrowIndexOutOfRangeException() => throw new IndexOutOfRangeException();
+
         TResult IList<TResult>.this[int index]
         {
             get => this[index];
@@ -41,17 +55,19 @@ namespace NetFabric.Hyperlinq
             if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
             if (array.Length - arrayIndex < Count) throw new ArgumentException("Destination array is not long enough.");
 
-            for (var i = 0; i < source.Count; i++)
+            var span = CollectionsMarshal.AsSpan(source);
+            for (var i = 0; i < span.Length; i++)
             {
-                array[arrayIndex + i] = selector.Invoke(source[i]);
+                array[arrayIndex + i] = selector.Invoke(in span[i]);
             }
         }
 
         public bool Contains(TResult item)
         {
-            for (var i = 0; i < source.Count; i++)
+            var span = CollectionsMarshal.AsSpan(source);
+            for (var i = 0; i < span.Length; i++)
             {
-                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(source[i]), item))
+                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(in span[i]), item))
                     return true;
             }
             return false;
@@ -59,9 +75,10 @@ namespace NetFabric.Hyperlinq
 
         public int IndexOf(TResult item)
         {
-            for (var i = 0; i < source.Count; i++)
+            var span = CollectionsMarshal.AsSpan(source);
+            for (var i = 0; i < span.Length; i++)
             {
-                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(source[i]), item))
+                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(in span[i]), item))
                     return i;
             }
             return -1;
@@ -86,7 +103,12 @@ namespace NetFabric.Hyperlinq
                 this.index = -1;
             }
 
-            public TResult Current => selector.Invoke(source[index]);
+            public TResult Current
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => selector.Invoke(in CollectionsMarshal.AsSpan(source)[index]);
+            }
+            
             object? IEnumerator.Current => Current;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

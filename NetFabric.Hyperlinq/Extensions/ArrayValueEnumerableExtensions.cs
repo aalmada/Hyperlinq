@@ -6,6 +6,7 @@ namespace NetFabric.Hyperlinq
 {
     public static partial class ArrayValueEnumerableExtensions
     {
+
         extension<T>(ArrayValueEnumerable<T> source)
             where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
         {
@@ -117,11 +118,6 @@ namespace NetFabric.Hyperlinq
                 return count;
             }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SelectArrayEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
-                => new SelectArrayEnumerable<T, TResult>(source.Source, selector);
-
-
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T First(Func<T, bool> predicate)
@@ -221,8 +217,36 @@ namespace NetFabric.Hyperlinq
                 throw new InvalidOperationException("Sequence contains no matching element");
             }
         }
+     // Direct array extensions returning ref struct enumerables (maximum performance, foreach-only)
 
-        // Direct array extensions returning ref struct enumerables (maximum performance, foreach-only)
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static SelectArrayEnumerable<T, TResult, TSelector> Select<T, TResult, TSelector>(this ArrayValueEnumerable<T> source, TSelector selector)
+            where TSelector : struct, IFunction<T, TResult>
+            => new SelectArrayEnumerable<T, TResult, TSelector>(source.Source, selector);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static SelectArrayEnumerable<T, TResult, FunctionWrapper<T, TResult>> Select<T, TResult>(this ArrayValueEnumerable<T> source, Func<T, TResult> selector)
+            => new SelectArrayEnumerable<T, TResult, FunctionWrapper<T, TResult>>(source.Source, new FunctionWrapper<T, TResult>(selector));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static SelectArrayInEnumerable<T, TResult, TSelector> Select<T, TResult, TSelector>(this ArrayValueEnumerable<T> source, in TSelector selector)
+            where TSelector : struct, IFunctionIn<T, TResult>
+            => new SelectArrayInEnumerable<T, TResult, TSelector>(source.Source, selector);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereReadOnlySpanEnumerable<T, TPredicate> Where<T, TPredicate>(this ArrayValueEnumerable<T> source, TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => new WhereReadOnlySpanEnumerable<T, TPredicate>(source.Source, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereReadOnlySpanInEnumerable<T, TPredicate> Where<T, TPredicate>(this ArrayValueEnumerable<T> source, in TPredicate predicate)
+            where TPredicate : struct, IFunctionIn<T, bool>
+            => new WhereReadOnlySpanInEnumerable<T, TPredicate>(source.Source, predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>> Where<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
+            => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.Source, new FunctionWrapper<T, bool>(predicate));
     }
 }
+

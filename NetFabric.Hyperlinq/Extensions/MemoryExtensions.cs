@@ -146,8 +146,16 @@ namespace NetFabric.Hyperlinq
             /// Projects each element into a new form.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SelectReadOnlySpanEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
-                => new SelectReadOnlySpanEnumerable<T, TResult>(source.Span, selector);
+            public SelectReadOnlySpanEnumerable<T, TResult, FunctionWrapper<T, TResult>> Select<TResult>(Func<T, TResult> selector)
+                => new SelectReadOnlySpanEnumerable<T, TResult, FunctionWrapper<T, TResult>>(source.Span, new FunctionWrapper<T, TResult>(selector));
+
+            /// <summary>
+            /// Projects each element into a new form.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public SelectReadOnlySpanInEnumerable<T, TResult, TSelector> Select<TResult, TSelector>(in TSelector selector)
+                where TSelector : struct, IFunctionIn<T, TResult>
+                => new SelectReadOnlySpanInEnumerable<T, TResult, TSelector>(source.Span, selector);
 
             /// <summary>
             /// Returns the only element of a sequence.
@@ -209,8 +217,16 @@ namespace NetFabric.Hyperlinq
             /// Filters elements based on a predicate.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public WhereReadOnlySpanEnumerable<T> Where(Func<T, bool> predicate)
-                => new WhereReadOnlySpanEnumerable<T>(source.Span, predicate);
+            public WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
+                => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.Span, new FunctionWrapper<T, bool>(predicate));
+
+            /// <summary>
+            /// Filters elements based on a predicate.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereReadOnlySpanInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
+                where TPredicate : struct, IFunctionIn<T, bool>
+                => new WhereReadOnlySpanInEnumerable<T, TPredicate>(source.Span, predicate);
 
             /// <summary>
             /// Returns the last element of a sequence.

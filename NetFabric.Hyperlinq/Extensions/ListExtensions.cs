@@ -130,6 +130,8 @@ namespace NetFabric.Hyperlinq
             public T FirstOrDefault(Func<T, bool> predicate, T defaultValue)
                 => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
+
+
             /// <summary>
             /// Returns the first element as an Option.
             /// </summary>
@@ -214,5 +216,51 @@ namespace NetFabric.Hyperlinq
             public Option<T> SingleOrNone(Func<T, bool> predicate)
                 => CollectionsMarshal.AsSpan(source).SingleOrNone(predicate);
         }
+
+        /// <summary>
+        /// Projects each element into a new form.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static SelectListEnumerable<T, TResult, TSelector> Select<T, TResult, TSelector>(this List<T> source, TSelector selector)
+            where TSelector : struct, IFunction<T, TResult>
+            => new SelectListEnumerable<T, TResult, TSelector>(source, selector);
+
+        /// <summary>
+        /// Projects each element into a new form.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static SelectListEnumerable<T, TResult, FunctionWrapper<T, TResult>> Select<T, TResult>(this List<T> source, Func<T, TResult> selector)
+            => new SelectListEnumerable<T, TResult, FunctionWrapper<T, TResult>>(source, new FunctionWrapper<T, TResult>(selector));
+
+        /// <summary>
+        /// Projects each element into a new form.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static SelectListInEnumerable<T, TResult, TSelector> Select<T, TResult, TSelector>(this List<T> source, in TSelector selector)
+            where TSelector : struct, IFunctionIn<T, TResult>
+            => new SelectListInEnumerable<T, TResult, TSelector>(source, selector);
+
+        /// <summary>
+        /// Filters elements based on a predicate.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereListEnumerable<T, TPredicate> Where<T, TPredicate>(this List<T> source, TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => new WhereListEnumerable<T, TPredicate>(source, predicate);
+
+        /// <summary>
+        /// Filters elements based on a predicate.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereListEnumerable<T, FunctionWrapper<T, bool>> Where<T>(this List<T> source, Func<T, bool> predicate)
+            => new WhereListEnumerable<T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
+
+        /// <summary>
+        /// Filters elements based on a predicate.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static WhereListInEnumerable<T, TPredicate> Where<T, TPredicate>(this List<T> source, in TPredicate predicate)
+            where TPredicate : struct, IFunctionIn<T, bool>
+            => new WhereListInEnumerable<T, TPredicate>(source, predicate);
     }
 }

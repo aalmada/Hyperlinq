@@ -73,12 +73,22 @@ namespace NetFabric.Hyperlinq
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SelectListEnumerable<T, TResult> Select<TResult>(Func<T, TResult> selector)
-                => new SelectListEnumerable<T, TResult>(source.Source, selector);
+            public SelectListEnumerable<T, TResult, FunctionWrapper<T, TResult>> Select<TResult>(Func<T, TResult> selector)
+                => new SelectListEnumerable<T, TResult, FunctionWrapper<T, TResult>>(source.Source, new FunctionWrapper<T, TResult>(selector));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public WhereListEnumerable<T> Where(Func<T, bool> predicate)
-                => new WhereListEnumerable<T>(source.Source, predicate);
+            public SelectListInEnumerable<T, TResult, TSelector> Select<TResult, TSelector>(in TSelector selector)
+                where TSelector : struct, IFunctionIn<T, TResult>
+                => new SelectListInEnumerable<T, TResult, TSelector>(source.Source, selector);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereListEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
+                => new WhereListEnumerable<T, FunctionWrapper<T, bool>>(source.Source, new FunctionWrapper<T, bool>(predicate));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereListInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
+                where TPredicate : struct, IFunctionIn<T, bool>
+                => new WhereListInEnumerable<T, TPredicate>(source.Source, predicate);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T First(Func<T, bool> predicate)
@@ -154,25 +164,6 @@ namespace NetFabric.Hyperlinq
         }
 
         // Direct List extensions returning ref struct enumerables (maximum performance, foreach-only)
-        extension<TSource>(List<TSource> source)
-        {
-            /// <summary>
-            /// Projects each element of a List into a new form using ref struct enumerable.
-            /// For maximum performance in foreach-only scenarios.
-            /// Use AsValueEnumerable().Select() if you need to chain operations.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SelectListRefStructEnumerable<TSource, TResult> Select<TResult>(Func<TSource, TResult> selector)
-                => new SelectListRefStructEnumerable<TSource, TResult>(source, selector);
 
-            /// <summary>
-            /// Filters a List based on a predicate using ref struct enumerable.
-            /// For maximum performance in foreach-only scenarios.
-            /// Use AsValueEnumerable().Where() if you need to chain operations.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public WhereListRefStructEnumerable<TSource> Where(Func<TSource, bool> predicate)
-                => new WhereListRefStructEnumerable<TSource>(source, predicate);
-        }
     }
 }

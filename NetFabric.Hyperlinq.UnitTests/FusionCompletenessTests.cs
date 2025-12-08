@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using TUnit.Core;
+using NetFabric.Assertive;
 
 namespace NetFabric.Hyperlinq.UnitTests;
 
@@ -23,11 +24,11 @@ public class FusionCompletenessTests
         {
             // Check for Source property
             var sourceProperty = type.GetProperty("Source", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(sourceProperty, Is.Not.Null, $"{type.Name} is missing Source property");
+            sourceProperty.Must().EvaluateTrue(p => p is not null);
             
             // Check for Predicate property
             var predicateProperty = type.GetProperty("Predicate", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(predicateProperty, Is.Not.Null, $"{type.Name} is missing Predicate property");
+            predicateProperty.Must().EvaluateTrue(p => p is not null);
         }
     }
 
@@ -40,11 +41,11 @@ public class FusionCompletenessTests
         {
             // Check for Source property
             var sourceProperty = type.GetProperty("Source", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(sourceProperty, Is.Not.Null, $"{type.Name} is missing Source property");
+            sourceProperty.Must().EvaluateTrue(p => p is not null);
             
             // Check for Selector property
             var selectorProperty = type.GetProperty("Selector", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(selectorProperty, Is.Not.Null, $"{type.Name} is missing Selector property");
+            selectorProperty.Must().EvaluateTrue(p => p is not null);
         }
     }
 
@@ -57,15 +58,15 @@ public class FusionCompletenessTests
         {
             // Check for Source property
             var sourceProperty = type.GetProperty("Source", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(sourceProperty, Is.Not.Null, $"{type.Name} is missing Source property");
+            sourceProperty.Must().EvaluateTrue(p => p is not null);
             
             // Check for Predicate property
             var predicateProperty = type.GetProperty("Predicate", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(predicateProperty, Is.Not.Null, $"{type.Name} is missing Predicate property");
+            predicateProperty.Must().EvaluateTrue(p => p is not null);
             
             // Check for Selector property
             var selectorProperty = type.GetProperty("Selector", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(selectorProperty, Is.Not.Null, $"{type.Name} is missing Selector property");
+            selectorProperty.Must().EvaluateTrue(p => p is not null);
         }
     }
 
@@ -79,13 +80,12 @@ public class FusionCompletenessTests
             var extensionsTypeName = $"{type.FullName}Extensions";
             var extensionsType = HyperlinqAssembly.GetType(extensionsTypeName);
             
-            Assert.That(extensionsType, Is.Not.Null, 
-                $"{type.Name} is missing corresponding {type.Name}Extensions class");
+            extensionsType.Must().EvaluateTrue(t => t is not null);
         }
     }
 
     [Test]
-    public void AllWhereEnumerables_ShouldHaveWhereWhereF fusion()
+    public void AllWhereEnumerables_ShouldHaveWhereWhereFusion()
     {
         var whereTypes = GetEnumerableTypes("Where", excludeWhereSelect: true);
         
@@ -101,8 +101,7 @@ public class FusionCompletenessTests
                 .Where(m => m.Name == "Where" && m.GetParameters().Length == 2)
                 .ToList();
             
-            Assert.That(whereMethods, Is.Not.Empty, 
-                $"{type.Name} is missing Where().Where() fusion method in {extensionsType.Name}");
+            whereMethods.Must().EvaluateTrue(l => l.Count > 0);
         }
     }
 
@@ -123,8 +122,7 @@ public class FusionCompletenessTests
                 .Where(m => m.Name == "Select" && m.GetParameters().Length == 2)
                 .ToList();
             
-            Assert.That(selectMethods, Is.Not.Empty, 
-                $"{type.Name} is missing Select().Select() fusion method in {extensionsType.Name}");
+            selectMethods.Must().EvaluateTrue(l => l.Count > 0);
         }
     }
 
@@ -145,16 +143,14 @@ public class FusionCompletenessTests
                 .Where(m => m.Name == "Min" && m.GetParameters().Length == 1)
                 .ToList();
             
-            Assert.That(minMethods, Is.Not.Empty, 
-                $"{type.Name} is missing Min() fusion method in {extensionsType.Name}");
+            minMethods.Must().EvaluateTrue(l => l.Count > 0);
             
             // Look for Max() method
             var maxMethods = extensionsType.GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Where(m => m.Name == "Max" && m.GetParameters().Length == 1)
                 .ToList();
             
-            Assert.That(maxMethods, Is.Not.Empty, 
-                $"{type.Name} is missing Max() fusion method in {extensionsType.Name}");
+            maxMethods.Must().EvaluateTrue(l => l.Count > 0);
         }
     }
 

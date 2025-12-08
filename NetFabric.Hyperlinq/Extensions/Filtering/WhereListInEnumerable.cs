@@ -7,52 +7,45 @@ using System.Runtime.InteropServices;
 namespace NetFabric.Hyperlinq
 {
     /// <summary>
-    /// WhereSelectEnumerable for List sources (fused Where+Select)
+    /// WhereEnumerable for List sources (uses CollectionsMarshal for zero-copy)
     /// Optimized with 4-way loop unrolling for instruction-level parallelism.
+    /// Supports IFunctionIn for pass-by-reference predicates.
     /// </summary>
-    public readonly struct WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> : IValueEnumerable<TResult, WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector>.Enumerator>
-        where TPredicate : struct, IFunction<TSource, bool>
-        where TSelector : struct, IFunction<TSource, TResult>
+    public readonly struct WhereListInEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereListInEnumerable<TSource, TPredicate>.Enumerator>
+        where TPredicate : struct, IFunctionIn<TSource, bool>
     {
         readonly List<TSource> source;
         readonly TPredicate predicate;
-        readonly TSelector selector;
 
-        public WhereSelectListEnumerable(List<TSource> source, TPredicate predicate, TSelector selector)
+        public WhereListInEnumerable(List<TSource> source, TPredicate predicate)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
             this.predicate = predicate;
-            this.selector = selector;
         }
 
         internal List<TSource> Source => source;
         internal TPredicate Predicate => predicate;
-        internal TSelector Selector => selector;
 
-        public Enumerator GetEnumerator() => new Enumerator(source, predicate, selector);
-        IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
+        public Enumerator GetEnumerator() => new Enumerator(source, predicate);
+        IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-
-
-        public struct Enumerator : IEnumerator<TResult>
+        public struct Enumerator : IEnumerator<TSource>
         {
             readonly List<TSource> list;
             readonly TPredicate predicate;
-            readonly TSelector selector;
             readonly int length;
             int index;
 
-            public Enumerator(List<TSource> list, TPredicate predicate, TSelector selector)
+            public Enumerator(List<TSource> list, TPredicate predicate)
             {
                 this.list = list;
                 this.predicate = predicate;
-                this.selector = selector;
                 this.length = CollectionsMarshal.AsSpan(list).Length;
                 this.index = -1;
             }
 
-            public TResult Current => selector.Invoke(CollectionsMarshal.AsSpan(list)[index]);
+            public TSource Current => CollectionsMarshal.AsSpan(list)[index];
             object? IEnumerator.Current => Current;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -67,28 +60,28 @@ namespace NetFabric.Hyperlinq
                 {
                     // Check 4 items in sequence
                     var i0 = index + 1;
-                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i0)))
+                    if (predicate.Invoke(in Unsafe.Add(ref spanRef, i0)))
                     {
                         index = i0;
                         return true;
                     }
                     
                     var i1 = index + 2;
-                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i1)))
+                    if (predicate.Invoke(in Unsafe.Add(ref spanRef, i1)))
                     {
                         index = i1;
                         return true;
                     }
                     
                     var i2 = index + 3;
-                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i2)))
+                    if (predicate.Invoke(in Unsafe.Add(ref spanRef, i2)))
                     {
                         index = i2;
                         return true;
                     }
                     
                     var i3 = index + 4;
-                    if (predicate.Invoke(Unsafe.Add(ref spanRef, i3)))
+                    if (predicate.Invoke(in Unsafe.Add(ref spanRef, i3)))
                     {
                         index = i3;
                         return true;
@@ -99,15 +92,15 @@ namespace NetFabric.Hyperlinq
                 switch (length - index - 1)
                 {
                     case 3:
-                        if (predicate.Invoke(Unsafe.Add(ref spanRef, ++index)))
+                        if (predicate.Invoke(in Unsafe.Add(ref spanRef, ++index)))
                             return true;
                         goto case 2;
                     case 2:
-                        if (predicate.Invoke(Unsafe.Add(ref spanRef, ++index)))
+                        if (predicate.Invoke(in Unsafe.Add(ref spanRef, ++index)))
                             return true;
                         goto case 1;
                     case 1:
-                        if (predicate.Invoke(Unsafe.Add(ref spanRef, ++index)))
+                        if (predicate.Invoke(in Unsafe.Add(ref spanRef, ++index)))
                             return true;
                         break;
                 }

@@ -27,24 +27,6 @@ namespace NetFabric.Hyperlinq
 
 
 
-        /// <summary>
-        /// Determines whether any element satisfies the predicate.
-        /// Optimized to ignore the selector since Any doesn't need projected values.
-        /// Uses CollectionsMarshal for zero-copy access.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Any<TSource, TResult>(this WhereSelectListEnumerable<TSource, TResult> source)
-        {
-            var span = CollectionsMarshal.AsSpan(source.Source);
-            ref var spanRef = ref MemoryMarshal.GetReference(span);
-            var length = span.Length;
 
-            for (var i = 0; i < length; i++)
-            {
-                if (source.Predicate(Unsafe.Add(ref spanRef, i)))
-                    return true;
-            }
-            return false;
-        }
     }
 }
