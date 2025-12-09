@@ -16,7 +16,7 @@ namespace NetFabric.Hyperlinq.UnitTests
             var result = builder.ToArray();
             var pooledBuffer = builder.ToPooledBuffer();
             
-            result.Must().BeEmpty();
+            result.Must().BeEnumerableOf<int>().BeEqualTo(Array.Empty<int>());
             pooledBuffer.Length.Must().BeEqualTo(0);
             pooledBuffer.Dispose();
         }
