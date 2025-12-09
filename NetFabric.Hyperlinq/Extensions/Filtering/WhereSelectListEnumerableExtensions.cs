@@ -223,20 +223,20 @@ namespace NetFabric.Hyperlinq
             return sum;
         }
 
-        public static TResult[] ToArray<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
+        public static TResult[] ToArray<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source, ArrayPool<TResult>? pool = default)
             where TPredicate : struct, IFunction<TSource, bool>
             where TSelector : struct, IFunction<TSource, TResult>
         {
-            var list = new List<TResult>();
+            using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             var selector = source.Selector;
             for (var i = 0; i < span.Length; i++)
             {
                 if (predicate.Invoke(span[i]))
-                    list.Add(selector.Invoke(span[i]));
+                    builder.Add(selector.Invoke(span[i]));
             }
-            return list.ToArray();
+            return builder.ToArray();
         }
 
         public static List<TResult> ToList<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
@@ -264,49 +264,16 @@ namespace NetFabric.Hyperlinq
             where TPredicate : struct, IFunction<TSource, bool>
             where TSelector : struct, IFunction<TSource, TResult>
         {
-            var poolToUse = pool ?? ArrayPool<TResult>.Shared;
-            var capacity = PooledBuffer<TResult>.GetDefaultInitialCapacity();
-            var buffer = poolToUse.Rent(capacity);
-            var count = 0;
-
-            try
+            using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            var selector = source.Selector;
+            for (var i = 0; i < span.Length; i++)
             {
-                var span = CollectionsMarshal.AsSpan(source.Source);
-                var predicate = source.Predicate;
-                var selector = source.Selector;
-                
-                for (var i = 0; i < span.Length; i++)
-                {
-                    if (predicate.Invoke(span[i]))
-                    {
-                        // Grow buffer if needed
-                        if (count == buffer.Length)
-                        {
-                            var newCapacity = PooledBuffer<TResult>.GetNextCapacity(capacity);
-                            var newBuffer = poolToUse.Rent(newCapacity);
-                            
-                            // Copy existing elements
-                            Array.Copy(buffer, newBuffer, count);
-                            
-                            // Return old buffer
-                            poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
-                            
-                            buffer = newBuffer;
-                            capacity = newCapacity;
-                        }
-
-                        buffer[count++] = selector.Invoke(span[i]);
-                    }
-                }
-
-                return new PooledBuffer<TResult>(buffer, count, pool);
+                if (predicate.Invoke(span[i]))
+                    builder.Add(selector.Invoke(span[i]));
             }
-            catch
-            {
-                // Return buffer on exception
-                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TResult>());
-                throw;
-            }
+            return builder.ToPooledBuffer();
         }
 
 

@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -62,6 +63,18 @@ namespace NetFabric.Hyperlinq
             for (var i = 0; i < span.Length; i++)
                 array[i] = selector(span[i]);
             return array;
+        }
+
+        public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source, ArrayPool<TResult>? pool = null)
+        {
+            var list = source.Source;
+            var selector = source.Selector;
+            pool ??= ArrayPool<TResult>.Shared;
+            var result = pool.Rent(list.Count);
+            var span = CollectionsMarshal.AsSpan(list);
+            for (var i = 0; i < span.Length; i++)
+                result[i] = selector(span[i]);
+            return new PooledBuffer<TResult>(result, list.Count, pool);
         }
 
         public static List<TResult> ToList<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source)

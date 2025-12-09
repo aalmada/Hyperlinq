@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -144,17 +145,17 @@ namespace NetFabric.Hyperlinq
             return Option<TSource>.None();
         }
 
-        public static TSource[] ToArray<TSource>(this WhereListRefStructEnumerable<TSource> source)
+        public static TSource[] ToArray<TSource>(this WhereListRefStructEnumerable<TSource> source, ArrayPool<TSource>? pool = default)
         {
-            var list = new List<TSource>();
+            using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             for (var i = 0; i < span.Length; i++)
             {
                 if (predicate(span[i]))
-                    list.Add(span[i]);
+                    builder.Add(span[i]);
             }
-            return list.ToArray();
+            return builder.ToArray();
         }
 
         public static List<TSource> ToList<TSource>(this WhereListRefStructEnumerable<TSource> source)
@@ -168,6 +169,22 @@ namespace NetFabric.Hyperlinq
                     list.Add(span[i]);
             }
             return list;
+        }
+
+        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListRefStructEnumerable<TSource> source)
+            => source.ToArrayPooled((ArrayPool<TSource>?)null);
+
+        public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListRefStructEnumerable<TSource> source, ArrayPool<TSource>? pool)
+        {
+            using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
+            var span = CollectionsMarshal.AsSpan(source.Source);
+            var predicate = source.Predicate;
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    builder.Add(span[i]);
+            }
+            return builder.ToPooledBuffer();
         }
     }
 }

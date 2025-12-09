@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -213,6 +214,24 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T[] ToArray(Func<T, bool> predicate)
                 => source.Source.ToArray(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToArrayPooled()
+                => source.Source.ToArrayPooled((ArrayPool<T>?)null);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool)
+                => source.Source.ToArrayPooled(pool);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToArrayPooled<TPredicate>(TPredicate predicate)
+                where TPredicate : struct, IFunction<T, bool>
+                => source.Source.ToArrayPooled(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public PooledBuffer<T> ToArrayPooled<TPredicate>(TPredicate predicate, ArrayPool<T>? pool)
+                where TPredicate : struct, IFunction<T, bool>
+                => source.Source.ToArrayPooled(predicate, pool);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public List<T> ToList()

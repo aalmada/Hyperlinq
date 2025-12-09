@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -26,6 +27,17 @@ namespace NetFabric.Hyperlinq
         public Enumerator GetEnumerator() => new Enumerator(source.GetEnumerator(), predicate);
         IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public PooledBuffer<TSource> ToArrayPooled(ArrayPool<TSource>? pool = null)
+        {
+            using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
+            using var enumerator = GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                builder.Add(enumerator.Current);
+            }
+            return builder.ToPooledBuffer();
+        }
 
         public struct Enumerator : IEnumerator<TSource>
         {

@@ -154,16 +154,15 @@ public class PooledBufferTests
     [Test]
     public void PooledBuffer_WithReferenceTypes_ShouldClearOnDispose()
     {
+        var pool = new TrackingArrayPool<string>();
         var array = new[] { "a", "b", "c" };
         var span = array.AsSpan();
         
-        var buffer = span.ToArrayPooled();
+        var buffer = span.ToArrayPooled(pool);
         buffer.Dispose();
         
-        // After dispose, the pooled array should be cleared (for reference types)
-        // We can't directly verify this, but we can ensure no exception is thrown
-        // Test passes if we get here without exception
-        buffer.Length.Must().BeEqualTo(3);
+        pool.Returns.Count.Must().BeEqualTo(1);
+        pool.Returns[0].clearArray.Must().BeTrue();
     }
 
     [Test]

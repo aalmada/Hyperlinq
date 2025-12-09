@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq
@@ -62,6 +63,17 @@ namespace NetFabric.Hyperlinq
             for (var i = 0; i < source.Length; i++)
                 array[i] = selector.Invoke(in source[i]);
             return array;
+        }
+
+        public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
+        {
+            pool ??= ArrayPool<TResult>.Shared;
+            var result = pool.Rent(source.Length);
+            for (var i = 0; i < source.Length; i++)
+            {
+                result[i] = selector.Invoke(in source[i]);
+            }
+            return new PooledBuffer<TResult>(result, source.Length, pool);
         }
 
         public List<TResult> ToList()

@@ -326,16 +326,16 @@ namespace NetFabric.Hyperlinq
             public Option<T> LastOrNone(Func<T, bool> predicate)
                 => LastOrNoneImpl(source, new FunctionWrapper<T, bool>(predicate));
 
-            public T[] ToArray<TPredicate>(TPredicate predicate)
+            public T[] ToArray<TPredicate>(TPredicate predicate, ArrayPool<T>? pool = default)
                 where TPredicate : struct, IFunction<T, bool>
-                => ToArrayImpl(source, predicate);
+                => ToArrayImpl(source, predicate, pool);
 
-            public T[] ToArray<TPredicate>(in TPredicate predicate)
+            public T[] ToArray<TPredicate>(in TPredicate predicate, ArrayPool<T>? pool = default)
                 where TPredicate : struct, IFunctionIn<T, bool>
-                => ToArrayInImpl(source, predicate);
+                => ToArrayInImpl(source, predicate, pool);
 
-            public T[] ToArray(Func<T, bool> predicate)
-                => ToArrayImpl(source, new FunctionWrapper<T, bool>(predicate));
+            public T[] ToArray(Func<T, bool> predicate, ArrayPool<T>? pool = default)
+                => ToArrayImpl(source, new FunctionWrapper<T, bool>(predicate), pool);
 
             public List<T> ToList<TPredicate>(TPredicate predicate)
                 where TPredicate : struct, IFunction<T, bool>
@@ -408,16 +408,16 @@ namespace NetFabric.Hyperlinq
             }
             return count;
         }
-        static T[] ToArrayImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+        static T[] ToArrayImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
             where TPredicate : struct, IFunction<T, bool>
         {
-            var list = new List<T>();
+            using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
             foreach (var item in source)
             {
                 if (predicate.Invoke(item))
-                    list.Add(item);
+                    builder.Add(item);
             }
-            return list.ToArray();
+            return builder.ToArray();
         }
 
         static List<T> ToListImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
@@ -435,57 +435,25 @@ namespace NetFabric.Hyperlinq
         static PooledBuffer<T> ToArrayPooledImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
             where TPredicate : struct, IFunction<T, bool>
         {
-            var poolToUse = pool ?? ArrayPool<T>.Shared;
-            var capacity = PooledBuffer<T>.GetDefaultInitialCapacity();
-            var buffer = poolToUse.Rent(capacity);
-            var count = 0;
-
-            try
+            using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
+            foreach (var item in source)
             {
-                foreach (var item in source)
-                {
-                    if (predicate.Invoke(item))
-                    {
-                        // Grow buffer if needed
-                        if (count == buffer.Length)
-                        {
-                            var newCapacity = PooledBuffer<T>.GetNextCapacity(buffer.Length);
-                            var newBuffer = poolToUse.Rent(newCapacity);
-                            
-                            // Copy existing elements
-                            Array.Copy(buffer, newBuffer, count);
-                            
-                            // Return old buffer
-                            poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-                            
-                            buffer = newBuffer;
-                            capacity = newCapacity;
-                        }
-
-                        buffer[count++] = item;
-                    }
-                }
-
-                return new PooledBuffer<T>(buffer, count, pool);
+                if (predicate.Invoke(item))
+                    builder.Add(item);
             }
-            catch
-            {
-                // Return buffer on exception
-                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-                throw;
-            }
+            return builder.ToPooledBuffer();
         }
 
-        static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+        static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
             where TPredicate : struct, IFunctionIn<T, bool>
         {
-            var list = new List<T>();
+            using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
             foreach (var item in source)
             {
                 if (predicate.Invoke(in item))
-                    list.Add(item);
+                    builder.Add(item);
             }
-            return list.ToArray();
+            return builder.ToArray();
         }
 
         static List<T> ToListInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
@@ -503,45 +471,13 @@ namespace NetFabric.Hyperlinq
         static PooledBuffer<T> ToArrayPooledInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
             where TPredicate : struct, IFunctionIn<T, bool>
         {
-            var poolToUse = pool ?? ArrayPool<T>.Shared;
-            var capacity = PooledBuffer<T>.GetDefaultInitialCapacity();
-            var buffer = poolToUse.Rent(capacity);
-            var count = 0;
-
-            try
+            using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
+            foreach (var item in source)
             {
-                foreach (var item in source)
-                {
-                    if (predicate.Invoke(in item))
-                    {
-                        // Grow buffer if needed
-                        if (count == buffer.Length)
-                        {
-                            var newCapacity = PooledBuffer<T>.GetNextCapacity(buffer.Length);
-                            var newBuffer = poolToUse.Rent(newCapacity);
-                            
-                            // Copy existing elements
-                            Array.Copy(buffer, newBuffer, count);
-                            
-                            // Return old buffer
-                            poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-                            
-                            buffer = newBuffer;
-                            capacity = newCapacity;
-                        }
-
-                        buffer[count++] = item;
-                    }
-                }
-
-                return new PooledBuffer<T>(buffer, count, pool);
+                if (predicate.Invoke(in item))
+                    builder.Add(item);
             }
-            catch
-            {
-                // Return buffer on exception
-                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-                throw;
-            }
+            return builder.ToPooledBuffer();
         }
 
         static Option<T> LastOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)

@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -45,6 +46,17 @@ namespace NetFabric.Hyperlinq
             {
                 array[arrayIndex + i] = selector.Invoke(source[i]);
             }
+        }
+
+        public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
+        {
+            pool ??= ArrayPool<TResult>.Shared;
+            var result = pool.Rent(source.Count);
+            for (var i = 0; i < source.Count; i++)
+            {
+                result[i] = selector.Invoke(source[i]);
+            }
+            return new PooledBuffer<TResult>(result, source.Count, pool);
         }
 
         public bool Contains(TResult item)

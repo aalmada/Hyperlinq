@@ -11,6 +11,10 @@ public class Program
         var array = new int[] { 1, 2, 3, 4, 5 };
         var list = new List<int> { 1, 2, 3, 4, 5 };
 
+        // Run Memory Tests (new suite)
+        Verification.MemoryTests.Run();
+        Verification.ExpansionTests.Run();
+
         // Test ArrayValueEnumerable
         var arrayWrapper = array.AsValueEnumerable();
         
@@ -58,6 +62,14 @@ public class Program
 
         Console.WriteLine($"List Where ToArray: {listWrapper.Where(x => x > 2).ToArray().Length} items");
         Verify(listWrapper.Where(x => x > 2).ToArray().Length == 3, "List Where ToArray");
+
+    // WhereListRefStructEnumerable Verification
+    Console.WriteLine("Verifying WhereListRefStructEnumerable...");
+    var listRefStruct = new NetFabric.Hyperlinq.WhereListRefStructEnumerable<int>(list, x => x > 2);
+    Verify(listRefStruct.ToArray().Length == 3, "WhereListRefStructEnumerable ToArray");
+    using var pooledRef = listRefStruct.ToArrayPooled();
+    Verify(pooledRef.Length == 3, "WhereListRefStructEnumerable ToArrayPooled");
+    Verify(pooledRef.AsSpan().Length == 3, "WhereListRefStructEnumerable ToArrayPooled AsSpan");
 
         Console.WriteLine("All checks passed!");
     }
