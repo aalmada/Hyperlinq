@@ -65,6 +65,17 @@ namespace NetFabric.Hyperlinq.Benchmarks
             using var buffer = array.AsSpan().Where(x => x % 2 == 0).ToArrayPooled();
         }
 
+        [BenchmarkCategory("Where_ToArray"), Benchmark]
+        public void Where_ToArrayPooled_Hyperlinq_ValueDelegate()
+        {
+            using var buffer = array.AsSpan().Where(new EvenPredicate()).ToArrayPooled();
+        }
+
+        readonly struct EvenPredicate : IFunction<int, bool>
+        {
+            public bool Invoke(int item) => item % 2 == 0;
+        }
+
         // ===== Where_ToList =====
 
         [BenchmarkCategory("Where_ToList"), Benchmark(Baseline = true)]

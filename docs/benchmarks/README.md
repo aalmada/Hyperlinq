@@ -23,6 +23,7 @@ Benchmarks run on Apple M1, .NET 10.0.0, macOS 26.1
 | **List WhereSelectSum** | 22,666 ns | 5,743 ns | **75% faster** | **152 B → 0 B** |
 | **IEnumerable Where** | 21,794 ns | 9,922 ns | **54% faster** | **96 B → 40 B** |
 | **IEnumerable WhereSelect** | 22,467 ns | 9,896 ns | **56% faster** | **160 B → 40 B** |
+| **Pooled Where ToArray** | 969 ns | 847 ns | **12% faster** | **2,072 B → 144 B (93%)** |
 
 ### Dual Enumeration Pattern Benefits
 
@@ -58,6 +59,10 @@ The dual enumeration pattern provides flexibility without sacrificing performanc
 |                                      |                            |       |                |       |           |             |
 | List_LINQ_WhereSelectSum             | List_WhereSelectSum        | 10000 | 22,666.2 ns    |  1.00 |     152 B |        1.00 |
 | List_Hyperlinq_WhereSelectSum        | List_WhereSelectSum        | 10000 |  5,743.4 ns    |  0.25 |       - B |        0.00 |
+|                                      |                            |       |                |       |           |             |
+| Where_ToArray_LINQ                   | Where_ToArray              | 1000  |    968.7 ns    |  1.00 |    2,072 B |        1.00 |
+| Where_ToArrayPooled_Hyperlinq        | Where_ToArray              | 1000  |    975.4 ns    |  1.01 |    144 B  |        0.07 |
+| Where_ToArrayPooled_ValueDelegate    | Where_ToArray              | 1000  |    846.8 ns    |  0.88 |    144 B  |        0.07 |
 ```
 
 ---
