@@ -218,84 +218,23 @@ namespace NetFabric.Hyperlinq
             return Option<TSource>.None();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource[] ToArray<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TPredicate : struct, IFunction<TSource, bool>
-        {
-            var list = new List<TSource>();
-            var span = CollectionsMarshal.AsSpan(source.Source);
-            var predicate = source.Predicate;
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate.Invoke(span[i]))
-                    list.Add(span[i]);
-            }
-            return list.ToArray();
-        }
+            => CollectionsMarshal.AsSpan(source.Source).ToArray(source.Predicate);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static List<TSource> ToList<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TPredicate : struct, IFunction<TSource, bool>
-        {
-            var list = new List<TSource>();
-            var span = CollectionsMarshal.AsSpan(source.Source);
-            var predicate = source.Predicate;
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (predicate.Invoke(span[i]))
-                    list.Add(span[i]);
-            }
-            return list;
-        }
+            => CollectionsMarshal.AsSpan(source.Source).ToList(source.Predicate);
 
         public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TPredicate : struct, IFunction<TSource, bool>
-            => source.ToArrayPooled((ArrayPool<TSource>?)null);
+            => CollectionsMarshal.AsSpan(source.Source).ToArrayPooled(source.Predicate);
 
         public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source, ArrayPool<TSource>? pool)
             where TPredicate : struct, IFunction<TSource, bool>
-        {
-            var poolToUse = pool ?? ArrayPool<TSource>.Shared;
-            var capacity = PooledBuffer<TSource>.GetDefaultInitialCapacity();
-            var buffer = poolToUse.Rent(capacity);
-            var count = 0;
-
-            try
-            {
-                var span = CollectionsMarshal.AsSpan(source.Source);
-                var predicate = source.Predicate;
-                
-                for (var i = 0; i < span.Length; i++)
-                {
-                    if (predicate.Invoke(span[i]))
-                    {
-                        // Grow buffer if needed
-                        if (count == buffer.Length)
-                        {
-                            var newCapacity = PooledBuffer<TSource>.GetNextCapacity(capacity);
-                            var newBuffer = poolToUse.Rent(newCapacity);
-                            
-                            // Copy existing elements
-                            Array.Copy(buffer, newBuffer, count);
-                            
-                            // Return old buffer
-                            poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
-                            
-                            buffer = newBuffer;
-                            capacity = newCapacity;
-                        }
-
-                        buffer[count++] = span[i];
-                    }
-                }
-
-                return new PooledBuffer<TSource>(buffer, count, pool);
-            }
-            catch
-            {
-                // Return buffer on exception
-                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<TSource>());
-                throw;
-            }
-        }
+            => CollectionsMarshal.AsSpan(source.Source).ToArrayPooled(source.Predicate, pool);
 
 
     }

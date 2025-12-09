@@ -330,12 +330,20 @@ namespace NetFabric.Hyperlinq
                 where TPredicate : struct, IFunction<T, bool>
                 => ToArrayImpl(source, predicate);
 
+            public T[] ToArray<TPredicate>(in TPredicate predicate)
+                where TPredicate : struct, IFunctionIn<T, bool>
+                => ToArrayInImpl(source, predicate);
+
             public T[] ToArray(Func<T, bool> predicate)
                 => ToArrayImpl(source, new FunctionWrapper<T, bool>(predicate));
 
             public List<T> ToList<TPredicate>(TPredicate predicate)
                 where TPredicate : struct, IFunction<T, bool>
                 => ToListImpl(source, predicate);
+
+            public List<T> ToList<TPredicate>(in TPredicate predicate)
+                where TPredicate : struct, IFunctionIn<T, bool>
+                => ToListInImpl(source, predicate);
 
             public List<T> ToList(Func<T, bool> predicate)
                 => ToListImpl(source, new FunctionWrapper<T, bool>(predicate));
@@ -367,6 +375,10 @@ namespace NetFabric.Hyperlinq
             public PooledBuffer<T> ToArrayPooled<TPredicate>(TPredicate predicate, ArrayPool<T>? pool = default)
                 where TPredicate : struct, IFunction<T, bool>
                 => ToArrayPooledImpl(source, predicate, pool);
+
+            public PooledBuffer<T> ToArrayPooled<TPredicate>(in TPredicate predicate, ArrayPool<T>? pool = default)
+                where TPredicate : struct, IFunctionIn<T, bool>
+                => ToArrayPooledInImpl(source, predicate, pool);
 
             public PooledBuffer<T> ToArrayPooled(Func<T, bool> predicate, ArrayPool<T>? pool = default)
                 => ToArrayPooledImpl(source, new FunctionWrapper<T, bool>(predicate), pool);
@@ -433,6 +445,74 @@ namespace NetFabric.Hyperlinq
                 foreach (var item in source)
                 {
                     if (predicate.Invoke(item))
+                    {
+                        // Grow buffer if needed
+                        if (count == buffer.Length)
+                        {
+                            var newCapacity = PooledBuffer<T>.GetNextCapacity(buffer.Length);
+                            var newBuffer = poolToUse.Rent(newCapacity);
+                            
+                            // Copy existing elements
+                            Array.Copy(buffer, newBuffer, count);
+                            
+                            // Return old buffer
+                            poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                            
+                            buffer = newBuffer;
+                            capacity = newCapacity;
+                        }
+
+                        buffer[count++] = item;
+                    }
+                }
+
+                return new PooledBuffer<T>(buffer, count, pool);
+            }
+            catch
+            {
+                // Return buffer on exception
+                poolToUse.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                throw;
+            }
+        }
+
+        static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+            where TPredicate : struct, IFunctionIn<T, bool>
+        {
+            var list = new List<T>();
+            foreach (var item in source)
+            {
+                if (predicate.Invoke(in item))
+                    list.Add(item);
+            }
+            return list.ToArray();
+        }
+
+        static List<T> ToListInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+            where TPredicate : struct, IFunctionIn<T, bool>
+        {
+            var list = new List<T>();
+            foreach (var item in source)
+            {
+                if (predicate.Invoke(in item))
+                    list.Add(item);
+            }
+            return list;
+        }
+
+        static PooledBuffer<T> ToArrayPooledInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
+            where TPredicate : struct, IFunctionIn<T, bool>
+        {
+            var poolToUse = pool ?? ArrayPool<T>.Shared;
+            var capacity = PooledBuffer<T>.GetDefaultInitialCapacity();
+            var buffer = poolToUse.Rent(capacity);
+            var count = 0;
+
+            try
+            {
+                foreach (var item in source)
+                {
+                    if (predicate.Invoke(in item))
                     {
                         // Grow buffer if needed
                         if (count == buffer.Length)

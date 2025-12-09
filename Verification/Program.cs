@@ -29,6 +29,12 @@ public class Program
         Console.WriteLine($"Array First Predicate: {arrayWrapper.First(x => x > 3)} (Expected 4)");
         Verify(arrayWrapper.First(x => x > 3) == 4, "Array First Predicate");
 
+        Console.WriteLine($"Array Where ToList: {arrayWrapper.Where(x => x > 2).ToList().Count} items");
+        Verify(arrayWrapper.Where(x => x > 2).ToList().Count == 3, "Array Where ToList");
+
+        Console.WriteLine($"Array Where ToArray: {arrayWrapper.Where(x => x > 2).ToArray().Length} items");
+        Verify(arrayWrapper.Where(x => x > 2).ToArray().Length == 3, "Array Where ToArray");
+
         // Test ListValueEnumerable
         var listWrapper = list.AsValueEnumerable();
         
@@ -46,6 +52,12 @@ public class Program
 
         Console.WriteLine($"List First Predicate: {listWrapper.First(x => x > 3)} (Expected 4)");
         Verify(listWrapper.First(x => x > 3) == 4, "List First Predicate");
+
+        Console.WriteLine($"List Where ToList: {listWrapper.Where(x => x > 2).ToList().Count} items");
+        Verify(listWrapper.Where(x => x > 2).ToList().Count == 3, "List Where ToList");
+
+        Console.WriteLine($"List Where ToArray: {listWrapper.Where(x => x > 2).ToArray().Length} items");
+        Verify(listWrapper.Where(x => x > 2).ToArray().Length == 3, "List Where ToArray");
 
         Console.WriteLine("All checks passed!");
     }
