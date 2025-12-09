@@ -9,17 +9,30 @@ namespace NetFabric.Hyperlinq.UnitTests.Wrappers;
 
 public class WrapperTests
 {
-    public readonly struct GetEnumeratorFn : IFunction<List<int>, List<int>.Enumerator>
+    public readonly struct EnumerableGetEnumeratorFn : IFunction<IEnumerable<int>, List<int>.Enumerator>
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public List<int>.Enumerator Invoke(List<int> instance) => instance.GetEnumerator();
+        public List<int>.Enumerator Invoke(IEnumerable<int> instance) => ((List<int>)instance).GetEnumerator();
+    }
+
+    public readonly struct CollectionGetEnumeratorFn : IFunction<ICollection<int>, List<int>.Enumerator>
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public List<int>.Enumerator Invoke(ICollection<int> instance) => ((List<int>)instance).GetEnumerator();
+    }
+
+    public readonly struct ListGetEnumeratorFn : IFunction<IList<int>, List<int>.Enumerator>
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public List<int>.Enumerator Invoke(IList<int> instance) => ((List<int>)instance).GetEnumerator();
     }
 
     [Test]
-    public void ValueEnumerableWrapper_Should_Succeed()
+    public void Extensions_Enumerable_AsValueEnumerable_Struct_Should_Succeed()
     {
         var source = new List<int> { 1, 2, 3 };
-        var wrapper = new ValueEnumerableWrapper<List<int>, List<int>.Enumerator, GetEnumeratorFn, int>(source, new GetEnumeratorFn());
+        IEnumerable<int> enumerable = source;
+        var wrapper = enumerable.AsValueEnumerable<int, List<int>.Enumerator, EnumerableGetEnumeratorFn>(new EnumerableGetEnumeratorFn());
 
         wrapper.Must()
             .BeEnumerableOf<int>()
@@ -27,53 +40,73 @@ public class WrapperTests
     }
 
     [Test]
-    public async Task ValueReadOnlyCollectionWrapper_Should_Succeed()
+    public void Extensions_Enumerable_AsValueEnumerable_Func_Should_Succeed()
     {
         var source = new List<int> { 1, 2, 3 };
-        var wrapper = new ValueReadOnlyCollectionWrapper<List<int>, List<int>.Enumerator, GetEnumeratorFn, int>(source, new GetEnumeratorFn());
+        IEnumerable<int> enumerable = source;
+        var wrapper = enumerable.AsValueEnumerable<int, List<int>.Enumerator>(s => ((List<int>)s).GetEnumerator());
+
+        wrapper.Must()
+            .BeEnumerableOf<int>()
+            .BeEqualTo(source);
+    }
+    
+    [Test]
+    public async Task Extensions_Collection_AsValueEnumerable_Struct_Should_Succeed()
+    {
+        var source = new List<int> { 1, 2, 3 };
+        ICollection<int> collection = source;
+        var wrapper = collection.AsValueEnumerable<int, List<int>.Enumerator, CollectionGetEnumeratorFn>(new CollectionGetEnumeratorFn());
 
         wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
         
-        // Assert Count
         await Assert.That(wrapper.Count).IsEqualTo(source.Count);
     }
 
     [Test]
-    public async Task ValueReadOnlyListWrapper_Should_Succeed()
+    public async Task Extensions_Collection_AsValueEnumerable_Func_Should_Succeed()
     {
         var source = new List<int> { 1, 2, 3 };
-        var wrapper = new ValueReadOnlyListWrapper<List<int>, List<int>.Enumerator, GetEnumeratorFn, int>(source, new GetEnumeratorFn());
+        ICollection<int> collection = source;
+        var wrapper = collection.AsValueEnumerable<int, List<int>.Enumerator>(s => ((List<int>)s).GetEnumerator());
 
         wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
+        
+        await Assert.That(wrapper.Count).IsEqualTo(source.Count);
+    }
 
-        // Assert Count and Indexer
+    [Test]
+    public async Task Extensions_List_AsValueEnumerable_Struct_Should_Succeed()
+    {
+        var source = new List<int> { 1, 2, 3 };
+        IList<int> list = source;
+        var wrapper = list.AsValueEnumerable<int, List<int>.Enumerator, ListGetEnumeratorFn>(new ListGetEnumeratorFn());
+
+        wrapper.Must()
+            .BeEnumerableOf<int>()
+            .BeEqualTo(source);
+        
         await Assert.That(wrapper.Count).IsEqualTo(source.Count);
         await Assert.That(wrapper[0]).IsEqualTo(source[0]);
     }
 
     [Test]
-    public void Extensions_ValueEnumerableWrapper_Should_Succeed()
+    public async Task Extensions_List_AsValueEnumerable_Func_Should_Succeed()
     {
         var source = new List<int> { 1, 2, 3 };
-        var wrapper = source.AsValueEnumerable<List<int>, List<int>.Enumerator, GetEnumeratorFn, int>(new GetEnumeratorFn());
+        IList<int> list = source;
+        var wrapper = list.AsValueEnumerable<int, List<int>.Enumerator>(s => ((List<int>)s).GetEnumerator());
 
         wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
-    }
-
-    [Test]
-    public void Extensions_ValueEnumerableWrapper_Func_Should_Succeed()
-    {
-        var source = new List<int> { 1, 2, 3 };
-        var wrapper = source.AsValueEnumerable<List<int>, List<int>.Enumerator, int>(s => s.GetEnumerator());
-
-        wrapper.Must()
-            .BeEnumerableOf<int>()
-            .BeEqualTo(source);
+        
+        await Assert.That(wrapper.Count).IsEqualTo(source.Count);
+        await Assert.That(wrapper[0]).IsEqualTo(source[0]);
     }
 }
+

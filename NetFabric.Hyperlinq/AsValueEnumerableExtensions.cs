@@ -33,16 +33,36 @@ namespace NetFabric.Hyperlinq
             => new EnumerableValueEnumerable<T>(source);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ValueEnumerableWrapper<TEnumerable, TEnumerator, TGetEnumerator, TSource> AsValueEnumerable<TEnumerable, TEnumerator, TGetEnumerator, TSource>(this TEnumerable source, TGetEnumerator getEnumerator)
-            where TEnumerable : IEnumerable<TSource>
+        public static ValueEnumerableWrapper<IEnumerable<TSource>, TEnumerator, TGetEnumerator, TSource> AsValueEnumerable<TSource, TEnumerator, TGetEnumerator>(this IEnumerable<TSource> source, TGetEnumerator getEnumerator)
             where TEnumerator : struct, IEnumerator<TSource>
-            where TGetEnumerator : struct, IFunction<TEnumerable, TEnumerator>
+            where TGetEnumerator : struct, IFunction<IEnumerable<TSource>, TEnumerator>
             => new(source, getEnumerator);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ValueEnumerableWrapper<TEnumerable, TEnumerator, FunctionWrapper<TEnumerable, TEnumerator>, TSource> AsValueEnumerable<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TEnumerable, TEnumerator> getEnumerator)
-            where TEnumerable : IEnumerable<TSource>
+        public static ValueEnumerableWrapper<IEnumerable<TSource>, TEnumerator, FunctionWrapper<IEnumerable<TSource>, TEnumerator>, TSource> AsValueEnumerable<TSource, TEnumerator>(this IEnumerable<TSource> source, Func<IEnumerable<TSource>, TEnumerator> getEnumerator)
             where TEnumerator : struct, IEnumerator<TSource>
-            => new(source, new FunctionWrapper<TEnumerable, TEnumerator>(getEnumerator));
+            => new(source, new FunctionWrapper<IEnumerable<TSource>, TEnumerator>(getEnumerator));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyCollectionWrapper<ICollection<TSource>, TEnumerator, TGetEnumerator, TSource> AsValueEnumerable<TSource, TEnumerator, TGetEnumerator>(this ICollection<TSource> source, TGetEnumerator getEnumerator)
+            where TEnumerator : struct, IEnumerator<TSource>
+            where TGetEnumerator : struct, IFunction<ICollection<TSource>, TEnumerator>
+            => new(source, getEnumerator);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyCollectionWrapper<ICollection<TSource>, TEnumerator, FunctionWrapper<ICollection<TSource>, TEnumerator>, TSource> AsValueEnumerable<TSource, TEnumerator>(this ICollection<TSource> source, Func<ICollection<TSource>, TEnumerator> getEnumerator)
+            where TEnumerator : struct, IEnumerator<TSource>
+            => new(source, new FunctionWrapper<ICollection<TSource>, TEnumerator>(getEnumerator));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyListWrapper<IList<TSource>, TEnumerator, TGetEnumerator, TSource> AsValueEnumerable<TSource, TEnumerator, TGetEnumerator>(this IList<TSource> source, TGetEnumerator getEnumerator)
+            where TEnumerator : struct, IEnumerator<TSource>
+            where TGetEnumerator : struct, IFunction<IList<TSource>, TEnumerator>
+            => new(source, getEnumerator);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyListWrapper<IList<TSource>, TEnumerator, FunctionWrapper<IList<TSource>, TEnumerator>, TSource> AsValueEnumerable<TSource, TEnumerator>(this IList<TSource> source, Func<IList<TSource>, TEnumerator> getEnumerator)
+            where TEnumerator : struct, IEnumerator<TSource>
+            => new(source, new FunctionWrapper<IList<TSource>, TEnumerator>(getEnumerator));
     }
 }
