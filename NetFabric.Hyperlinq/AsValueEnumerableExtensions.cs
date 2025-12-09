@@ -64,5 +64,83 @@ namespace NetFabric.Hyperlinq
         public static ValueReadOnlyListWrapper<IList<TSource>, TEnumerator, FunctionWrapper<IList<TSource>, TEnumerator>, TSource> AsValueEnumerable<TSource, TEnumerator>(this IList<TSource> source, Func<IList<TSource>, TEnumerator> getEnumerator)
             where TEnumerator : struct, IEnumerator<TSource>
             => new(source, new FunctionWrapper<IList<TSource>, TEnumerator>(getEnumerator));
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyCollectionWrapper<HashSet<TSource>, HashSet<TSource>.Enumerator, HashSetGetEnumerator<TSource>, TSource> AsValueEnumerable<TSource>(this HashSet<TSource> source)
+            => new(source, new HashSetGetEnumerator<TSource>());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyCollectionWrapper<LinkedList<TSource>, LinkedList<TSource>.Enumerator, LinkedListGetEnumerator<TSource>, TSource> AsValueEnumerable<TSource>(this LinkedList<TSource> source)
+            => new(source, new LinkedListGetEnumerator<TSource>());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueEnumerableWrapper<Queue<TSource>, Queue<TSource>.Enumerator, QueueGetEnumerator<TSource>, TSource> AsValueEnumerable<TSource>(this Queue<TSource> source)
+            => new(source, new QueueGetEnumerator<TSource>());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueEnumerableWrapper<Stack<TSource>, Stack<TSource>.Enumerator, StackGetEnumerator<TSource>, TSource> AsValueEnumerable<TSource>(this Stack<TSource> source)
+            => new(source, new StackGetEnumerator<TSource>());
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyCollectionWrapper<Dictionary<TKey, TValue>, Dictionary<TKey, TValue>.Enumerator, DictionaryGetEnumerator<TKey, TValue>, KeyValuePair<TKey, TValue>> AsValueEnumerable<TKey, TValue>(this Dictionary<TKey, TValue> source)
+            where TKey : notnull
+            => new(source, new DictionaryGetEnumerator<TKey, TValue>());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyCollectionWrapper<Dictionary<TKey, TValue>.KeyCollection, Dictionary<TKey, TValue>.KeyCollection.Enumerator, DictionaryKeyCollectionGetEnumerator<TKey, TValue>, TKey> AsValueEnumerable<TKey, TValue>(this Dictionary<TKey, TValue>.KeyCollection source)
+            where TKey : notnull
+            => new(source, new DictionaryKeyCollectionGetEnumerator<TKey, TValue>());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueReadOnlyCollectionWrapper<Dictionary<TKey, TValue>.ValueCollection, Dictionary<TKey, TValue>.ValueCollection.Enumerator, DictionaryValueCollectionGetEnumerator<TKey, TValue>, TValue> AsValueEnumerable<TKey, TValue>(this Dictionary<TKey, TValue>.ValueCollection source)
+            where TKey : notnull
+            => new(source, new DictionaryValueCollectionGetEnumerator<TKey, TValue>());
+
+        public readonly struct HashSetGetEnumerator<TSource> : IFunction<HashSet<TSource>, HashSet<TSource>.Enumerator>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public HashSet<TSource>.Enumerator Invoke(HashSet<TSource> instance) => instance.GetEnumerator();
+        }
+
+        public readonly struct LinkedListGetEnumerator<TSource> : IFunction<LinkedList<TSource>, LinkedList<TSource>.Enumerator>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public LinkedList<TSource>.Enumerator Invoke(LinkedList<TSource> instance) => instance.GetEnumerator();
+        }
+
+        public readonly struct QueueGetEnumerator<TSource> : IFunction<Queue<TSource>, Queue<TSource>.Enumerator>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Queue<TSource>.Enumerator Invoke(Queue<TSource> instance) => instance.GetEnumerator();
+        }
+
+        public readonly struct StackGetEnumerator<TSource> : IFunction<Stack<TSource>, Stack<TSource>.Enumerator>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Stack<TSource>.Enumerator Invoke(Stack<TSource> instance) => instance.GetEnumerator();
+        }
+
+        public readonly struct DictionaryGetEnumerator<TKey, TValue> : IFunction<Dictionary<TKey, TValue>, Dictionary<TKey, TValue>.Enumerator>
+            where TKey : notnull
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Dictionary<TKey, TValue>.Enumerator Invoke(Dictionary<TKey, TValue> instance) => instance.GetEnumerator();
+        }
+
+        public readonly struct DictionaryKeyCollectionGetEnumerator<TKey, TValue> : IFunction<Dictionary<TKey, TValue>.KeyCollection, Dictionary<TKey, TValue>.KeyCollection.Enumerator>
+            where TKey : notnull
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Dictionary<TKey, TValue>.KeyCollection.Enumerator Invoke(Dictionary<TKey, TValue>.KeyCollection instance) => instance.GetEnumerator();
+        }
+
+        public readonly struct DictionaryValueCollectionGetEnumerator<TKey, TValue> : IFunction<Dictionary<TKey, TValue>.ValueCollection, Dictionary<TKey, TValue>.ValueCollection.Enumerator>
+            where TKey : notnull
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Dictionary<TKey, TValue>.ValueCollection.Enumerator Invoke(Dictionary<TKey, TValue>.ValueCollection instance) => instance.GetEnumerator();
+        }
     }
 }
