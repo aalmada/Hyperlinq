@@ -140,6 +140,72 @@ namespace NetFabric.Hyperlinq
             return max!;
         }
 
+        extension<T>(ReadOnlySpan<T> source)
+            where T : INumber<T>
+        {
+            /// <summary>
+            /// Computes the average of a sequence using SIMD acceleration.
+            /// </summary>
+            public T Average()
+                => source.AverageOrNone().Value;
+
+            /// <summary>
+            /// Computes the average of elements that satisfy a condition.
+            /// </summary>
+            public T Average<TPredicate>(TPredicate predicate)
+                where TPredicate : struct, IFunction<T, bool>
+                => source.AverageOrNone(predicate).Value;
+
+            public T Average(Func<T, bool> predicate)
+                => source.AverageOrNone(predicate).Value;
+
+            /// <summary>
+            /// Computes the average of a sequence, returning None if empty.
+            /// </summary>
+            public Option<T> AverageOrNone()
+            {
+                if (source.Length == 0)
+                    return Option<T>.None();
+                
+                var sum = System.Numerics.Tensors.TensorPrimitives.Sum<T>(source);
+                return Option<T>.Some(sum / T.CreateChecked(source.Length));
+            }
+
+            /// <summary>
+            /// Computes the average of elements that satisfy a condition, returning None if no matches.
+            /// </summary>
+            public Option<T> AverageOrNone<TPredicate>(TPredicate predicate)
+                where TPredicate : struct, IFunction<T, bool>
+                => AverageOrNoneImpl(source, predicate);
+
+            public Option<T> AverageOrNone(Func<T, bool> predicate)
+                => AverageOrNoneImpl(source, new FunctionWrapper<T, bool>(predicate));
+        }
+
+        static Option<T> AverageOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+            where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
+        {
+            var sum = T.AdditiveIdentity;
+            var count = 0;
+            
+            foreach (var item in source)
+            {
+                if (predicate.Invoke(item))
+                {
+                    sum += item;
+                    count++;
+                }
+            }
+            
+            if (count == 0)
+                return Option<T>.None();
+            
+            return Option<T>.Some(sum / T.CreateChecked(count));
+        }
+
+
+
         // Unconstrained extension block - for all other operations
         extension<T>(ReadOnlySpan<T> source)
         {
