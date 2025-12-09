@@ -229,6 +229,20 @@ namespace NetFabric.Hyperlinq
                 => new WhereReadOnlySpanInEnumerable<T, TPredicate>(source.Span, predicate);
 
             /// <summary>
+            /// Bypasses a specified number of elements and returns the remaining elements.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlyMemory<T> Skip(int count)
+                => count <= 0 ? source : source[(count < source.Length ? count : source.Length)..];
+
+            /// <summary>
+            /// Returns a specified number of contiguous elements from the start.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlyMemory<T> Take(int count)
+                => count <= 0 ? ReadOnlyMemory<T>.Empty : source[..(count < source.Length ? count : source.Length)];
+
+            /// <summary>
             /// Returns the last element of a sequence.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

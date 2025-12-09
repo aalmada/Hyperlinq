@@ -245,6 +245,20 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public List<T> ToList(Func<T, bool> predicate)
                 => source.Source.ToList(predicate);
+
+            /// <summary>
+            /// Bypasses a specified number of elements and returns the remaining elements.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<T> Skip(int count)
+                => source.Source.AsSpan().Skip(count);
+
+            /// <summary>
+            /// Returns a specified number of contiguous elements from the start.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<T> Take(int count)
+                => source.Source.AsSpan().Take(count);
         }
 
         // Direct array extensions returning ref struct enumerables (maximum performance, foreach-only)

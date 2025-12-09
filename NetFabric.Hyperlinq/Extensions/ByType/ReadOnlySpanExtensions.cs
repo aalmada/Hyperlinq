@@ -384,6 +384,20 @@ namespace NetFabric.Hyperlinq
                 => ToArrayPooledImpl(source, new FunctionWrapper<T, bool>(predicate), pool);
 
 
+            /// <summary>
+            /// Bypasses a specified number of elements and returns the remaining elements.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<T> Skip(int count)
+                => count <= 0 ? source : source[(count < source.Length ? count : source.Length)..];
+
+            /// <summary>
+            /// Returns a specified number of contiguous elements from the start.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<T> Take(int count)
+                => count <= 0 ? ReadOnlySpan<T>.Empty : source[..(count < source.Length ? count : source.Length)];
+
         }
 
         static bool AnyImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)

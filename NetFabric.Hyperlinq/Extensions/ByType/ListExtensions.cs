@@ -215,6 +215,20 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Option<T> SingleOrNone(Func<T, bool> predicate)
                 => CollectionsMarshal.AsSpan(source).SingleOrNone(predicate);
+
+            /// <summary>
+            /// Bypasses a specified number of elements and returns the remaining elements.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<T> Skip(int count)
+                => CollectionsMarshal.AsSpan(source).Skip(count);
+
+            /// <summary>
+            /// Returns a specified number of contiguous elements from the start.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<T> Take(int count)
+                => CollectionsMarshal.AsSpan(source).Take(count);
         }
 
         /// <summary>
