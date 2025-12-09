@@ -271,4 +271,94 @@ public class SpanMinMaxTests
         
         result.Must().BeEqualTo(2);
     }
+    
+    // ArraySegment tests
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void ArraySegment_Min_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    {
+        var array = testCase.arrayFactory();
+        if (array.Length == 0) return;
+        
+        var segment = new ArraySegment<int>(array);
+        
+        var result = segment.Min();
+        var linqResult = Enumerable.Min(array);
+        
+        result.Must().BeEqualTo(linqResult);
+    }
+    
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void ArraySegment_Max_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    {
+        var array = testCase.arrayFactory();
+        if (array.Length == 0) return;
+        
+        var segment = new ArraySegment<int>(array);
+        
+        var result = segment.Max();
+        var linqResult = Enumerable.Max(array);
+        
+        result.Must().BeEqualTo(linqResult);
+    }
+    
+    [Test]
+    public void ArraySegment_Min_WithPredicate_ShouldReturnMinimumOfMatchingElements()
+    {
+        var segment = new ArraySegment<int>(new[] { 1, 2, 3, 4, 5, 6 });
+        
+        var result = segment.Min(x => x % 2 == 0); // Even numbers only
+        
+        result.Must().BeEqualTo(2);
+    }
+    
+    [Test]
+    public void ArraySegment_Max_WithPredicate_ShouldReturnMaximumOfMatchingElements()
+    {
+        var segment = new ArraySegment<int>(new[] { 1, 2, 3, 4, 5, 6 });
+        
+        var result = segment.Max(x => x % 2 == 0); // Even numbers only
+        
+        result.Must().BeEqualTo(6);
+    }
+    
+    [Test]
+    public void ArraySegment_Min_WithPredicate_NoMatch_ShouldThrow()
+    {
+        var segment = new ArraySegment<int>(new[] { -5, -3, -1 });
+        
+        Assert.Throws<InvalidOperationException>(() => segment.Min(x => x > 0));
+    }
+    
+    [Test]
+    public void ArraySegment_Max_WithPredicate_NoMatch_ShouldThrow()
+    {
+        var segment = new ArraySegment<int>(new[] { -5, -3, -1 });
+        
+        Assert.Throws<InvalidOperationException>(() => segment.Max(x => x > 0));
+    }
+    
+    [Test]
+    public void ArraySegment_Min_WithOffset_ShouldWork()
+    {
+        var array = new[] { 10, 20, 5, 2, 8, 1, 9 };
+        var segment = new ArraySegment<int>(array, 2, 5); // { 5, 2, 8, 1, 9 }
+        
+        var result = segment.Min();
+        
+        result.Must().BeEqualTo(1);
+    }
+    
+    [Test]
+    public void ArraySegment_Max_WithOffset_ShouldWork()
+    {
+        var array = new[] { 1, 2, 5, 2, 8, 1, 9 };
+        var segment = new ArraySegment<int>(array, 2, 5); // { 5, 2, 8, 1, 9 }
+        
+        var result = segment.Max();
+        
+        result.Must().BeEqualTo(9);
+    }
 }
+

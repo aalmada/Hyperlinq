@@ -150,12 +150,13 @@ namespace NetFabric.Hyperlinq
                 => new SelectReadOnlySpanEnumerable<T, TResult, FunctionWrapper<T, TResult>>(source.Span, new FunctionWrapper<T, TResult>(selector));
 
             /// <summary>
-            /// Projects each element into a new form.
+            /// Projects each element into a new form using a value delegate passed by reference.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public SelectReadOnlySpanInEnumerable<T, TResult, TSelector> Select<TResult, TSelector>(in TSelector selector)
                 where TSelector : struct, IFunctionIn<T, TResult>
                 => new SelectReadOnlySpanInEnumerable<T, TResult, TSelector>(source.Span, selector);
+
 
             /// <summary>
             /// Returns the only element of a sequence.
@@ -221,12 +222,13 @@ namespace NetFabric.Hyperlinq
                 => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.Span, new FunctionWrapper<T, bool>(predicate));
 
             /// <summary>
-            /// Filters elements based on a predicate.
+            /// Filters elements based on a predicate using a value delegate passed by reference.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public WhereReadOnlySpanInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
                 where TPredicate : struct, IFunctionIn<T, bool>
                 => new WhereReadOnlySpanInEnumerable<T, TPredicate>(source.Span, predicate);
+
 
             /// <summary>
             /// Bypasses a specified number of elements and returns the remaining elements.

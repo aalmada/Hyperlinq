@@ -25,6 +25,38 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(ArraySegment<T> source)
+            where T : INumber<T>
+        {
+            /// <summary>
+            /// Returns the minimum value in an array segment using SIMD acceleration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Min()
+                => source.AsSpan().Min();
+
+            /// <summary>
+            /// Returns the minimum value that satisfies a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Min(Func<T, bool> predicate)
+                => source.AsSpan().Min(predicate);
+
+            /// <summary>
+            /// Returns the maximum value in an array segment using SIMD acceleration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Max()
+                => source.AsSpan().Max();
+
+            /// <summary>
+            /// Returns the maximum value that satisfies a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Max(Func<T, bool> predicate)
+                => source.AsSpan().Max(predicate);
+        }
+
+        extension<T>(ArraySegment<T> source)
         {
             /// <summary>
             /// Determines whether a sequence contains any elements.
@@ -132,6 +164,14 @@ namespace NetFabric.Hyperlinq
                 => new SelectReadOnlySpanEnumerable<T, TResult, FunctionWrapper<T, TResult>>(source.AsSpan(), new FunctionWrapper<T, TResult>(selector));
 
             /// <summary>
+            /// Projects each element into a new form using a value delegate passed by reference.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public SelectReadOnlySpanInEnumerable<T, TResult, TSelector> Select<TResult, TSelector>(in TSelector selector)
+                where TSelector : struct, IFunctionIn<T, TResult>
+                => new SelectReadOnlySpanInEnumerable<T, TResult, TSelector>(source.AsSpan(), selector);
+
+            /// <summary>
             /// Returns the only element of a sequence.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -214,6 +254,14 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
                 => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.AsSpan(), new FunctionWrapper<T, bool>(predicate));
+
+            /// <summary>
+            /// Filters elements based on a predicate using a value delegate passed by reference.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public WhereReadOnlySpanInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
+                where TPredicate : struct, IFunctionIn<T, bool>
+                => new WhereReadOnlySpanInEnumerable<T, TPredicate>(source.AsSpan(), predicate);
         }
     }
 }
