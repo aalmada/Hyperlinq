@@ -31,5 +31,18 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static EnumerableValueEnumerable<T> AsValueEnumerable<T>(this IEnumerable<T> source)
             => new EnumerableValueEnumerable<T>(source);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueEnumerableWrapper<TEnumerable, TEnumerator, TGetEnumerator, TSource> AsValueEnumerable<TEnumerable, TEnumerator, TGetEnumerator, TSource>(this TEnumerable source, TGetEnumerator getEnumerator)
+            where TEnumerable : IEnumerable<TSource>
+            where TEnumerator : struct, IEnumerator<TSource>
+            where TGetEnumerator : struct, IFunction<TEnumerable, TEnumerator>
+            => new(source, getEnumerator);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueEnumerableWrapper<TEnumerable, TEnumerator, FunctionWrapper<TEnumerable, TEnumerator>, TSource> AsValueEnumerable<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TEnumerable, TEnumerator> getEnumerator)
+            where TEnumerable : IEnumerable<TSource>
+            where TEnumerator : struct, IEnumerator<TSource>
+            => new(source, new FunctionWrapper<TEnumerable, TEnumerator>(getEnumerator));
     }
 }

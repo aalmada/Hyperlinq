@@ -8,25 +8,28 @@ namespace NetFabric.Hyperlinq
     /// Generic value-type collection wrapper for any ICollection&lt;T&gt; providing a value-type enumerator and Count property.
     /// Implements IValueReadOnlyCollection and ICollection (read-only).
     /// </summary>
-    public readonly struct ValueReadOnlyCollectionWrapper<TCollection, TEnumerator, TSource> 
+    public readonly struct ValueReadOnlyCollectionWrapper<TCollection, TEnumerator, TGetEnumerator, TSource> 
         : IValueReadOnlyCollection<TSource, TEnumerator>, ICollection<TSource>
         where TCollection : ICollection<TSource>
         where TEnumerator : struct, IEnumerator<TSource>
+        where TGetEnumerator : struct, IFunction<TCollection, TEnumerator>
     {
         private readonly TCollection source;
+        private readonly TGetEnumerator getEnumerator;
 
-        public ValueReadOnlyCollectionWrapper(TCollection source)
+        public ValueReadOnlyCollectionWrapper(TCollection source, TGetEnumerator getEnumerator)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.getEnumerator = getEnumerator;
         }
 
         internal TCollection Source => source;
 
         public int Count => source.Count;
 
-        public TEnumerator GetEnumerator() => (TEnumerator)source.GetEnumerator();
-        IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => source.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => source.GetEnumerator();
+        public TEnumerator GetEnumerator() => getEnumerator.Invoke(source);
+        IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => getEnumerator.Invoke(source);
+        IEnumerator IEnumerable.GetEnumerator() => getEnumerator.Invoke(source);
 
         bool ICollection<TSource>.IsReadOnly => true;
 
