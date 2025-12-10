@@ -15,51 +15,68 @@ namespace NetFabric.Hyperlinq
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
-        {
-            var hasValue = false;
-            var max = default(T);
-            foreach (var item in source)
-            {
-                if (!hasValue || item > max!)
-                {
-                    max = item;
-                    hasValue = true;
-                }
-            }
-            
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            
-            return max!;
-        }
+            => source.MaxOrNone<TEnumerable, TEnumerator, T>().Value;
 
-        /// <summary>
-        /// Returns the maximum value in a sequence of values that satisfy a condition.
-        /// </summary>
         public static T Max<TEnumerable, TEnumerator, T>(this TEnumerable source, Func<T, bool> predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
+            => source.MaxOrNone<TEnumerable, TEnumerator, T>(predicate).Value;
+
+        /// <summary>
+        /// Returns the maximum value in a sequence, or None if empty.
+        /// </summary>
+        public static Option<T> MaxOrNone<TEnumerable, TEnumerator, T>(this TEnumerable source)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
         {
-            var hasValue = false;
-            var max = default(T);
+            using var enumerator = source.GetEnumerator();
             
-            foreach (var item in source)
+            if (!enumerator.MoveNext())
+                return Option<T>.None();
+            
+            var max = enumerator.Current;
+            
+            while (enumerator.MoveNext())
             {
-                if (predicate(item))
+                var item = enumerator.Current;
+                if (item > max)
+                    max = item;
+            }
+            
+            return Option<T>.Some(max);
+        }
+
+        public static Option<T> MaxOrNone<TEnumerable, TEnumerator, T>(
+            this TEnumerable source, 
+            Func<T, bool> predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+        {
+            using var enumerator = source.GetEnumerator();
+            
+            // Find first matching element
+            while (enumerator.MoveNext())
+            {
+                if (predicate(enumerator.Current))
                 {
-                    if (!hasValue || item > max!)
+                    var max = enumerator.Current;
+                    
+                    // Process remaining elements without branching on hasValue
+                    while (enumerator.MoveNext())
                     {
-                        max = item;
-                        hasValue = true;
+                        var item = enumerator.Current;
+                        if (predicate(item) && item > max)
+                            max = item;
                     }
+                    
+                    return Option<T>.Some(max);
                 }
             }
             
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no matching element");
-            
-            return max!;
+            return Option<T>.None();
         }
     }
 }

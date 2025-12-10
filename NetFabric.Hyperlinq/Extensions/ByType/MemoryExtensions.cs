@@ -96,6 +96,30 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public (T Min, T Max) MinMax(Func<T, bool> predicate)
                 => source.Span.MinMax(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MinOrNone()
+                => source.Span.MinOrNone();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MinOrNone(Func<T, bool> predicate)
+                => source.Span.MinOrNone(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MaxOrNone()
+                => source.Span.MaxOrNone();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MaxOrNone(Func<T, bool> predicate)
+                => source.Span.MaxOrNone(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<(T Min, T Max)> MinMaxOrNone()
+                => source.Span.MinMaxOrNone();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<(T Min, T Max)> MinMaxOrNone(Func<T, bool> predicate)
+                => source.Span.MinMaxOrNone(predicate);
         }
 
         extension<T>(ReadOnlyMemory<T> source)

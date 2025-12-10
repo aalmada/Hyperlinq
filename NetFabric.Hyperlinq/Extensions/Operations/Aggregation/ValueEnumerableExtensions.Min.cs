@@ -15,23 +15,7 @@ namespace NetFabric.Hyperlinq
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
-        {
-            var hasValue = false;
-            var min = default(T);
-            foreach (var item in source)
-            {
-                if (!hasValue || item < min!)
-                {
-                    min = item;
-                    hasValue = true;
-                }
-            }
-            
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            
-            return min!;
-        }
+            => source.MinOrNone<TEnumerable, TEnumerator, T>().Value;
 
         /// <summary>
         /// Returns the minimum value in a sequence of values that satisfy a condition.
@@ -40,26 +24,62 @@ namespace NetFabric.Hyperlinq
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
+            => source.MinOrNone<TEnumerable, TEnumerator, T>(predicate).Value;
+
+        /// <summary>
+        /// Returns the minimum value in a sequence, or None if empty.
+        /// </summary>
+        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(this TEnumerable source)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
         {
-            var hasValue = false;
-            var min = default(T);
+            using var enumerator = source.GetEnumerator();
             
-            foreach (var item in source)
+            if (!enumerator.MoveNext())
+                return Option<T>.None();
+            
+            var min = enumerator.Current;
+            
+            while (enumerator.MoveNext())
             {
-                if (predicate(item))
+                var item = enumerator.Current;
+                if (item < min)
+                    min = item;
+            }
+            
+            return Option<T>.Some(min);
+        }
+
+        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(
+            this TEnumerable source, 
+            Func<T, bool> predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+        {
+            using var enumerator = source.GetEnumerator();
+            
+            // Find first matching element
+            while (enumerator.MoveNext())
+            {
+                if (predicate(enumerator.Current))
                 {
-                    if (!hasValue || item < min!)
+                    var min = enumerator.Current;
+                    
+                    // Process remaining elements without branching on hasValue
+                    while (enumerator.MoveNext())
                     {
-                        min = item;
-                        hasValue = true;
+                        var item = enumerator.Current;
+                        if (predicate(item) && item < min)
+                            min = item;
                     }
+                    
+                    return Option<T>.Some(min);
                 }
             }
             
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no matching element");
-            
-            return min!;
+            return Option<T>.None();
         }
     }
 }

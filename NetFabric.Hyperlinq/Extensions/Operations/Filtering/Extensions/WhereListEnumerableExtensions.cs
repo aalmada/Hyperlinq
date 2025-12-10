@@ -53,40 +53,56 @@ namespace NetFabric.Hyperlinq
         public static TSource Min<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TSource : INumber<TSource>
             where TPredicate : struct, IFunction<TSource, bool>
+            => source.MinOrNone<TSource, TPredicate>().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TSource> MinOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TSource : INumber<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
         {
-            var hasValue = false;
-            var min = default(TSource);
-            foreach (var item in source)
+            using var enumerator = source.GetEnumerator();
+            
+            if (!enumerator.MoveNext())
+                return Option<TSource>.None();
+            
+            var min = enumerator.Current;
+            
+            while (enumerator.MoveNext())
             {
-                if (!hasValue || item < min!)
-                {
+                var item = enumerator.Current;
+                if (item < min)
                     min = item;
-                    hasValue = true;
-                }
             }
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return min!;
+            
+            return Option<TSource>.Some(min);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Max<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TSource : INumber<TSource>
             where TPredicate : struct, IFunction<TSource, bool>
+            => source.MaxOrNone<TSource, TPredicate>().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TSource> MaxOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TSource : INumber<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
         {
-            var hasValue = false;
-            var max = default(TSource);
-            foreach (var item in source)
+            using var enumerator = source.GetEnumerator();
+            
+            if (!enumerator.MoveNext())
+                return Option<TSource>.None();
+            
+            var max = enumerator.Current;
+            
+            while (enumerator.MoveNext())
             {
-                if (!hasValue || item > max!)
-                {
+                var item = enumerator.Current;
+                if (item > max)
                     max = item;
-                    hasValue = true;
-                }
             }
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return max!;
+            
+            return Option<TSource>.Some(max);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

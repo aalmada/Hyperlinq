@@ -146,29 +146,41 @@ namespace NetFabric.Hyperlinq
             where TResult : INumber<TResult>
             where TPredicate : struct, IFunction<TSource, bool>
             where TSelector : struct, IFunction<TSource, TResult>
+            => source.MinOrNone<TSource, TResult, TPredicate, TSelector>().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TResult> MinOrNone<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
+            where TResult : INumber<TResult>
+            where TPredicate : struct, IFunction<TSource, bool>
+            where TSelector : struct, IFunction<TSource, TResult>
         {
-            var hasValue = false;
-            var min = default(TResult);
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             var selector = source.Selector;
             
+            // Find first matching element
             for (var i = 0; i < span.Length; i++)
             {
                 if (predicate.Invoke(span[i]))
                 {
-                    var value = selector.Invoke(span[i]);
-                    if (!hasValue || value < min!)
+                    var min = selector.Invoke(span[i]);
+                    
+                    // Process remaining elements
+                    for (i++; i < span.Length; i++)
                     {
-                        min = value;
-                        hasValue = true;
+                        if (predicate.Invoke(span[i]))
+                        {
+                            var value = selector.Invoke(span[i]);
+                            if (value < min)
+                                min = value;
+                        }
                     }
+                    
+                    return Option<TResult>.Some(min);
                 }
             }
             
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return min!;
+            return Option<TResult>.None();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,29 +188,41 @@ namespace NetFabric.Hyperlinq
             where TResult : INumber<TResult>
             where TPredicate : struct, IFunction<TSource, bool>
             where TSelector : struct, IFunction<TSource, TResult>
+            => source.MaxOrNone<TSource, TResult, TPredicate, TSelector>().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TResult> MaxOrNone<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
+            where TResult : INumber<TResult>
+            where TPredicate : struct, IFunction<TSource, bool>
+            where TSelector : struct, IFunction<TSource, TResult>
         {
-            var hasValue = false;
-            var max = default(TResult);
             var span = CollectionsMarshal.AsSpan(source.Source);
             var predicate = source.Predicate;
             var selector = source.Selector;
             
+            // Find first matching element
             for (var i = 0; i < span.Length; i++)
             {
                 if (predicate.Invoke(span[i]))
                 {
-                    var value = selector.Invoke(span[i]);
-                    if (!hasValue || value > max!)
+                    var max = selector.Invoke(span[i]);
+                    
+                    // Process remaining elements
+                    for (i++; i < span.Length; i++)
                     {
-                        max = value;
-                        hasValue = true;
+                        if (predicate.Invoke(span[i]))
+                        {
+                            var value = selector.Invoke(span[i]);
+                            if (value > max)
+                                max = value;
+                        }
                     }
+                    
+                    return Option<TResult>.Some(max);
                 }
             }
             
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return max!;
+            return Option<TResult>.None();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -60,62 +60,94 @@ namespace NetFabric.Hyperlinq
             where T : INumber<T>
         {
             public T Min()
-            {
-                if (source.Length == 0)
-                    throw new InvalidOperationException("Sequence contains no elements");
-                return System.Numerics.Tensors.TensorPrimitives.Min(source);
-            }
+                => source.MinOrNone().Value;
 
-            // Primary overload - value delegate
             public T Min<TPredicate>(TPredicate predicate)
                 where TPredicate : struct, IFunction<T, bool>
-                => MinImpl(source, predicate);
+                => source.MinOrNone(predicate).Value;
 
-            // Secondary overload - Func wrapper for backward compatibility
             public T Min(Func<T, bool> predicate)
-                => MinImpl(source, new FunctionWrapper<T, bool>(predicate));
+                => source.MinOrNone(predicate).Value;
 
-            public T Max()
+            /// <summary>
+            /// Returns the minimum value in a sequence, or None if empty.
+            /// </summary>
+            public Option<T> MinOrNone()
             {
                 if (source.Length == 0)
-                    throw new InvalidOperationException("Sequence contains no elements");
-                return System.Numerics.Tensors.TensorPrimitives.Max(source);
+                    return Option<T>.None();
+                return Option<T>.Some(System.Numerics.Tensors.TensorPrimitives.Min(source));
             }
 
-            // Primary overload - value delegate
+            public Option<T> MinOrNone<TPredicate>(TPredicate predicate)
+                where TPredicate : struct, IFunction<T, bool>
+                => MinOrNoneImpl(source, predicate);
+
+            public Option<T> MinOrNone(Func<T, bool> predicate)
+                => MinOrNoneImpl(source, new FunctionWrapper<T, bool>(predicate));
+
+            public T Max()
+                => source.MaxOrNone().Value;
+
             public T Max<TPredicate>(TPredicate predicate)
                 where TPredicate : struct, IFunction<T, bool>
-                => MaxImpl(source, predicate);
+                => source.MaxOrNone(predicate).Value;
 
-            // Secondary overload - Func wrapper for backward compatibility
             public T Max(Func<T, bool> predicate)
-                => MaxImpl(source, new FunctionWrapper<T, bool>(predicate));
+                => source.MaxOrNone(predicate).Value;
+
+            /// <summary>
+            /// Returns the maximum value in a sequence, or None if empty.
+            /// </summary>
+            public Option<T> MaxOrNone()
+            {
+                if (source.Length == 0)
+                    return Option<T>.None();
+                return Option<T>.Some(System.Numerics.Tensors.TensorPrimitives.Max(source));
+            }
+
+            public Option<T> MaxOrNone<TPredicate>(TPredicate predicate)
+                where TPredicate : struct, IFunction<T, bool>
+                => MaxOrNoneImpl(source, predicate);
+
+            public Option<T> MaxOrNone(Func<T, bool> predicate)
+                => MaxOrNoneImpl(source, new FunctionWrapper<T, bool>(predicate));
 
             /// <summary>
             /// Computes both minimum and maximum values in a single iteration.
             /// </summary>
             public (T Min, T Max) MinMax()
+                => source.MinMaxOrNone().Value;
+
+            public (T Min, T Max) MinMax<TPredicate>(TPredicate predicate)
+                where TPredicate : struct, IFunction<T, bool>
+                => source.MinMaxOrNone(predicate).Value;
+
+            public (T Min, T Max) MinMax(Func<T, bool> predicate)
+                => source.MinMaxOrNone(predicate).Value;
+
+            /// <summary>
+            /// Computes both minimum and maximum values in a single iteration, or None if empty.
+            /// </summary>
+            public Option<(T Min, T Max)> MinMaxOrNone()
             {
                 if (source.Length == 0)
-                    throw new InvalidOperationException("Sequence contains no elements");
+                    return Option<(T Min, T Max)>.None();
                 
                 var min = System.Numerics.Tensors.TensorPrimitives.Min(source);
                 var max = System.Numerics.Tensors.TensorPrimitives.Max(source);
-                return (min, max);
+                return Option<(T Min, T Max)>.Some((min, max));
             }
 
-            /// <summary>
-            /// Computes both minimum and maximum values for elements that satisfy a condition.
-            /// </summary>
-            public (T Min, T Max) MinMax<TPredicate>(TPredicate predicate)
+            public Option<(T Min, T Max)> MinMaxOrNone<TPredicate>(TPredicate predicate)
                 where TPredicate : struct, IFunction<T, bool>
-                => MinMaxImpl(source, predicate);
+                => MinMaxOrNoneImpl(source, predicate);
 
-            public (T Min, T Max) MinMax(Func<T, bool> predicate)
-                => MinMaxImpl(source, new FunctionWrapper<T, bool>(predicate));
+            public Option<(T Min, T Max)> MinMaxOrNone(Func<T, bool> predicate)
+                => MinMaxOrNoneImpl(source, new FunctionWrapper<T, bool>(predicate));
         }
 
-        static (T Min, T Max) MinMaxImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+        static Option<(T Min, T Max)> MinMaxOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
             where T : INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
@@ -125,7 +157,7 @@ namespace NetFabric.Hyperlinq
                 index++;
             
             if (index >= source.Length)
-                throw new InvalidOperationException("Sequence contains no matching element");
+                return Option<(T Min, T Max)>.None();
             
             var min = source[index];
             var max = source[index];
@@ -146,11 +178,11 @@ namespace NetFabric.Hyperlinq
                 index++;
             }
             
-            return (min, max);
+            return Option<(T Min, T Max)>.Some((min, max));
         }
 
 
-        static T MinImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+        static Option<T> MinOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
             where T : INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
@@ -160,7 +192,7 @@ namespace NetFabric.Hyperlinq
                 index++;
             
             if (index >= source.Length)
-                throw new InvalidOperationException("Sequence contains no matching element");
+                return Option<T>.None();
             
             var min = source[index];
             index++;
@@ -174,10 +206,10 @@ namespace NetFabric.Hyperlinq
                 index++;
             }
             
-            return min;
+            return Option<T>.Some(min);
         }
 
-        static T MaxImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+        static Option<T> MaxOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
             where T : INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
@@ -187,7 +219,7 @@ namespace NetFabric.Hyperlinq
                 index++;
             
             if (index >= source.Length)
-                throw new InvalidOperationException("Sequence contains no matching element");
+                return Option<T>.None();
             
             var max = source[index];
             index++;
@@ -201,7 +233,7 @@ namespace NetFabric.Hyperlinq
                 index++;
             }
             
-            return max;
+            return Option<T>.Some(max);
         }
 
         extension<T>(ReadOnlySpan<T> source)

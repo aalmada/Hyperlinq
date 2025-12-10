@@ -96,6 +96,30 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public (T Min, T Max) MinMax(Func<T, bool> predicate)
                 => CollectionsMarshal.AsSpan(source.Source).MinMax(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MinOrNone()
+                => CollectionsMarshal.AsSpan(source.Source).MinOrNone();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MinOrNone(Func<T, bool> predicate)
+                => CollectionsMarshal.AsSpan(source.Source).MinOrNone(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MaxOrNone()
+                => CollectionsMarshal.AsSpan(source.Source).MaxOrNone();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> MaxOrNone(Func<T, bool> predicate)
+                => CollectionsMarshal.AsSpan(source.Source).MaxOrNone(predicate);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<(T Min, T Max)> MinMaxOrNone()
+                => CollectionsMarshal.AsSpan(source.Source).MinMaxOrNone();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<(T Min, T Max)> MinMaxOrNone(Func<T, bool> predicate)
+                => CollectionsMarshal.AsSpan(source.Source).MinMaxOrNone(predicate);
         }
 
         extension<T>(ListValueEnumerable<T> source)

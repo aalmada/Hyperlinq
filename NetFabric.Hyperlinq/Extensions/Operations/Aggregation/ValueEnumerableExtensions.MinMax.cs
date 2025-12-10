@@ -15,11 +15,28 @@ namespace NetFabric.Hyperlinq
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
+            => source.MinMaxOrNone<TEnumerable, TEnumerator, T>().Value;
+
+        public static (T Min, T Max) MinMax<TEnumerable, TEnumerator, T>(
+            this TEnumerable source, 
+            Func<T, bool> predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+            => source.MinMaxOrNone<TEnumerable, TEnumerator, T>(predicate).Value;
+
+        /// <summary>
+        /// Computes both minimum and maximum values in a single iteration, or None if empty.
+        /// </summary>
+        public static Option<(T Min, T Max)> MinMaxOrNone<TEnumerable, TEnumerator, T>(this TEnumerable source)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
         {
             using var enumerator = source.GetEnumerator();
             
             if (!enumerator.MoveNext())
-                throw new InvalidOperationException("Sequence contains no elements");
+                return Option<(T Min, T Max)>.None();
             
             var min = enumerator.Current;
             var max = enumerator.Current;
@@ -35,13 +52,10 @@ namespace NetFabric.Hyperlinq
                     max = item;
             }
             
-            return (min, max);
+            return Option<(T Min, T Max)>.Some((min, max));
         }
 
-        /// <summary>
-        /// Computes both minimum and maximum values for elements that satisfy a condition.
-        /// </summary>
-        public static (T Min, T Max) MinMax<TEnumerable, TEnumerator, T>(
+        public static Option<(T Min, T Max)> MinMaxOrNone<TEnumerable, TEnumerator, T>(
             this TEnumerable source, 
             Func<T, bool> predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
@@ -72,11 +86,11 @@ namespace NetFabric.Hyperlinq
                         }
                     }
                     
-                    return (min, max);
+                    return Option<(T Min, T Max)>.Some((min, max));
                 }
             }
             
-            throw new InvalidOperationException("Sequence contains no matching element");
+            return Option<(T Min, T Max)>.None();
         }
     }
 }
