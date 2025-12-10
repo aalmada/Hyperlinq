@@ -121,9 +121,8 @@ namespace NetFabric.Hyperlinq
             var min = source[0];
             var minKey = selector.Invoke(min);
 
-            for (var index = 1; index < source.Length; index++)
+            foreach (var item in source[1..])
             {
-                var item = source[index];
                 var key = selector.Invoke(item);
                 if (key.CompareTo(minKey) < 0)
                 {
@@ -145,9 +144,8 @@ namespace NetFabric.Hyperlinq
             var min = source[0];
             var minKey = selector.Invoke(in min);
 
-            for (var index = 1; index < source.Length; index++)
+            foreach (ref readonly var item in source[1..])
             {
-                ref readonly var item = ref source[index];
                 var key = selector.Invoke(in item);
                 if (key.CompareTo(minKey) < 0)
                 {
@@ -169,9 +167,8 @@ namespace NetFabric.Hyperlinq
             var max = source[0];
             var maxKey = selector.Invoke(max);
 
-            for (var index = 1; index < source.Length; index++)
+            foreach (var item in source[1..])
             {
-                var item = source[index];
                 var key = selector.Invoke(item);
                 if (key.CompareTo(maxKey) > 0)
                 {
@@ -193,9 +190,8 @@ namespace NetFabric.Hyperlinq
             var max = source[0];
             var maxKey = selector.Invoke(in max);
 
-            for (var index = 1; index < source.Length; index++)
+            foreach (ref readonly var item in source[1..])
             {
-                ref readonly var item = ref source[index];
                 var key = selector.Invoke(in item);
                 if (key.CompareTo(maxKey) > 0)
                 {
@@ -219,9 +215,8 @@ namespace NetFabric.Hyperlinq
             var max = min;
             var maxKey = minKey;
 
-            for (var index = 1; index < source.Length; index++)
+            foreach (var item in source[1..])
             {
-                var item = source[index];
                 var key = selector.Invoke(item);
                 if (key.CompareTo(minKey) < 0)
                 {
@@ -250,9 +245,8 @@ namespace NetFabric.Hyperlinq
             var max = min;
             var maxKey = minKey;
 
-            for (var index = 1; index < source.Length; index++)
+            foreach (ref readonly var item in source[1..])
             {
-                ref readonly var item = ref source[index];
                 var key = selector.Invoke(in item);
                 if (key.CompareTo(minKey) < 0)
                 {

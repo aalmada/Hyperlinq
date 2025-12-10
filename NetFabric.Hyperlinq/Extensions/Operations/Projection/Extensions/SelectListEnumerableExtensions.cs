@@ -52,11 +52,11 @@ namespace NetFabric.Hyperlinq
         {
             var sum = TResult.AdditiveIdentity;
             var selector = source.Selector;
-            var list = source.Source;
+            var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source);
             
-            for (var i = 0; i < list.Count; i++)
+            foreach (ref readonly var item in span)
             {
-                sum += selector.Invoke(list[i]);
+                sum += selector.Invoke(item);
             }
             
             return sum;
@@ -71,12 +71,12 @@ namespace NetFabric.Hyperlinq
                 return Option<TResult>.None();
             
             var selector = source.Selector;
-            var list = source.Source;
-            var min = selector.Invoke(list[0]);
+            var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source);
+            var min = selector.Invoke(span[0]);
             
-            for (var i = 1; i < list.Count; i++)
+            foreach (ref readonly var item in span[1..])
             {
-                var value = selector.Invoke(list[i]);
+                var value = selector.Invoke(item);
                 if (value < min)
                     min = value;
             }
@@ -93,12 +93,12 @@ namespace NetFabric.Hyperlinq
                 return Option<TResult>.None();
             
             var selector = source.Selector;
-            var list = source.Source;
-            var max = selector.Invoke(list[0]);
+            var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source);
+            var max = selector.Invoke(span[0]);
             
-            for (var i = 1; i < list.Count; i++)
+            foreach (ref readonly var item in span[1..])
             {
-                var value = selector.Invoke(list[i]);
+                var value = selector.Invoke(item);
                 if (value > max)
                     max = value;
             }
@@ -121,14 +121,14 @@ namespace NetFabric.Hyperlinq
                 return Option<(TResult Min, TResult Max)>.None();
             
             var selector = source.Selector;
-            var list = source.Source;
-            var value = selector.Invoke(list[0]);
+            var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source.Source);
+            var value = selector.Invoke(span[0]);
             var min = value;
             var max = value;
             
-            for (var i = 1; i < list.Count; i++)
+            foreach (ref readonly var item in span[1..])
             {
-                value = selector.Invoke(list[i]);
+                value = selector.Invoke(item);
                 if (value < min)
                     min = value;
                 else if (value > max)

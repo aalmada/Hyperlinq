@@ -42,9 +42,26 @@ namespace NetFabric.Hyperlinq
             if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
             if (array.Length - arrayIndex < Count) throw new ArgumentException("Destination array is not long enough.");
 
-            for (var i = 0; i < source.Count; i++)
+            var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source);
+            
+            if (arrayIndex == 0)
             {
-                array[arrayIndex + i] = selector.Invoke(source[i]);
+                // Fast path: copy to start of array using foreach
+                var index = 0;
+                foreach (ref readonly var item in span)
+                {
+                    array[index++] = selector.Invoke(item);
+                }
+            }
+            else
+            {
+                // Offset copy: use for loop for JIT optimization
+                var destinationLength = array.Length - arrayIndex;
+                var length = span.Length < destinationLength ? span.Length : destinationLength;
+                for (var i = 0; i < length; i++)
+                {
+                    array[arrayIndex + i] = selector.Invoke(span[i]);
+                }
             }
         }
 
@@ -52,18 +69,19 @@ namespace NetFabric.Hyperlinq
         {
             pool ??= ArrayPool<TResult>.Shared;
             var result = pool.Rent(source.Count);
-            for (var i = 0; i < source.Count; i++)
+            var index = 0;
+            foreach (ref readonly var item in System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source))
             {
-                result[i] = selector.Invoke(source[i]);
+                result[index++] = selector.Invoke(item);
             }
             return new PooledBuffer<TResult>(result, source.Count, pool);
         }
 
         public bool Contains(TResult item)
         {
-            for (var i = 0; i < source.Count; i++)
+            foreach (ref readonly var sourceItem in System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source))
             {
-                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(source[i]), item))
+                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(sourceItem), item))
                     return true;
             }
             return false;
@@ -71,10 +89,12 @@ namespace NetFabric.Hyperlinq
 
         public int IndexOf(TResult item)
         {
-            for (var i = 0; i < source.Count; i++)
+            var index = 0;
+            foreach (ref readonly var sourceItem in System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source))
             {
-                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(source[i]), item))
-                    return i;
+                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(sourceItem), item))
+                    return index;
+                index++;
             }
             return -1;
         }

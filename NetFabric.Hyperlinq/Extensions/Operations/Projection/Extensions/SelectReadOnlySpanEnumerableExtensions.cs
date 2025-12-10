@@ -53,9 +53,9 @@ namespace NetFabric.Hyperlinq
             var selector = source.Selector;
             var span = source.Source;
             
-            for (var i = 0; i < span.Length; i++)
+            foreach (ref readonly var item in span)
             {
-                sum += selector.Invoke(span[i]);
+                sum += selector.Invoke(item);
             }
             
             return sum;
@@ -73,9 +73,9 @@ namespace NetFabric.Hyperlinq
             var selector = source.Selector;
             var min = selector.Invoke(span[0]);
             
-            for (var i = 1; i < span.Length; i++)
+            foreach (ref readonly var item in span[1..])
             {
-                var value = selector.Invoke(span[i]);
+                var value = selector.Invoke(item);
                 if (value < min)
                     min = value;
             }
@@ -95,9 +95,9 @@ namespace NetFabric.Hyperlinq
             var selector = source.Selector;
             var max = selector.Invoke(span[0]);
             
-            for (var i = 1; i < span.Length; i++)
+            foreach (ref readonly var item in span[1..])
             {
-                var value = selector.Invoke(span[i]);
+                var value = selector.Invoke(item);
                 if (value > max)
                     max = value;
             }
@@ -125,9 +125,9 @@ namespace NetFabric.Hyperlinq
             var min = value;
             var max = value;
             
-            for (var i = 1; i < span.Length; i++)
+            foreach (ref readonly var item in span[1..])
             {
-                value = selector.Invoke(span[i]);
+                value = selector.Invoke(item);
                 if (value < min)
                     min = value;
                 else if (value > max)
