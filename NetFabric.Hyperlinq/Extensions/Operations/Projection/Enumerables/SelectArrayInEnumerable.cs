@@ -40,26 +40,7 @@ namespace NetFabric.Hyperlinq
             if (array.Length - arrayIndex < Count) throw new ArgumentException("Destination array is not long enough.");
 
             var span = source.AsSpan();
-            
-            if (arrayIndex == 0)
-            {
-                // Fast path: copy to start of array using foreach
-                var index = 0;
-                foreach (ref readonly var item in span)
-                {
-                    array[index++] = selector.Invoke(in item);
-                }
-            }
-            else
-            {
-                // Offset copy: use for loop for JIT optimization
-                var destinationLength = array.Length - arrayIndex;
-                var length = span.Length < destinationLength ? span.Length : destinationLength;
-                for (var i = 0; i < length; i++)
-                {
-                    array[arrayIndex + i] = selector.Invoke(in span[i]);
-                }
-            }
+            SpanHelpers.CopyToIn(span, in selector, array.AsSpan(), arrayIndex);
         }
 
         public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
