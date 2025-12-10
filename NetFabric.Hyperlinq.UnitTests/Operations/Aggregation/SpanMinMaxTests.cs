@@ -360,5 +360,132 @@ public class SpanMinMaxTests
         
         result.Must().BeEqualTo(9);
     }
-}
 
+    // MinMax tests
+    [Test]
+    public void Array_MinMax_ShouldWork()
+    {
+        var array = new[] { 5, 2, 8, 1, 9, 3 };
+        
+        var result = array.MinMax();
+        
+        result.Min.Must().BeEqualTo(1);
+        result.Max.Must().BeEqualTo(9);
+    }
+    
+    [Test]
+    public void List_MinMax_ShouldWork()
+    {
+        var list = new List<int> { 10, 20, 5, 30, 15 };
+        
+        var result = list.MinMax();
+        
+        result.Min.Must().BeEqualTo(5);
+        result.Max.Must().BeEqualTo(30);
+    }
+    
+    [Test]
+    public void ReadOnlyMemory_MinMax_ShouldWork()
+    {
+        ReadOnlyMemory<int> memory = new[] { 7, 3, 9, 1, 5 }.AsMemory();
+        
+        var result = memory.MinMax();
+        
+        result.Min.Must().BeEqualTo(1);
+        result.Max.Must().BeEqualTo(9);
+    }
+    
+    [Test]
+    public void ArraySegment_MinMax_ShouldWork()
+    {
+        var segment = new ArraySegment<int>(new[] { 4, 8, 2, 6, 1 });
+        
+        var result = segment.MinMax();
+        
+        result.Min.Must().BeEqualTo(1);
+        result.Max.Must().BeEqualTo(8);
+    }
+    
+    [Test]
+    public void ReadOnlySpan_MinMax_ShouldWork()
+    {
+        ReadOnlySpan<int> span = stackalloc int[] { 15, 3, 22, 8, 11 };
+        
+        var result = span.MinMax();
+        
+        result.Min.Must().BeEqualTo(3);
+        result.Max.Must().BeEqualTo(22);
+    }
+    
+    [Test]
+    public void Double_MinMax_ShouldWork()
+    {
+        var array = new double[] { 2.5, 1.1, 3.7, 0.5, 2.0 };
+        
+        var result = array.MinMax();
+        
+        result.Min.Must().BeEqualTo(0.5);
+        result.Max.Must().BeEqualTo(3.7);
+    }
+    
+    [Test]
+    public void Array_MinMax_WithPredicate_ShouldWork()
+    {
+        var array = new[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+        
+        var result = array.MinMax(x => x % 2 == 0); // Even numbers: 2, 4, 6, 8
+        
+        result.Min.Must().BeEqualTo(2);
+        result.Max.Must().BeEqualTo(8);
+    }
+    
+    [Test]
+    public void List_MinMax_WithPredicate_ShouldWork()
+    {
+        var list = new List<int> { 10, 15, 20, 25, 30 };
+        
+        var result = list.MinMax(x => x > 15); // 20, 25, 30
+        
+        result.Min.Must().BeEqualTo(20);
+        result.Max.Must().BeEqualTo(30);
+    }
+    
+    [Test]
+    public void ArraySegment_MinMax_WithOffset_ShouldWork()
+    {
+        var array = new[] { 100, 200, 5, 10, 15, 20 };
+        var segment = new ArraySegment<int>(array, 2, 4); // { 5, 10, 15, 20 }
+        
+        var result = segment.MinMax();
+        
+        result.Min.Must().BeEqualTo(5);
+        result.Max.Must().BeEqualTo(20);
+    }
+    
+    [Test]
+    public void Array_MinMax_Empty_ShouldThrow()
+    {
+        var array = Array.Empty<int>();
+        
+        Assert.Throws<InvalidOperationException>(() => array.MinMax());
+    }
+    
+    [Test]
+    public void Array_MinMax_WithPredicate_NoMatch_ShouldThrow()
+    {
+        var array = new[] { 1, 3, 5, 7 };
+        
+        Assert.Throws<InvalidOperationException>(() => array.MinMax(x => x % 2 == 0));
+    }
+    
+    [Test]
+    public void Array_MinMax_SingleElement_ShouldReturnSame()
+    {
+        var array = new[] { 42 };
+        
+        var result = array.MinMax();
+        
+        result.Min.Must().BeEqualTo(42);
+        result.Max.Must().BeEqualTo(42);
+    }
+}

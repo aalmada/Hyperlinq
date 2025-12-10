@@ -90,7 +90,65 @@ namespace NetFabric.Hyperlinq
             // Secondary overload - Func wrapper for backward compatibility
             public T Max(Func<T, bool> predicate)
                 => MaxImpl(source, new FunctionWrapper<T, bool>(predicate));
+
+            /// <summary>
+            /// Computes both minimum and maximum values in a single iteration.
+            /// </summary>
+            public (T Min, T Max) MinMax()
+            {
+                if (source.Length == 0)
+                    throw new InvalidOperationException("Sequence contains no elements");
+                
+                var min = System.Numerics.Tensors.TensorPrimitives.Min(source);
+                var max = System.Numerics.Tensors.TensorPrimitives.Max(source);
+                return (min, max);
+            }
+
+            /// <summary>
+            /// Computes both minimum and maximum values for elements that satisfy a condition.
+            /// </summary>
+            public (T Min, T Max) MinMax<TPredicate>(TPredicate predicate)
+                where TPredicate : struct, IFunction<T, bool>
+                => MinMaxImpl(source, predicate);
+
+            public (T Min, T Max) MinMax(Func<T, bool> predicate)
+                => MinMaxImpl(source, new FunctionWrapper<T, bool>(predicate));
         }
+
+        static (T Min, T Max) MinMaxImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
+            where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
+        {
+            var hasValue = false;
+            var min = default(T);
+            var max = default(T);
+            
+            foreach (var item in source)
+            {
+                if (predicate.Invoke(item))
+                {
+                    if (!hasValue)
+                    {
+                        min = item;
+                        max = item;
+                        hasValue = true;
+                    }
+                    else
+                    {
+                        if (item < min!)
+                            min = item;
+                        if (item > max!)
+                            max = item;
+                    }
+                }
+            }
+            
+            if (!hasValue)
+                throw new InvalidOperationException("Sequence contains no matching element");
+            
+            return (min!, max!);
+        }
+
 
         static T MinImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
             where T : INumber<T>

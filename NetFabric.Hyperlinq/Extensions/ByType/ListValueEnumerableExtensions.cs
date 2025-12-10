@@ -82,6 +82,20 @@ namespace NetFabric.Hyperlinq
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Option<T> AverageOrNone(Func<T, bool> predicate)
                 => CollectionsMarshal.AsSpan(source.Source).AverageOrNone(predicate);
+
+            /// <summary>
+            /// Computes both minimum and maximum values in a single iteration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public (T Min, T Max) MinMax()
+                => CollectionsMarshal.AsSpan(source.Source).MinMax();
+
+            /// <summary>
+            /// Computes both minimum and maximum values for elements that satisfy a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public (T Min, T Max) MinMax(Func<T, bool> predicate)
+                => CollectionsMarshal.AsSpan(source.Source).MinMax(predicate);
         }
 
         extension<T>(ListValueEnumerable<T> source)
