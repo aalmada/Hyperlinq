@@ -17,5 +17,14 @@ namespace NetFabric.Hyperlinq
 
             return new RangeEnumerable(start, count);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static RepeatEnumerable<T> Repeat<T>(T element, int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            return new RepeatEnumerable<T>(element, count);
+        }
     }
 }

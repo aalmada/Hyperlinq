@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq
 {
@@ -94,9 +95,10 @@ namespace NetFabric.Hyperlinq
                 throw new ArgumentException("Destination array is not long enough.");
 
             var current = start;
-            for (var i = 0; i < count; i++)
+            var span = array.AsSpan(arrayIndex, count);
+            foreach (ref var item in span)
             {
-                array[arrayIndex + i] = current++;
+                item = current++;
             }
         }
 
@@ -114,15 +116,11 @@ namespace NetFabric.Hyperlinq
                 return Array.Empty<int>();
 
             var result = new int[count];
-            if (count > 0)
+            var span = result.AsSpan();
+            var current = start;
+            foreach (ref var item in span)
             {
-                // Optimized fill
-                var span = result.AsSpan();
-                var current = start;
-                for (var i = 0; i < span.Length; i++)
-                {
-                    span[i] = current++;
-                }
+                item = current++;
             }
             return result;
         }
@@ -131,13 +129,12 @@ namespace NetFabric.Hyperlinq
         public List<int> ToList()
         {
             var result = new List<int>(count);
-            if (count > 0)
+            CollectionsMarshal.SetCount(result, count);
+            var span = CollectionsMarshal.AsSpan(result);
+            var current = start;
+            foreach (ref var item in span)
             {
-                var current = start;
-                for (var i = 0; i < count; i++)
-                {
-                    result.Add(current++);
-                }
+                item = current++;
             }
             return result;
         }
@@ -151,9 +148,9 @@ namespace NetFabric.Hyperlinq
             {
                 var span = result.AsSpan(0, count);
                 var current = start;
-                for (var i = 0; i < span.Length; i++)
+                foreach (ref var item in span)
                 {
-                    span[i] = current++;
+                    item = current++;
                 }
             }
             return new PooledBuffer<int>(result, count, pool);
