@@ -119,34 +119,33 @@ namespace NetFabric.Hyperlinq
             where T : INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
-            var hasValue = false;
-            var min = default(T);
-            var max = default(T);
+            // Find first matching element
+            var index = 0;
+            while (index < source.Length && !predicate.Invoke(source[index]))
+                index++;
             
-            foreach (var item in source)
-            {
-                if (predicate.Invoke(item))
-                {
-                    if (!hasValue)
-                    {
-                        min = item;
-                        max = item;
-                        hasValue = true;
-                    }
-                    else
-                    {
-                        if (item < min!)
-                            min = item;
-                        if (item > max!)
-                            max = item;
-                    }
-                }
-            }
-            
-            if (!hasValue)
+            if (index >= source.Length)
                 throw new InvalidOperationException("Sequence contains no matching element");
             
-            return (min!, max!);
+            var min = source[index];
+            var max = source[index];
+            index++;
+            
+            // Process remaining elements without branching on hasValue
+            while (index < source.Length)
+            {
+                var item = source[index];
+                if (predicate.Invoke(item))
+                {
+                    if (item < min)
+                        min = item;
+                    if (item > max)
+                        max = item;
+                }
+                index++;
+            }
+            
+            return (min, max);
         }
 
 
@@ -154,48 +153,54 @@ namespace NetFabric.Hyperlinq
             where T : INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
-            var hasValue = false;
-            var min = default(T);
+            // Find first matching element
+            var index = 0;
+            while (index < source.Length && !predicate.Invoke(source[index]))
+                index++;
             
-            foreach (var item in source)
+            if (index >= source.Length)
+                throw new InvalidOperationException("Sequence contains no matching element");
+            
+            var min = source[index];
+            index++;
+            
+            // Process remaining elements without branching on hasValue
+            while (index < source.Length)
             {
-                if (predicate.Invoke(item))
-                {
-                    if (!hasValue || item < min!)
-                    {
-                        min = item;
-                        hasValue = true;
-                    }
-                }
+                var item = source[index];
+                if (predicate.Invoke(item) && item < min)
+                    min = item;
+                index++;
             }
             
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return min!;
+            return min;
         }
 
         static T MaxImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
             where T : INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
-            var hasValue = false;
-            var max = default(T);
+            // Find first matching element
+            var index = 0;
+            while (index < source.Length && !predicate.Invoke(source[index]))
+                index++;
             
-            foreach (var item in source)
+            if (index >= source.Length)
+                throw new InvalidOperationException("Sequence contains no matching element");
+            
+            var max = source[index];
+            index++;
+            
+            // Process remaining elements without branching on hasValue
+            while (index < source.Length)
             {
-                if (predicate.Invoke(item))
-                {
-                    if (!hasValue || item > max!)
-                    {
-                        max = item;
-                        hasValue = true;
-                    }
-                }
+                var item = source[index];
+                if (predicate.Invoke(item) && item > max)
+                    max = item;
+                index++;
             }
             
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no elements");
-            return max!;
+            return max;
         }
 
         extension<T>(ReadOnlySpan<T> source)

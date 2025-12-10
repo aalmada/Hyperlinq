@@ -30,31 +30,25 @@ namespace NetFabric.Hyperlinq
             }
 
             // Fallback to standard enumeration
-            var hasValue = false;
-            var min = default(T);
-            var max = default(T);
+            using var enumerator = source.GetEnumerator();
             
-            foreach (var item in source)
-            {
-                if (!hasValue)
-                {
-                    min = item;
-                    max = item;
-                    hasValue = true;
-                }
-                else
-                {
-                    if (item < min!)
-                        min = item;
-                    if (item > max!)
-                        max = item;
-                }
-            }
-            
-            if (!hasValue)
+            if (!enumerator.MoveNext())
                 throw new InvalidOperationException("Sequence contains no elements");
             
-            return (min!, max!);
+            var min = enumerator.Current;
+            var max = enumerator.Current;
+            
+            // Process remaining elements without branching on hasValue
+            while (enumerator.MoveNext())
+            {
+                var item = enumerator.Current;
+                if (item < min)
+                    min = item;
+                if (item > max)
+                    max = item;
+            }
+            
+            return (min, max);
         }
 
         /// <summary>
@@ -67,34 +61,34 @@ namespace NetFabric.Hyperlinq
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
         {
-            var hasValue = false;
-            var min = default(T);
-            var max = default(T);
+            using var enumerator = source.GetEnumerator();
             
-            foreach (var item in source)
+            // Find first matching element
+            while (enumerator.MoveNext())
             {
-                if (predicate(item))
+                if (predicate(enumerator.Current))
                 {
-                    if (!hasValue)
+                    var min = enumerator.Current;
+                    var max = enumerator.Current;
+                    
+                    // Process remaining elements without branching on hasValue
+                    while (enumerator.MoveNext())
                     {
-                        min = item;
-                        max = item;
-                        hasValue = true;
+                        var item = enumerator.Current;
+                        if (predicate(item))
+                        {
+                            if (item < min)
+                                min = item;
+                            if (item > max)
+                                max = item;
+                        }
                     }
-                    else
-                    {
-                        if (item < min!)
-                            min = item;
-                        if (item > max!)
-                            max = item;
-                    }
+                    
+                    return (min, max);
                 }
             }
             
-            if (!hasValue)
-                throw new InvalidOperationException("Sequence contains no matching element");
-            
-            return (min!, max!);
+            throw new InvalidOperationException("Sequence contains no matching element");
         }
     }
 }
