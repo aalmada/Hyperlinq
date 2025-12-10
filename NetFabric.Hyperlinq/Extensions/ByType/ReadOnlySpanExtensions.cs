@@ -33,27 +33,29 @@ namespace NetFabric.Hyperlinq
         }
 
         static T SumImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            where T : INumberBase<T>
             where TPredicate : struct, IFunction<T, bool>
         {
             var sum = T.AdditiveIdentity;
             foreach (var item in source)
             {
-                if (predicate.Invoke(item))
-                    sum += item;
+                var result = predicate.Invoke(item);
+                var mask = Unsafe.As<bool, byte>(ref result);
+                sum += item * T.CreateChecked(mask);
             }
             return sum;
         }
 
         static T SumInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            where T : INumberBase<T>
             where TPredicate : struct, IFunctionIn<T, bool>
         {
             var sum = T.AdditiveIdentity;
             foreach (var item in source)
             {
-                if (predicate.Invoke(in item))
-                    sum += item;
+                var result = predicate.Invoke(in item);
+                var mask = Unsafe.As<bool, byte>(ref result);
+                sum += item * T.CreateChecked(mask);
             }
             return sum;
         }
@@ -288,11 +290,10 @@ namespace NetFabric.Hyperlinq
             
             foreach (var item in source)
             {
-                if (predicate.Invoke(item))
-                {
-                    sum += item;
-                    count++;
-                }
+                var result = predicate.Invoke(item);
+                var mask = Unsafe.As<bool, byte>(ref result);
+                count += mask;
+                sum += item * T.CreateChecked(mask);
             }
             
             if (count == 0)
@@ -580,8 +581,8 @@ namespace NetFabric.Hyperlinq
             var count = 0;
             foreach (var item in source)
             {
-                if (predicate.Invoke(item))
-                    count++;
+                var result = predicate.Invoke(item);
+                count += Unsafe.As<bool, byte>(ref result);
             }
             return count;
         }

@@ -47,8 +47,9 @@ namespace NetFabric.Hyperlinq
             var sum = TSource.AdditiveIdentity;
             foreach (var item in source)
             {
-                if (predicate.Invoke(item))
-                    sum += item;
+                var result = predicate.Invoke(item);
+                var mask = System.Runtime.CompilerServices.Unsafe.As<bool, byte>(ref result);
+                sum += item * TSource.CreateChecked(mask);
             }
             return sum;
         }

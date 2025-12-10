@@ -79,11 +79,10 @@ namespace NetFabric.Hyperlinq
             var count = 0;
             foreach (var item in source)
             {
-                if (predicate.Invoke(item))
-                {
-                    sum += item;
-                    count++;
-                }
+                var result = predicate.Invoke(item);
+                var mask = System.Runtime.CompilerServices.Unsafe.As<bool, byte>(ref result);
+                count += mask;
+                sum += item * T.CreateChecked(mask);
             }
             
             if (count == 0)

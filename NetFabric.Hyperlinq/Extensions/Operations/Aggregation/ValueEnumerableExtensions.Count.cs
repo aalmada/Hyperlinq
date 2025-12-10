@@ -40,8 +40,8 @@ namespace NetFabric.Hyperlinq
             var count = 0;
             foreach (var item in source)
             {
-                if (predicate.Invoke(item))
-                    count++;
+                var result = predicate.Invoke(item);
+                count += System.Runtime.CompilerServices.Unsafe.As<bool, byte>(ref result);
             }
             return count;
         }
