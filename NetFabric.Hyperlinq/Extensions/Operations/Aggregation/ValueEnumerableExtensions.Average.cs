@@ -21,6 +21,18 @@ namespace NetFabric.Hyperlinq
         /// <summary>
         /// Computes the average of elements that satisfy a condition.
         /// </summary>
+        public static T Average<TEnumerable, TEnumerator, T, TPredicate>(
+            this TEnumerable source, 
+            TPredicate predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
+            => source.AverageOrNone<TEnumerable, TEnumerator, T, TPredicate>(predicate).Value;
+
+        /// <summary>
+        /// Computes the average of elements that satisfy a condition.
+        /// </summary>
         public static T Average<TEnumerable, TEnumerator, T>(
             this TEnumerable source, 
             Func<T, bool> predicate)
@@ -55,18 +67,19 @@ namespace NetFabric.Hyperlinq
         /// <summary>
         /// Computes the average of elements that satisfy a condition, returning None if no matches.
         /// </summary>
-        public static Option<T> AverageOrNone<TEnumerable, TEnumerator, T>(
+        public static Option<T> AverageOrNone<TEnumerable, TEnumerator, T, TPredicate>(
             this TEnumerable source, 
-            Func<T, bool> predicate)
+            TPredicate predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
         {
             var sum = T.AdditiveIdentity;
             var count = 0;
             foreach (var item in source)
             {
-                if (predicate(item))
+                if (predicate.Invoke(item))
                 {
                     sum += item;
                     count++;
@@ -78,5 +91,16 @@ namespace NetFabric.Hyperlinq
             
             return Option<T>.Some(sum / T.CreateChecked(count));
         }
+
+        /// <summary>
+        /// Computes the average of elements that satisfy a condition, returning None if no matches.
+        /// </summary>
+        public static Option<T> AverageOrNone<TEnumerable, TEnumerator, T>(
+            this TEnumerable source, 
+            Func<T, bool> predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+            => AverageOrNone<TEnumerable, TEnumerator, T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
     }
 }

@@ -17,6 +17,13 @@ namespace NetFabric.Hyperlinq
             where T : INumber<T>
             => source.MinOrNone<TEnumerable, TEnumerator, T>().Value;
 
+        public static T Min<TEnumerable, TEnumerator, T, TPredicate>(this TEnumerable source, TPredicate predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
+            => source.MinOrNone<TEnumerable, TEnumerator, T, TPredicate>(predicate).Value;
+
         /// <summary>
         /// Returns the minimum value in a sequence of values that satisfy a condition.
         /// </summary>
@@ -51,19 +58,20 @@ namespace NetFabric.Hyperlinq
             return Option<T>.Some(min);
         }
 
-        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(
+        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T, TPredicate>(
             this TEnumerable source, 
-            Func<T, bool> predicate)
+            TPredicate predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
         {
             using var enumerator = source.GetEnumerator();
             
             // Find first matching element
             while (enumerator.MoveNext())
             {
-                if (predicate(enumerator.Current))
+                if (predicate.Invoke(enumerator.Current))
                 {
                     var min = enumerator.Current;
                     
@@ -71,7 +79,7 @@ namespace NetFabric.Hyperlinq
                     while (enumerator.MoveNext())
                     {
                         var item = enumerator.Current;
-                        if (predicate(item) && item < min)
+                        if (predicate.Invoke(item) && item < min)
                             min = item;
                     }
                     
@@ -81,5 +89,13 @@ namespace NetFabric.Hyperlinq
             
             return Option<T>.None();
         }
+
+        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(
+            this TEnumerable source, 
+            Func<T, bool> predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+            => MinOrNone<TEnumerable, TEnumerator, T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
     }
 }

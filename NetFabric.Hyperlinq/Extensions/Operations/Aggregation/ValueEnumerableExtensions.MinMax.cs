@@ -17,6 +17,15 @@ namespace NetFabric.Hyperlinq
             where T : INumber<T>
             => source.MinMaxOrNone<TEnumerable, TEnumerator, T>().Value;
 
+        public static (T Min, T Max) MinMax<TEnumerable, TEnumerator, T, TPredicate>(
+            this TEnumerable source, 
+            TPredicate predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
+            => source.MinMaxOrNone<TEnumerable, TEnumerator, T, TPredicate>(predicate).Value;
+
         public static (T Min, T Max) MinMax<TEnumerable, TEnumerator, T>(
             this TEnumerable source, 
             Func<T, bool> predicate)
@@ -55,19 +64,20 @@ namespace NetFabric.Hyperlinq
             return Option<(T Min, T Max)>.Some((min, max));
         }
 
-        public static Option<(T Min, T Max)> MinMaxOrNone<TEnumerable, TEnumerator, T>(
+        public static Option<(T Min, T Max)> MinMaxOrNone<TEnumerable, TEnumerator, T, TPredicate>(
             this TEnumerable source, 
-            Func<T, bool> predicate)
+            TPredicate predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
+            where TPredicate : struct, IFunction<T, bool>
         {
             using var enumerator = source.GetEnumerator();
             
             // Find first matching element
             while (enumerator.MoveNext())
             {
-                if (predicate(enumerator.Current))
+                if (predicate.Invoke(enumerator.Current))
                 {
                     var min = enumerator.Current;
                     var max = enumerator.Current;
@@ -76,7 +86,7 @@ namespace NetFabric.Hyperlinq
                     while (enumerator.MoveNext())
                     {
                         var item = enumerator.Current;
-                        if (predicate(item))
+                        if (predicate.Invoke(item))
                         {
                             // If item < min, it cannot be > max, so use else if
                             if (item < min)
@@ -92,5 +102,13 @@ namespace NetFabric.Hyperlinq
             
             return Option<(T Min, T Max)>.None();
         }
+
+        public static Option<(T Min, T Max)> MinMaxOrNone<TEnumerable, TEnumerator, T>(
+            this TEnumerable source, 
+            Func<T, bool> predicate)
+            where TEnumerable : IValueEnumerable<T, TEnumerator>
+            where TEnumerator : struct, IEnumerator<T>
+            where T : INumber<T>
+            => MinMaxOrNone<TEnumerable, TEnumerator, T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
     }
 }

@@ -36,19 +36,20 @@ namespace NetFabric.Hyperlinq
             return Option<TSource>.Some(first);
         }
 
-        public static Option<TSource> SingleOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
+        public static Option<TSource> SingleOrNone<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             using var enumerator = source.GetEnumerator();
             while (enumerator.MoveNext())
             {
-                if (predicate(enumerator.Current))
+                if (predicate.Invoke(enumerator.Current))
                 {
                     var first = enumerator.Current;
                     while (enumerator.MoveNext())
                     {
-                        if (predicate(enumerator.Current))
+                        if (predicate.Invoke(enumerator.Current))
                             throw new InvalidOperationException("Sequence contains more than one matching element");
                     }
                     return Option<TSource>.Some(first);
@@ -56,6 +57,11 @@ namespace NetFabric.Hyperlinq
             }
             return Option<TSource>.None();
         }
+
+        public static Option<TSource> SingleOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
+            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+            where TEnumerator : struct, IEnumerator<TSource>
+            => SingleOrNone<TEnumerable, TEnumerator, TSource, FunctionWrapper<TSource, bool>>(source, new FunctionWrapper<TSource, bool>(predicate));
         
 
     }

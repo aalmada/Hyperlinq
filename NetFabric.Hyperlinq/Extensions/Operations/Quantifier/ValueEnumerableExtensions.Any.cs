@@ -30,17 +30,23 @@ namespace NetFabric.Hyperlinq
         public static bool Any<T>(this ICollection<T> source)
             => source.Count != 0;
 
-        public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
+        public static bool Any<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
         {
             foreach (var item in source)
             {
-                if (predicate(item))
+                if (predicate.Invoke(item))
                     return true;
             }
             return false;
         }
+
+        public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
+            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+            where TEnumerator : struct, IEnumerator<TSource>
+            => Any<TEnumerable, TEnumerator, TSource, FunctionWrapper<TSource, bool>>(source, new FunctionWrapper<TSource, bool>(predicate));
 
 
     }

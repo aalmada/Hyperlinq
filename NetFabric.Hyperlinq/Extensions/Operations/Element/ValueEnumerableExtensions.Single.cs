@@ -14,6 +14,12 @@ namespace NetFabric.Hyperlinq
             where TEnumerator : struct, IEnumerator<TSource>
             => source.SingleOrNone<TEnumerable, TEnumerator, TSource>().Value;
 
+        public static TSource Single<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
+            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+            where TEnumerator : struct, IEnumerator<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => ValueEnumerableExtensions.SingleOrNone<TEnumerable, TEnumerator, TSource, TPredicate>(source, predicate).Value;
+
         /// <summary>
         /// Returns the only element of a sequence that satisfies a specified condition, and throws an exception if more than one such element exists.
         /// </summary>

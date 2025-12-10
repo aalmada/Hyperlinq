@@ -21,6 +21,18 @@ namespace NetFabric.Hyperlinq
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
             => source.SingleOrNone<TEnumerable, TEnumerator, TSource>().GetValueOrDefault(defaultValue);
+        public static TSource SingleOrDefault<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
+            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+            where TEnumerator : struct, IEnumerator<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => ValueEnumerableExtensions.SingleOrNone<TEnumerable, TEnumerator, TSource, TPredicate>(source, predicate).GetValueOrDefault();
+
+        public static TSource SingleOrDefault<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate, TSource defaultValue)
+            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+            where TEnumerator : struct, IEnumerator<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => ValueEnumerableExtensions.SingleOrNone<TEnumerable, TEnumerator, TSource, TPredicate>(source, predicate).GetValueOrDefault(defaultValue);
+
         /// <summary>
         /// Returns the only element of a sequence that satisfies a specified condition, or a default value if the sequence is empty; this method throws an exception if there is more than one element in the sequence.
         /// </summary>
