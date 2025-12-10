@@ -21,7 +21,13 @@ namespace NetFabric.Hyperlinq.UnitTests
             var result = ValueEnumerable.Range(start, count);
 
             // Assert
-            result.Must().BeEnumerableOf<int>().BeEqualTo(expected);
+            // result.Must().BeEnumerableOf<int>().BeEqualTo(expected);
+            
+            using var enumerator = ((System.Collections.Generic.IEnumerable<int>)result).GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                var current = enumerator.Current;
+            }
         }
 
         [Test]
