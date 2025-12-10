@@ -131,15 +131,16 @@ namespace NetFabric.Hyperlinq
             var max = source[index];
             index++;
             
-            // Process remaining elements without branching on hasValue
+            // Process remaining elements with minimal branching
             while (index < source.Length)
             {
                 var item = source[index];
                 if (predicate.Invoke(item))
                 {
+                    // If item < min, it cannot be > max, so use else if
                     if (item < min)
                         min = item;
-                    if (item > max)
+                    else if (item > max)
                         max = item;
                 }
                 index++;

@@ -38,13 +38,14 @@ namespace NetFabric.Hyperlinq
             var min = enumerator.Current;
             var max = enumerator.Current;
             
-            // Process remaining elements without branching on hasValue
+            // Process remaining elements with minimal branching
             while (enumerator.MoveNext())
             {
                 var item = enumerator.Current;
+                // If item < min, it cannot be > max, so use else if
                 if (item < min)
                     min = item;
-                if (item > max)
+                else if (item > max)
                     max = item;
             }
             
@@ -71,15 +72,16 @@ namespace NetFabric.Hyperlinq
                     var min = enumerator.Current;
                     var max = enumerator.Current;
                     
-                    // Process remaining elements without branching on hasValue
+                    // Process remaining elements with minimal branching
                     while (enumerator.MoveNext())
                     {
                         var item = enumerator.Current;
                         if (predicate(item))
                         {
+                            // If item < min, it cannot be > max, so use else if
                             if (item < min)
                                 min = item;
-                            if (item > max)
+                            else if (item > max)
                                 max = item;
                         }
                     }
