@@ -106,6 +106,18 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (TSource Min, TSource Max) MinMax<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => source.MinMaxOrNone<TSource, TPredicate>().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<(TSource Min, TSource Max)> MinMaxOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => CollectionsMarshal.AsSpan(source.Source).MinMaxOrNone(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Count<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
             where TPredicate : struct, IFunction<TSource, bool>
         {

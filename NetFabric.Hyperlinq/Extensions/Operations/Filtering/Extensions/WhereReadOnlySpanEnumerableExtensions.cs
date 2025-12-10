@@ -116,5 +116,29 @@ namespace NetFabric.Hyperlinq
             where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
             where TPredicate : struct, IFunction<TSource, bool>
             => source.Source.Max(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TSource> MinOrNone<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => source.Source.MinOrNone(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TSource> MaxOrNone<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => source.Source.MaxOrNone(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (TSource Min, TSource Max) MinMax<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => source.Source.MinMax(source.Predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<(TSource Min, TSource Max)> MinMaxOrNone<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
+            where TPredicate : struct, IFunction<TSource, bool>
+            => source.Source.MinMaxOrNone(source.Predicate);
     }
 }

@@ -31,23 +31,7 @@ namespace NetFabric.Hyperlinq
         public static TResult Min<TSource, TResult, TSelector>(this SelectListEnumerable<TSource, TResult, TSelector> source)
             where TResult : INumber<TResult>
             where TSelector : struct, IFunction<TSource, TResult>
-        {
-            if (source.Count == 0)
-                throw new InvalidOperationException("Sequence contains no elements");
-            
-            var selector = source.Selector;
-            var list = source.Source;
-            var min = selector.Invoke(list[0]);
-            
-            for (var i = 1; i < list.Count; i++)
-            {
-                var value = selector.Invoke(list[i]);
-                if (value < min)
-                    min = value;
-            }
-            
-            return min;
-        }
+            => source.MinOrNone().Value;
 
         /// <summary>
         /// Returns the maximum value after applying the selector.
@@ -56,23 +40,7 @@ namespace NetFabric.Hyperlinq
         public static TResult Max<TSource, TResult, TSelector>(this SelectListEnumerable<TSource, TResult, TSelector> source)
             where TResult : INumber<TResult>
             where TSelector : struct, IFunction<TSource, TResult>
-        {
-            if (source.Count == 0)
-                throw new InvalidOperationException("Sequence contains no elements");
-            
-            var selector = source.Selector;
-            var list = source.Source;
-            var max = selector.Invoke(list[0]);
-            
-            for (var i = 1; i < list.Count; i++)
-            {
-                var value = selector.Invoke(list[i]);
-                if (value > max)
-                    max = value;
-            }
-            
-            return max;
-        }
+            => source.MaxOrNone().Value;
 
         /// <summary>
         /// Computes the sum after applying the selector.
@@ -92,6 +60,82 @@ namespace NetFabric.Hyperlinq
             }
             
             return sum;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TResult> MinOrNone<TSource, TResult, TSelector>(this SelectListEnumerable<TSource, TResult, TSelector> source)
+            where TResult : INumber<TResult>
+            where TSelector : struct, IFunction<TSource, TResult>
+        {
+            if (source.Count == 0)
+                return Option<TResult>.None();
+            
+            var selector = source.Selector;
+            var list = source.Source;
+            var min = selector.Invoke(list[0]);
+            
+            for (var i = 1; i < list.Count; i++)
+            {
+                var value = selector.Invoke(list[i]);
+                if (value < min)
+                    min = value;
+            }
+            
+            return Option<TResult>.Some(min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TResult> MaxOrNone<TSource, TResult, TSelector>(this SelectListEnumerable<TSource, TResult, TSelector> source)
+            where TResult : INumber<TResult>
+            where TSelector : struct, IFunction<TSource, TResult>
+        {
+            if (source.Count == 0)
+                return Option<TResult>.None();
+            
+            var selector = source.Selector;
+            var list = source.Source;
+            var max = selector.Invoke(list[0]);
+            
+            for (var i = 1; i < list.Count; i++)
+            {
+                var value = selector.Invoke(list[i]);
+                if (value > max)
+                    max = value;
+            }
+            
+            return Option<TResult>.Some(max);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (TResult Min, TResult Max) MinMax<TSource, TResult, TSelector>(this SelectListEnumerable<TSource, TResult, TSelector> source)
+            where TResult : INumber<TResult>
+            where TSelector : struct, IFunction<TSource, TResult>
+            => source.MinMaxOrNone().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<(TResult Min, TResult Max)> MinMaxOrNone<TSource, TResult, TSelector>(this SelectListEnumerable<TSource, TResult, TSelector> source)
+            where TResult : INumber<TResult>
+            where TSelector : struct, IFunction<TSource, TResult>
+        {
+            if (source.Count == 0)
+                return Option<(TResult Min, TResult Max)>.None();
+            
+            var selector = source.Selector;
+            var list = source.Source;
+            var value = selector.Invoke(list[0]);
+            var min = value;
+            var max = value;
+            
+            for (var i = 1; i < list.Count; i++)
+            {
+                value = selector.Invoke(list[i]);
+                if (value < min)
+                    min = value;
+                else if (value > max)
+                    max = value;
+            }
+            
+            return Option<(TResult Min, TResult Max)>.Some((min, max));
         }
     }
 }

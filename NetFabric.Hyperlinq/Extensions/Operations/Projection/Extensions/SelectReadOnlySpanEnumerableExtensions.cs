@@ -30,23 +30,7 @@ namespace NetFabric.Hyperlinq
         public static TResult Min<TSource, TResult, TSelector>(this SelectReadOnlySpanEnumerable<TSource, TResult, TSelector> source)
             where TSelector : struct, IFunction<TSource, TResult>
             where TResult : INumber<TResult>
-        {
-            var span = source.Source;
-            if (span.Length == 0)
-                throw new InvalidOperationException("Sequence contains no elements");
-            
-            var selector = source.Selector;
-            var min = selector.Invoke(span[0]);
-            
-            for (var i = 1; i < span.Length; i++)
-            {
-                var value = selector.Invoke(span[i]);
-                if (value < min)
-                    min = value;
-            }
-            
-            return min;
-        }
+            => source.MinOrNone().Value;
 
         /// <summary>
         /// Returns the maximum value after applying the selector.
@@ -55,23 +39,7 @@ namespace NetFabric.Hyperlinq
         public static TResult Max<TSource, TResult, TSelector>(this SelectReadOnlySpanEnumerable<TSource, TResult, TSelector> source)
             where TSelector : struct, IFunction<TSource, TResult>
             where TResult : INumber<TResult>
-        {
-            var span = source.Source;
-            if (span.Length == 0)
-                throw new InvalidOperationException("Sequence contains no elements");
-            
-            var selector = source.Selector;
-            var max = selector.Invoke(span[0]);
-            
-            for (var i = 1; i < span.Length; i++)
-            {
-                var value = selector.Invoke(span[i]);
-                if (value > max)
-                    max = value;
-            }
-            
-            return max;
-        }
+            => source.MaxOrNone().Value;
 
         /// <summary>
         /// Computes the sum after applying the selector.
@@ -91,6 +59,82 @@ namespace NetFabric.Hyperlinq
             }
             
             return sum;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TResult> MinOrNone<TSource, TResult, TSelector>(this SelectReadOnlySpanEnumerable<TSource, TResult, TSelector> source)
+            where TSelector : struct, IFunction<TSource, TResult>
+            where TResult : INumber<TResult>
+        {
+            var span = source.Source;
+            if (span.Length == 0)
+                return Option<TResult>.None();
+            
+            var selector = source.Selector;
+            var min = selector.Invoke(span[0]);
+            
+            for (var i = 1; i < span.Length; i++)
+            {
+                var value = selector.Invoke(span[i]);
+                if (value < min)
+                    min = value;
+            }
+            
+            return Option<TResult>.Some(min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TResult> MaxOrNone<TSource, TResult, TSelector>(this SelectReadOnlySpanEnumerable<TSource, TResult, TSelector> source)
+            where TSelector : struct, IFunction<TSource, TResult>
+            where TResult : INumber<TResult>
+        {
+            var span = source.Source;
+            if (span.Length == 0)
+                return Option<TResult>.None();
+            
+            var selector = source.Selector;
+            var max = selector.Invoke(span[0]);
+            
+            for (var i = 1; i < span.Length; i++)
+            {
+                var value = selector.Invoke(span[i]);
+                if (value > max)
+                    max = value;
+            }
+            
+            return Option<TResult>.Some(max);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (TResult Min, TResult Max) MinMax<TSource, TResult, TSelector>(this SelectReadOnlySpanEnumerable<TSource, TResult, TSelector> source)
+            where TSelector : struct, IFunction<TSource, TResult>
+            where TResult : INumber<TResult>
+            => source.MinMaxOrNone().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<(TResult Min, TResult Max)> MinMaxOrNone<TSource, TResult, TSelector>(this SelectReadOnlySpanEnumerable<TSource, TResult, TSelector> source)
+            where TSelector : struct, IFunction<TSource, TResult>
+            where TResult : INumber<TResult>
+        {
+            var span = source.Source;
+            if (span.Length == 0)
+                return Option<(TResult Min, TResult Max)>.None();
+            
+            var selector = source.Selector;
+            var value = selector.Invoke(span[0]);
+            var min = value;
+            var max = value;
+            
+            for (var i = 1; i < span.Length; i++)
+            {
+                value = selector.Invoke(span[i]);
+                if (value < min)
+                    min = value;
+                else if (value > max)
+                    max = value;
+            }
+            
+            return Option<(TResult Min, TResult Max)>.Some((min, max));
         }
     }
 }

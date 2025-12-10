@@ -237,6 +237,52 @@ namespace NetFabric.Hyperlinq
             return Option<TResult>.None();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (TResult Min, TResult Max) MinMax<TSource, TResult, TPredicate, TSelector>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult, TPredicate, TSelector> source)
+            where TResult : INumber<TResult>
+            where TPredicate : struct, IFunction<TSource, bool>
+            where TSelector : struct, IFunction<TSource, TResult>
+            => source.MinMaxOrNone<TSource, TResult, TPredicate, TSelector>().Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<(TResult Min, TResult Max)> MinMaxOrNone<TSource, TResult, TPredicate, TSelector>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult, TPredicate, TSelector> source)
+            where TResult : INumber<TResult>
+            where TPredicate : struct, IFunction<TSource, bool>
+            where TSelector : struct, IFunction<TSource, TResult>
+        {
+            var span = source.Source;
+            var predicate = source.Predicate;
+            var selector = source.Selector;
+            
+            // Find first matching element
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate.Invoke(span[i]))
+                {
+                    var value = selector.Invoke(span[i]);
+                    var min = value;
+                    var max = value;
+                    
+                    // Process remaining elements
+                    for (i++; i < span.Length; i++)
+                    {
+                        if (predicate.Invoke(span[i]))
+                        {
+                            value = selector.Invoke(span[i]);
+                            if (value < min)
+                                min = value;
+                            else if (value > max)
+                                max = value;
+                        }
+                    }
+                    
+                    return Option<(TResult Min, TResult Max)>.Some((min, max));
+                }
+            }
+            
+            return Option<(TResult Min, TResult Max)>.None();
+        }
+
         public static TResult[] ToArray<TSource, TResult, TPredicate, TSelector>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult, TPredicate, TSelector> source, ArrayPool<TResult>? pool = default)
             where TPredicate : struct, IFunction<TSource, bool>
             where TSelector : struct, IFunction<TSource, TResult>
