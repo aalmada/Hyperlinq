@@ -4,6 +4,7 @@
   <Project Path="NetFabric.Hyperlinq.Benchmarks/NetFabric.Hyperlinq.Benchmarks.csproj" />
   <Project Path="NetFabric.Hyperlinq.UnitTests/NetFabric.Hyperlinq.UnitTests.csproj" />
   <Project Path="NetFabric.Hyperlinq.Analyzer/NetFabric.Hyperlinq.Analyzer.csproj" />
+  <Project Path="NetFabric.Hyperlinq.Analyzer.UnitTests/NetFabric.Hyperlinq.Analyzer.UnitTests.csproj" />
 </Solution>
 
 

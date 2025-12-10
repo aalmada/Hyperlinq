@@ -73,7 +73,7 @@ namespace NetFabric.Hyperlinq.Analyzer
                         SyntaxFactory.QualifiedName(
                             SyntaxFactory.IdentifierName("NetFabric"),
                             SyntaxFactory.IdentifierName("Hyperlinq")))
-                        .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+                        .WithTrailingTrivia(SyntaxFactory.ElasticLineFeed);
 
                     // Add it after System.Linq if it exists, otherwise at the end
                     var systemLinqUsing = compilationUnit.Usings.FirstOrDefault(u =>
