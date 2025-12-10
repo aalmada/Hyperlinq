@@ -10,9 +10,9 @@ public class SpanWhereSelectSumTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Memory_WhereSelect_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_WhereSelect_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var result = memory

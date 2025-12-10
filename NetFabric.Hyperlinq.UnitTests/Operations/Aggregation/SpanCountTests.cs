@@ -10,9 +10,9 @@ public class SpanCountTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Count();
         var linqResult = Enumerable.Count(array);
@@ -22,9 +22,9 @@ public class SpanCountTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.Count();
         var linqResult = Enumerable.Count(list);
@@ -34,9 +34,9 @@ public class SpanCountTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Memory_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var hyperlinqResult = memory.Span.Count();
@@ -47,9 +47,9 @@ public class SpanCountTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Where_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Where_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Count();
         var linqResult = array.Where(x => x % 2 == 0).Count();

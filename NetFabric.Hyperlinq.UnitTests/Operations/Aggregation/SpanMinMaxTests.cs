@@ -11,9 +11,9 @@ public class SpanMinMaxTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Min_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return; // Skip empty
         
         var spanResult = array.Min();  // SpanExtensions.Min
@@ -24,9 +24,9 @@ public class SpanMinMaxTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Max_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         var spanResult = array.Max();
@@ -37,9 +37,9 @@ public class SpanMinMaxTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Min_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         if (list.Count == 0) return;
         
         var spanResult = list.Min();
@@ -50,9 +50,9 @@ public class SpanMinMaxTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Max_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         if (list.Count == 0) return;
         
         var spanResult = list.Max();
@@ -63,9 +63,9 @@ public class SpanMinMaxTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ReadOnlyMemory_Min_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void ReadOnlyMemory_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         ReadOnlyMemory<int> memory = array.AsMemory();
@@ -78,9 +78,9 @@ public class SpanMinMaxTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ReadOnlyMemory_Max_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void ReadOnlyMemory_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         ReadOnlyMemory<int> memory = array.AsMemory();
@@ -172,9 +172,9 @@ public class SpanMinMaxTests
     // Predicate tests
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Min_WithPredicate_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Min_WithPredicate_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         var predicate = (int x) => x > 0;
@@ -195,9 +195,9 @@ public class SpanMinMaxTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Max_WithPredicate_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Max_WithPredicate_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         var predicate = (int x) => x > 0;
@@ -275,9 +275,9 @@ public class SpanMinMaxTests
     // ArraySegment tests
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ArraySegment_Min_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void ArraySegment_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         var segment = new ArraySegment<int>(array);
@@ -290,9 +290,9 @@ public class SpanMinMaxTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ArraySegment_Max_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void ArraySegment_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         var segment = new ArraySegment<int>(array);
@@ -302,6 +302,7 @@ public class SpanMinMaxTests
         
         result.Must().BeEqualTo(linqResult);
     }
+
     
     [Test]
     public void ArraySegment_Min_WithPredicate_ShouldReturnMinimumOfMatchingElements()

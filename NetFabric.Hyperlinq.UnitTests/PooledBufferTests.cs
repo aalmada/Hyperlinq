@@ -34,9 +34,9 @@ public class PooledBufferTests
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ReadOnlySpan_ToArrayPooled_ShouldMatchOriginal((Func<int[]> arrayFactory, string description) testCase)
+    public void ReadOnlySpan_ToArrayPooled_ShouldMatchOriginal(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         var span = array.AsSpan();
         
         using var buffer = span.ToArrayPooled();
@@ -47,9 +47,9 @@ public class PooledBufferTests
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ReadOnlySpan_ToArrayPooled_WithPredicate_ShouldFilterCorrectly((Func<int[]> arrayFactory, string description) testCase)
+    public void ReadOnlySpan_ToArrayPooled_WithPredicate_ShouldFilterCorrectly(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         var span = array.AsSpan();
         var predicate = (int x) => x % 2 == 0;
         

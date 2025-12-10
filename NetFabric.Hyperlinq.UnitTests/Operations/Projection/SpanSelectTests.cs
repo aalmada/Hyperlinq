@@ -13,9 +13,9 @@ public class SpanSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Select_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Select_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Select(x => x * 2);
         var linqResult = Enumerable.Select(array, x => x * 2);
@@ -27,9 +27,9 @@ public class SpanSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Select_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Select_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         var result = array.Select(x => x * 2);
         
         result.Count().Must().BeEqualTo(array.Length);
@@ -39,9 +39,9 @@ public class SpanSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Select_TypeChange_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Select_TypeChange_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Select(x => x.ToString());
         var linqResult = Enumerable.Select(array, x => x.ToString());
@@ -55,9 +55,9 @@ public class SpanSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Select_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Select_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.Select(x => x * 3);
         var linqResult = Enumerable.Select(list, x => x * 3);
@@ -69,9 +69,9 @@ public class SpanSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Select_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Select_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         var result = list.Select(x => x / 10);
         
         result.Count().Must().BeEqualTo(list.Count);
@@ -83,9 +83,9 @@ public class SpanSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Memory_Select_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_Select_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var hyperlinqResult = memory.Select(x => x + 10);

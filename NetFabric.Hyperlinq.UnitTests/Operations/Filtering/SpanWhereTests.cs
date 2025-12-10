@@ -12,9 +12,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Where_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Where_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(array, x => x % 2 == 0);
@@ -26,9 +26,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Where_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Where_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(list, x => x % 2 == 0);
@@ -40,9 +40,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Memory_Where_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_Where_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var hyperlinqResult = memory.Where(x => x % 2 == 0);
@@ -60,9 +60,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ArraySegment_Where_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void ArraySegment_Where_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0)
         {
             var segment = new ArraySegment<int>(array);
@@ -89,9 +89,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Array_Where_ShouldReturnWhereReadOnlySpanEnumerable((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Where_ShouldReturnWhereReadOnlySpanEnumerable(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         var result = array.Where(x => x % 2 == 0);
         
         // Ref structs cannot be used in generic type arguments, so we can't use Must().BeOfType<T>()
@@ -102,9 +102,9 @@ public class SpanWhereTests
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Memory_Where_ShouldReturnWhereReadOnlySpanEnumerable((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_Where_ShouldReturnWhereReadOnlySpanEnumerable(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         var result = memory.Where(x => x % 2 == 0);
         
@@ -115,9 +115,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEdgeCaseIntArraySources))]
-    public void Array_Where_EdgeCases_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Where_EdgeCases_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(array, x => x % 2 == 0);
@@ -131,9 +131,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Where_Count_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Where_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Count();
         var linqResult = Enumerable.Count(Enumerable.Where(array, x => x % 2 == 0));
@@ -143,9 +143,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Where_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Where_Any_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.Where(x => x % 2 == 0).Any();
         var linqResult = Enumerable.Any(Enumerable.Where(array, x => x % 2 == 0));
@@ -155,9 +155,9 @@ public class SpanWhereTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Array_Where_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Where_First_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         var filtered = array.Where(x => x > 0);
         
         if (filtered.Any())

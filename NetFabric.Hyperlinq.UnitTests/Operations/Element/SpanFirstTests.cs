@@ -10,9 +10,9 @@ public class SpanFirstTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Array_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_First_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.First();
         var linqResult = Enumerable.First(array);
@@ -22,9 +22,9 @@ public class SpanFirstTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void List_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_First_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.First();
         var linqResult = Enumerable.First(list);
@@ -34,9 +34,9 @@ public class SpanFirstTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Memory_First_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_First_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var hyperlinqResult = memory.First();

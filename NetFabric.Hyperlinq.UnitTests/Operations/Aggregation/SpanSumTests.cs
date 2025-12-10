@@ -12,9 +12,9 @@ public class SpanSumTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var spanResult = array.Sum();  // SpanExtensions.Sum
         var linqResult = Enumerable.Sum(array);
@@ -24,9 +24,9 @@ public class SpanSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var spanResult = list.Sum();  // SpanExtensions.Sum
         var linqResult = Enumerable.Sum(list);
@@ -36,9 +36,9 @@ public class SpanSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ReadOnlyMemory_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void ReadOnlyMemory_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var result = memory.Sum();
@@ -49,9 +49,9 @@ public class SpanSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Memory_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         Memory<int> memory = array.AsMemory();
         
         var result = memory.Span.Sum();
@@ -62,9 +62,9 @@ public class SpanSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ArraySegment_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void ArraySegment_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         var segment = new ArraySegment<int>(array);
         
         var result = segment.Sum();

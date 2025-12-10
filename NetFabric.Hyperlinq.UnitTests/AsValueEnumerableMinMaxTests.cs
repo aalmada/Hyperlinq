@@ -10,9 +10,9 @@ public class AsValueEnumerableMinMaxTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_AsValueEnumerable_Min_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_AsValueEnumerable_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         if (list.Count == 0) return; // Skip empty for now, testing separately
 
         var valueEnum = list.AsValueEnumerable();
@@ -25,9 +25,9 @@ public class AsValueEnumerableMinMaxTests
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_AsValueEnumerable_Max_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_AsValueEnumerable_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         if (list.Count == 0) return;
 
         var valueEnum = list.AsValueEnumerable();
@@ -40,9 +40,9 @@ public class AsValueEnumerableMinMaxTests
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_AsValueEnumerable_Min_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_AsValueEnumerable_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
 
         var valueEnum = array.AsValueEnumerable();
@@ -55,9 +55,9 @@ public class AsValueEnumerableMinMaxTests
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_AsValueEnumerable_Max_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_AsValueEnumerable_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
 
         var valueEnum = array.AsValueEnumerable();

@@ -10,9 +10,9 @@ public class AsValueEnumerableSumTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_AsValueEnumerable_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_AsValueEnumerable_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         var valueEnum = list.AsValueEnumerable();
         
         valueEnum.Must()
@@ -35,9 +35,9 @@ public class AsValueEnumerableSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_AsValueEnumerable_Sum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_AsValueEnumerable_Sum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         var valueEnum = array.AsValueEnumerable();
         
         valueEnum.Must()
@@ -48,9 +48,9 @@ public class AsValueEnumerableSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEnumerableSources))]
-    public void IEnumerable_AsValueEnumerable_Sum_ShouldMatchLinq((Func<IEnumerable<int>> enumerableFactory, string description) testCase)
+    public void IEnumerable_AsValueEnumerable_Sum_ShouldMatchLinq(TestCase<IEnumerable<int>> testCase)
     {
-        IEnumerable<int> enumerable = testCase.enumerableFactory();
+        IEnumerable<int> enumerable = testCase.Factory();
         var valueEnum = enumerable.AsValueEnumerable();
         
         valueEnum.Must()
@@ -61,9 +61,9 @@ public class AsValueEnumerableSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetCollectionSources))]
-    public void ICollection_AsValueEnumerable_Sum_ShouldMatchLinq((Func<ICollection<int>> collectionFactory, string description) testCase)
+    public void ICollection_AsValueEnumerable_Sum_ShouldMatchLinq(TestCase<ICollection<int>> testCase)
     {
-        ICollection<int> collection = testCase.collectionFactory();
+        ICollection<int> collection = testCase.Factory();
         var valueEnum = collection.AsValueEnumerable();
         
         valueEnum.Must()
@@ -98,9 +98,9 @@ public class AsValueEnumerableSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_WhereSelectSum_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_WhereSelectSum_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.AsValueEnumerable()
                                   .Where(x => x % 2 == 0)
@@ -116,9 +116,9 @@ public class AsValueEnumerableSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEnumerableSources))]
-    public void IEnumerable_WhereSelectSum_ShouldMatchLinq((Func<IEnumerable<int>> enumerableFactory, string description) testCase)
+    public void IEnumerable_WhereSelectSum_ShouldMatchLinq(TestCase<IEnumerable<int>> testCase)
     {
-        IEnumerable<int> enumerable = testCase.enumerableFactory();
+        IEnumerable<int> enumerable = testCase.Factory();
         
         var hyperlinqResult = enumerable.AsValueEnumerable()
                                   .Where(x => x % 2 == 0)
@@ -134,9 +134,9 @@ public class AsValueEnumerableSumTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetCollectionSources))]
-    public void ICollection_WhereSelectSum_ShouldMatchLinq((Func<ICollection<int>> collectionFactory, string description) testCase)
+    public void ICollection_WhereSelectSum_ShouldMatchLinq(TestCase<ICollection<int>> testCase)
     {
-        ICollection<int> collection = testCase.collectionFactory();
+        ICollection<int> collection = testCase.Factory();
         
         var hyperlinqResult = collection.AsValueEnumerable()
                                   .Where(x => x % 2 == 0)

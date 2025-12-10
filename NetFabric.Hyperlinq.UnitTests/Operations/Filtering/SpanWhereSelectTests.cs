@@ -12,9 +12,9 @@ public class SpanWhereSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_WhereSelect_ShouldReturnWhereSelectListEnumerable((Func<int[]> arrayFactory, string description) testCase)
+    public void List_WhereSelect_ShouldReturnWhereSelectListEnumerable(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         var result = list.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2);
         
         // Type check removed as it depends on internal generic structure
@@ -23,13 +23,14 @@ public class SpanWhereSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void Memory_WhereSelect_ShouldReturnWhereSelectReadOnlySpanEnumerable((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_WhereSelect_ShouldReturnWhereSelectReadOnlySpanEnumerable(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         var result = memory.Where(x => x % 2 == 0).Select(x => x * 2);
         
-
+        // Type check removed
+        result.ToArray().Must().BeEnumerableOf<int>();
     }
     
     // ===== Correctness Tests =====
@@ -38,9 +39,9 @@ public class SpanWhereSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_WhereSelect_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_WhereSelect_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 10);
         var linqResult = Enumerable.Select(Enumerable.Where(list, x => x % 2 == 0), x => x * 10);
@@ -52,9 +53,9 @@ public class SpanWhereSelectTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Memory_WhereSelect_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Memory_WhereSelect_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         
         var hyperlinqResult = memory.Where(x => x % 2 == 0).Select(x => x * 10);

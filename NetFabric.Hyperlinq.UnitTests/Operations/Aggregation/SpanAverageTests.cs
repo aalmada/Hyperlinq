@@ -11,9 +11,9 @@ public class SpanAverageTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Average_ShouldWork((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Average_ShouldWork(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return; // Skip empty
         
         var result = array.Average();
@@ -24,9 +24,9 @@ public class SpanAverageTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Average_ShouldWork((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Average_ShouldWork(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         if (list.Count == 0) return;
         
         var result = list.Average();
@@ -37,9 +37,9 @@ public class SpanAverageTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ReadOnlyMemory_Average_ShouldWork((Func<int[]> arrayFactory, string description) testCase)
+    public void ReadOnlyMemory_Average_ShouldWork(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         ReadOnlyMemory<int> memory = array.AsMemory();
@@ -52,9 +52,9 @@ public class SpanAverageTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void ArraySegment_Average_ShouldWork((Func<int[]> arrayFactory, string description) testCase)
+    public void ArraySegment_Average_ShouldWork(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         var segment = new ArraySegment<int>(array);
@@ -107,9 +107,9 @@ public class SpanAverageTests
     // Predicate tests
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Average_WithPredicate_ShouldWork((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Average_WithPredicate_ShouldWork(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         if (array.Length == 0) return;
         
         var predicate = (int x) => x > 0;

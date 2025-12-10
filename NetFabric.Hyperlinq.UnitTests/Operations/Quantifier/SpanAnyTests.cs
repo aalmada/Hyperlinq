@@ -10,9 +10,9 @@ public class SpanAnyTests
 {
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void Array_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void Array_Any_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var array = testCase.arrayFactory();
+        var array = testCase.Factory();
         
         var hyperlinqResult = array.AsSpan().Any();
         var linqResult = Enumerable.Any(array);
@@ -22,9 +22,9 @@ public class SpanAnyTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
-    public void List_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Any_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.Any();
         var linqResult = Enumerable.Any(list);
@@ -34,9 +34,9 @@ public class SpanAnyTests
     
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
-    public void List_Where_Any_ShouldMatchLinq((Func<int[]> arrayFactory, string description) testCase)
+    public void List_Where_Any_ShouldMatchLinq(TestCase<int[]> testCase)
     {
-        var list = new List<int>(testCase.arrayFactory());
+        var list = new List<int>(testCase.Factory());
         
         var hyperlinqResult = list.AsValueEnumerable().Where(x => x % 2 == 0).Any();
         var linqResult = list.AsValueEnumerable().Where(x => x % 2 == 0).Any();
