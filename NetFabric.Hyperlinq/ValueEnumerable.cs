@@ -19,6 +19,10 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static EmptyEnumerable<T> Empty<T>()
+            => new EmptyEnumerable<T>();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RepeatEnumerable<T> Repeat<T>(T element, int count)
         {
             if (count < 0)

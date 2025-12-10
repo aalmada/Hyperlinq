@@ -19,7 +19,7 @@ namespace NetFabric.Hyperlinq.Analyzer
 
         private static readonly LocalizableString Title = "Use ValueEnumerable generator methods";
         private static readonly LocalizableString MessageFormat = "Use 'ValueEnumerable.{0}' instead of 'Enumerable.{0}' for better performance";
-        private static readonly LocalizableString Description = "ValueEnumerable.Range() and ValueEnumerable.Repeat() provide better performance than their LINQ counterparts.";
+        private static readonly LocalizableString Description = "ValueEnumerable.Range(), ValueEnumerable.Repeat(), and ValueEnumerable.Empty() provide better performance than their LINQ counterparts.";
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
@@ -49,8 +49,8 @@ namespace NetFabric.Hyperlinq.Analyzer
 
             var methodName = memberAccess.Name.Identifier.Text;
 
-            // Check if it's Range or Repeat
-            if (methodName != "Range" && methodName != "Repeat")
+            // Check if it's Range, Repeat, or Empty
+            if (methodName != "Range" && methodName != "Repeat" && methodName != "Empty")
                 return;
 
             // Get the symbol info
