@@ -19,7 +19,7 @@ namespace NetFabric.Hyperlinq.Analyzer
 
         private static readonly LocalizableString Title = "Use ValueEnumerable generator methods";
         private static readonly LocalizableString MessageFormat = "Use 'ValueEnumerable.{0}' instead of 'Enumerable.{0}' for better performance";
-        private static readonly LocalizableString Description = "ValueEnumerable.Range(), ValueEnumerable.Repeat(), and ValueEnumerable.Empty() provide better performance than their LINQ counterparts.";
+        private static readonly LocalizableString Description = "ValueEnumerable.Range(), ValueEnumerable.Repeat(), ValueEnumerable.Return(), and ValueEnumerable.Empty() provide better performance than their LINQ counterparts.";
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
@@ -49,8 +49,8 @@ namespace NetFabric.Hyperlinq.Analyzer
 
             var methodName = memberAccess.Name.Identifier.Text;
 
-            // Check if it's Range, Repeat, or Empty
-            if (methodName != "Range" && methodName != "Repeat" && methodName != "Empty")
+            // Check if it's Range, Repeat, Return or Empty
+            if (methodName != "Range" && methodName != "Repeat" && methodName != "Return" && methodName != "Empty")
                 return;
 
             // Get the symbol info
@@ -58,10 +58,22 @@ namespace NetFabric.Hyperlinq.Analyzer
             if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
                 return;
 
-            // Check if the method is from System.Linq.Enumerable
+            // Check if the method is from System.Linq.Enumerable or System.Linq.EnumerableEx
             var containingType = methodSymbol.ContainingType?.ToString();
-            if (containingType != "System.Linq.Enumerable")
+            if (containingType == "System.Linq.Enumerable")
+            {
+                if (methodName == "Return") // Return is not in Enumerable
+                    return;
+            }
+            else if (containingType == "System.Linq.EnumerableEx")
+            {
+                if (methodName != "Return") // Only interested in Return from EnumerableEx
+                    return;
+            }
+            else
+            {
                 return;
+            }
 
             // Verify it's the static method we're looking for
             if (!methodSymbol.IsStatic)

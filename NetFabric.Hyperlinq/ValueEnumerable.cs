@@ -19,6 +19,10 @@ namespace NetFabric.Hyperlinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReturnEnumerable<T> Return<T>(T value)
+            => new ReturnEnumerable<T>(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static EmptyEnumerable<T> Empty<T>()
             => new EmptyEnumerable<T>();
 
