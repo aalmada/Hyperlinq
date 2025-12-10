@@ -56,8 +56,8 @@ namespace NetFabric.Hyperlinq
             var predicate = source.Predicate;
             foreach (var item in span)
             {
-                if (predicate.Invoke(item))
-                    count++;
+                var result = predicate.Invoke(item);
+                count += Unsafe.As<bool, byte>(ref result);
             }
             return count;
         }
