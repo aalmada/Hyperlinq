@@ -62,39 +62,20 @@ namespace NetFabric.Hyperlinq
 
         public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
         {
-            pool ??= ArrayPool<TResult>.Shared;
             var span = CollectionsMarshal.AsSpan(source);
-            var result = pool.Rent(span.Length);
-            var index = 0;
-            foreach (ref readonly var item in span)
-            {
-                result[index++] = selector.Invoke(in item);
-            }
-            return new PooledBuffer<TResult>(result, span.Length, pool);
+            return SpanHelpers.ToArrayPooledIn(span, in selector, pool);
         }
 
         public bool Contains(TResult item)
         {
             var span = CollectionsMarshal.AsSpan(source);
-            foreach (ref readonly var sourceItem in span)
-            {
-                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(in sourceItem), item))
-                    return true;
-            }
-            return false;
+            return SpanHelpers.ContainsIn(span, in selector, item);
         }
 
         public int IndexOf(TResult item)
         {
             var span = CollectionsMarshal.AsSpan(source);
-            var index = 0;
-            foreach (ref readonly var sourceItem in span)
-            {
-                if (EqualityComparer<TResult>.Default.Equals(selector.Invoke(in sourceItem), item))
-                    return index;
-                index++;
-            }
-            return -1;
+            return SpanHelpers.IndexOfIn(span, in selector, item);
         }
 
         void ICollection<TResult>.Add(TResult item) => throw new NotSupportedException();

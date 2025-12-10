@@ -59,25 +59,12 @@ namespace NetFabric.Hyperlinq
 
         public TResult[] ToArray()
         {
-            var array = new TResult[source.Length];
-            var index = 0;
-            foreach (ref readonly var item in source)
-            {
-                array[index++] = selector.Invoke(in item);
-            }
-            return array;
+            return SpanHelpers.ToArrayIn<TSource, TResult, TSelector>(source, in selector);
         }
 
         public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
         {
-            pool ??= ArrayPool<TResult>.Shared;
-            var result = pool.Rent(source.Length);
-            var index = 0;
-            foreach (ref readonly var item in source)
-            {
-                result[index++] = selector.Invoke(in item);
-            }
-            return new PooledBuffer<TResult>(result, source.Length, pool);
+            return SpanHelpers.ToArrayPooledIn(source, in selector, pool);
         }
 
         public List<TResult> ToList()
