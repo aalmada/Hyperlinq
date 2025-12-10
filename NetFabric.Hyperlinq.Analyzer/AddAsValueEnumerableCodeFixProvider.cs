@@ -71,7 +71,7 @@ namespace NetFabric.Hyperlinq.Analyzer
                     // Add the using directive
                     var usingDirective = SyntaxFactory.UsingDirective(
                         SyntaxFactory.ParseName(NetFabricHyperlinkNamespace))
-                        .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+                        .WithTrailingTrivia(SyntaxFactory.ElasticLineFeed);
 
                     var newCompilationUnit = ((CompilationUnitSyntax)newRoot).AddUsings(usingDirective);
                     newRoot = newCompilationUnit;

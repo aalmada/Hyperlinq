@@ -65,7 +65,9 @@ namespace NetFabric.Hyperlinq.Analyzer
             // Check if the method is from NetFabric.Hyperlinq (direct extension on array/List)
             var containingType = methodSymbol.ContainingType?.ToString();
             if (containingType != "NetFabric.Hyperlinq.ArrayValueEnumerableExtensions" &&
-                containingType != "NetFabric.Hyperlinq.ListValueEnumerableExtensions")
+                containingType != "NetFabric.Hyperlinq.ListValueEnumerableExtensions" &&
+                containingType != "NetFabric.Hyperlinq.ListExtensions" &&
+                containingType != "NetFabric.Hyperlinq.ReadOnlySpanExtensions")
                 return;
 
             // Get the receiver expression

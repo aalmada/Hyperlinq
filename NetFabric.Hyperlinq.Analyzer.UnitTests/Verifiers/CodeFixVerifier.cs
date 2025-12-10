@@ -55,7 +55,14 @@ namespace NetFabric.Hyperlinq.Analyzer.UnitTests.Verifiers
                     var project = solution.GetProject(projectId);
                     
                     var newRefs = new List<MetadataReference>();
-                    newRefs.Add(MetadataReference.CreateFromFile(typeof(NetFabric.Hyperlinq.ValueEnumerable).Assembly.Location));
+                    var hyperlinqAssembly = typeof(NetFabric.Hyperlinq.ValueEnumerable).Assembly;
+                    newRefs.Add(MetadataReference.CreateFromFile(hyperlinqAssembly.Location));
+
+                    var abstractionsPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(hyperlinqAssembly.Location)!, "NetFabric.Hyperlinq.Abstractions.dll");
+                    if (System.IO.File.Exists(abstractionsPath))
+                    {
+                         newRefs.Add(MetadataReference.CreateFromFile(abstractionsPath));
+                    }
                     
                     foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
                     {

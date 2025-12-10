@@ -46,8 +46,14 @@ namespace NetFabric.Hyperlinq.Analyzer.UnitTests.Verifiers
                     // Replace all references with current runtime assemblies + NetFabric.Hyperlinq
                     var newRefs = new List<MetadataReference>();
                     
-                    // Add NetFabric.Hyperlinq specifically (if loaded) or from type
-                    newRefs.Add(MetadataReference.CreateFromFile(typeof(NetFabric.Hyperlinq.ValueEnumerable).Assembly.Location));
+                    var hyperlinqAssembly = typeof(NetFabric.Hyperlinq.ValueEnumerable).Assembly;
+                    newRefs.Add(MetadataReference.CreateFromFile(hyperlinqAssembly.Location));
+                    
+                    var abstractionsPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(hyperlinqAssembly.Location)!, "NetFabric.Hyperlinq.Abstractions.dll");
+                    if (System.IO.File.Exists(abstractionsPath))
+                    {
+                         newRefs.Add(MetadataReference.CreateFromFile(abstractionsPath));
+                    }
                     
                     // Add all runtime assemblies
                     foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
