@@ -16,20 +16,6 @@ namespace NetFabric.Hyperlinq
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
         {
-            // Optimize for arrays
-            if (source is ArrayValueEnumerable<T> arrayEnum)
-            {
-                return arrayEnum.Source.MinMax();
-            }
-            
-            // Optimize for lists
-            if (source is ListValueEnumerable<T> listEnum)
-            {
-                var span = CollectionsMarshal.AsSpan(listEnum.Source);
-                return span.MinMax();
-            }
-
-            // Fallback to standard enumeration
             using var enumerator = source.GetEnumerator();
             
             if (!enumerator.MoveNext())

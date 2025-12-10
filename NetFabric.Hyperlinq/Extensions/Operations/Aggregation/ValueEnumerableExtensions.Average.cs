@@ -38,20 +38,6 @@ namespace NetFabric.Hyperlinq
             where TEnumerator : struct, IEnumerator<T>
             where T : INumber<T>
         {
-            // Optimize using TensorPrimitives for arrays
-            if (source is ArrayValueEnumerable<T> arrayEnum)
-            {
-                return arrayEnum.Source.AverageOrNone();
-            }
-            
-            // Optimize using TensorPrimitives for lists
-            if (source is ListValueEnumerable<T> listEnum)
-            {
-                var span = CollectionsMarshal.AsSpan(listEnum.Source);
-                return span.AverageOrNone();
-            }
-
-            // Fallback to standard enumeration
             var sum = T.AdditiveIdentity;
             var count = 0;
             foreach (var item in source)
