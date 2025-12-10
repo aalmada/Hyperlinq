@@ -11,7 +11,7 @@ public class MinMaxBenchmarks
     private int[] array = null!;
     private List<int> list = null!;
 
-    [Params(100, 1000, 10000)]
+    [Params(100, 1_000, 10_000)]
     public int Count { get; set; }
 
     [GlobalSetup]

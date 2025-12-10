@@ -7,7 +7,7 @@ namespace NetFabric.Hyperlinq
     public static partial class MemoryExtensions
     {
         extension<T>(ReadOnlyMemory<T> source)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            where T : struct, INumberBase<T>
         {
             /// <summary>
             /// Computes the sum of a sequence of numeric values using SIMD acceleration.
@@ -25,7 +25,7 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(ReadOnlyMemory<T> source)
-            where T : INumber<T>
+            where T : struct, INumber<T>, IMinMaxValue<T>
         {
             /// <summary>
             /// Returns the minimum value in a memory using SIMD acceleration.

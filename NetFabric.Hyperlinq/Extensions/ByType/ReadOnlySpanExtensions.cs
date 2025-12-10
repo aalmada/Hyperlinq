@@ -4,16 +4,18 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using NetFabric.Numerics.Tensors;
+
 namespace NetFabric.Hyperlinq
 {
     public static partial class ReadOnlySpanExtensions
     {
         // Constrained extension block - only for Sum operations
         extension<T>(ReadOnlySpan<T> source)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            where T : struct, INumberBase<T>
         {
             public T Sum()
-                => System.Numerics.Tensors.TensorPrimitives.Sum<T>(source);
+                => NetFabric.Numerics.Tensors.TensorOperations.Sum<T>(source);
 
             // Primary overload - value delegate
             public T Sum<TPredicate>(TPredicate predicate)
@@ -57,7 +59,7 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(ReadOnlySpan<T> source)
-            where T : INumber<T>
+            where T : struct, INumber<T>, IMinMaxValue<T>
         {
             public T Min()
                 => source.MinOrNone().Value;
@@ -76,7 +78,7 @@ namespace NetFabric.Hyperlinq
             {
                 if (source.Length == 0)
                     return Option<T>.None();
-                return Option<T>.Some(System.Numerics.Tensors.TensorPrimitives.Min(source));
+                return Option<T>.Some(NetFabric.Numerics.Tensors.TensorOperations.Min<T>(source));
             }
 
             public Option<T> MinOrNone<TPredicate>(TPredicate predicate)
@@ -103,7 +105,7 @@ namespace NetFabric.Hyperlinq
             {
                 if (source.Length == 0)
                     return Option<T>.None();
-                return Option<T>.Some(System.Numerics.Tensors.TensorPrimitives.Max(source));
+                return Option<T>.Some(NetFabric.Numerics.Tensors.TensorOperations.Max<T>(source));
             }
 
             public Option<T> MaxOrNone<TPredicate>(TPredicate predicate)
@@ -134,9 +136,8 @@ namespace NetFabric.Hyperlinq
                 if (source.Length == 0)
                     return Option<(T Min, T Max)>.None();
                 
-                var min = System.Numerics.Tensors.TensorPrimitives.Min(source);
-                var max = System.Numerics.Tensors.TensorPrimitives.Max(source);
-                return Option<(T Min, T Max)>.Some((min, max));
+                var result = NetFabric.Numerics.Tensors.TensorOperations.MinMax<T>(source);
+                return Option<(T Min, T Max)>.Some((result.Min, result.Max));
             }
 
             public Option<(T Min, T Max)> MinMaxOrNone<TPredicate>(TPredicate predicate)
@@ -148,7 +149,7 @@ namespace NetFabric.Hyperlinq
         }
 
         static Option<(T Min, T Max)> MinMaxOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
-            where T : INumber<T>
+            where T : struct, INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
             // Find first matching element
@@ -183,7 +184,7 @@ namespace NetFabric.Hyperlinq
 
 
         static Option<T> MinOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
-            where T : INumber<T>
+            where T : struct, INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
             // Find first matching element
@@ -210,7 +211,7 @@ namespace NetFabric.Hyperlinq
         }
 
         static Option<T> MaxOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
-            where T : INumber<T>
+            where T : struct, INumber<T>
             where TPredicate : struct, IFunction<T, bool>
         {
             // Find first matching element
@@ -237,7 +238,7 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(ReadOnlySpan<T> source)
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
         {
             /// <summary>
             /// Computes the average of a sequence using SIMD acceleration.
@@ -263,7 +264,7 @@ namespace NetFabric.Hyperlinq
                 if (source.Length == 0)
                     return Option<T>.None();
                 
-                var sum = System.Numerics.Tensors.TensorPrimitives.Sum<T>(source);
+                var sum = NetFabric.Numerics.Tensors.TensorOperations.Sum<T>(source);
                 return Option<T>.Some(sum / T.CreateChecked(source.Length));
             }
 
@@ -279,7 +280,7 @@ namespace NetFabric.Hyperlinq
         }
 
         static Option<T> AverageOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
             where TPredicate : struct, IFunction<T, bool>
         {
             var sum = T.AdditiveIdentity;

@@ -4,17 +4,19 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using NetFabric.Numerics.Tensors;
+
 namespace NetFabric.Hyperlinq
 {
     public static partial class ArrayValueEnumerableExtensions
     {
 
         extension<T>(ArrayValueEnumerable<T> source)
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            where T : struct, INumberBase<T>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T Sum()
-                => System.Numerics.Tensors.TensorPrimitives.Sum<T>(source.Source);
+                => NetFabric.Numerics.Tensors.TensorOperations.Sum<T>(source.Source.AsSpan());
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T Sum<TPredicate>(TPredicate predicate)
@@ -27,7 +29,7 @@ namespace NetFabric.Hyperlinq
         }
 
         extension<T>(ArrayValueEnumerable<T> source)
-            where T : INumber<T>
+            where T : struct, INumber<T>, IMinMaxValue<T>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public T Min()
@@ -55,33 +57,7 @@ namespace NetFabric.Hyperlinq
             public T Max(Func<T, bool> predicate)
                 => source.Source.Max(predicate);
 
-            /// <summary>
-            /// Computes the average of an array using SIMD acceleration.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public T Average()
-                => source.Source.Average();
 
-            /// <summary>
-            /// Computes the average of elements that satisfy a condition.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public T Average(Func<T, bool> predicate)
-                => source.Source.Average(predicate);
-
-            /// <summary>
-            /// Computes the average of an array, returning None if empty.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Option<T> AverageOrNone()
-                => source.Source.AverageOrNone();
-
-            /// <summary>
-            /// Computes the average of elements that satisfy a condition, returning None if no matches.
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Option<T> AverageOrNone(Func<T, bool> predicate)
-                => source.Source.AverageOrNone(predicate);
 
             /// <summary>
             /// Computes both minimum and maximum values in a single iteration.
@@ -356,5 +332,37 @@ namespace NetFabric.Hyperlinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>> Where<T>(this ArrayValueEnumerable<T> source, Func<T, bool> predicate)
             => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.Source, new FunctionWrapper<T, bool>(predicate));
+
+        extension<T>(ArrayValueEnumerable<T> source)
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
+        {
+            /// <summary>
+            /// Computes the average of an array using SIMD acceleration.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Average()
+                => source.Source.Average();
+
+            /// <summary>
+            /// Computes the average of elements that satisfy a condition.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T Average(Func<T, bool> predicate)
+                => source.Source.Average(predicate);
+
+            /// <summary>
+            /// Computes the average of an array, returning None if empty.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> AverageOrNone()
+                => source.Source.AverageOrNone();
+
+            /// <summary>
+            /// Computes the average of elements that satisfy a condition, returning None if no matches.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Option<T> AverageOrNone(Func<T, bool> predicate)
+                => source.Source.AverageOrNone(predicate);
+        }
     }
 }

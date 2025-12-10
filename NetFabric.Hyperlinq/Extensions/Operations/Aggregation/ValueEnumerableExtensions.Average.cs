@@ -10,12 +10,12 @@ namespace NetFabric.Hyperlinq
     {
         /// <summary>
         /// Computes the average of a sequence of numeric values.
-        /// Uses TensorPrimitives optimization for arrays and lists.
+        /// Uses Tensor optimization for arrays and lists.
         /// </summary>
         public static T Average<TEnumerable, TEnumerator, T>(this TEnumerable source)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
             => source.AverageOrNone<TEnumerable, TEnumerator, T>().Value;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace NetFabric.Hyperlinq
             TPredicate predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
             where TPredicate : struct, IFunction<T, bool>
             => source.AverageOrNone<TEnumerable, TEnumerator, T, TPredicate>(predicate).Value;
 
@@ -38,17 +38,17 @@ namespace NetFabric.Hyperlinq
             Func<T, bool> predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
             => source.AverageOrNone<TEnumerable, TEnumerator, T>(predicate).Value;
 
         /// <summary>
         /// Computes the average of a sequence, returning None if empty.
-        /// Uses TensorPrimitives optimization for arrays and lists.
+        /// Uses Tensor optimization for arrays and lists.
         /// </summary>
         public static Option<T> AverageOrNone<TEnumerable, TEnumerator, T>(this TEnumerable source)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
         {
             var sum = T.AdditiveIdentity;
             var count = 0;
@@ -72,7 +72,7 @@ namespace NetFabric.Hyperlinq
             TPredicate predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
             where TPredicate : struct, IFunction<T, bool>
         {
             var sum = T.AdditiveIdentity;
@@ -100,7 +100,7 @@ namespace NetFabric.Hyperlinq
             Func<T, bool> predicate)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+            where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
             => AverageOrNone<TEnumerable, TEnumerator, T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
     }
 }

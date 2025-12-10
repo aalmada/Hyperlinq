@@ -101,19 +101,19 @@ namespace NetFabric.Hyperlinq
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Sum<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
-            where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
+            where TSource : struct, INumberBase<TSource>
             where TPredicate : struct, IFunction<TSource, bool>
             => source.Source.Sum(source.Predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Min<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
-            where TSource : INumber<TSource>
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
             where TPredicate : struct, IFunction<TSource, bool>
             => source.Source.Min(source.Predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TSource Max<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
-            where TSource : INumber<TSource>
+            where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
             where TPredicate : struct, IFunction<TSource, bool>
             => source.Source.Max(source.Predicate);
     }

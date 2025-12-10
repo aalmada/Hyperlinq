@@ -43,8 +43,8 @@ namespace NetFabric.Hyperlinq.Benchmarks
 
         [BenchmarkCategory("Sum")]
         [Benchmark]
-        public MyInt Sum_TensorPrimitives()
-            => System.Numerics.Tensors.TensorPrimitives.Sum<MyInt>(array);
+        public MyInt Sum_Tensor()
+            => NetFabric.Numerics.Tensors.TensorOperations.Sum<MyInt>(array);
 
         public readonly struct MyInt : INumber<MyInt>
         {

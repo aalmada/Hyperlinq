@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using NetFabric.Numerics.Tensors;
 
 namespace NetFabric.Hyperlinq
 {
@@ -9,24 +10,24 @@ namespace NetFabric.Hyperlinq
     {
         /// <summary>
         /// Computes the sum of a sequence of numeric values.
-        /// Uses TensorPrimitives optimization for arrays and lists.
+        /// Uses Tensor optimization for arrays and lists.
         /// </summary>
         public static T Sum<TEnumerable, TEnumerator, T>(this TEnumerable source)
             where TEnumerable : IValueEnumerable<T, TEnumerator>
             where TEnumerator : struct, IEnumerator<T>
-            where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>
+            where T : struct, INumberBase<T>
         {
-            // Optimize using TensorPrimitives for arrays
+            // Optimize using Tensor for arrays
             if (source is ArrayValueEnumerable<T> arrayEnum)
             {
-                return System.Numerics.Tensors.TensorPrimitives.Sum<T>(arrayEnum.Source);
+                return NetFabric.Numerics.Tensors.TensorOperations.Sum<T>(arrayEnum.Source.AsSpan());
             }
             
-            // Optimize using TensorPrimitives for lists
+            // Optimize using Tensor for lists
             if (source is ListValueEnumerable<T> listEnum)
             {
                 var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(listEnum.Source);
-                return System.Numerics.Tensors.TensorPrimitives.Sum<T>(span);
+                return NetFabric.Numerics.Tensors.TensorOperations.Sum<T>(span);
             }
 
             // Fallback to standard enumeration
@@ -40,7 +41,7 @@ namespace NetFabric.Hyperlinq
         public static TSource Sum<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
+            where TSource : struct, INumberBase<TSource>
             where TPredicate : struct, IFunction<TSource, bool>
         {
             var sum = TSource.AdditiveIdentity;
@@ -55,7 +56,7 @@ namespace NetFabric.Hyperlinq
         public static TSource Sum<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
             where TEnumerable : IValueEnumerable<TSource, TEnumerator>
             where TEnumerator : struct, IEnumerator<TSource>
-            where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
+            where TSource : struct, INumberBase<TSource>
             => Sum<TEnumerable, TEnumerator, TSource, FunctionWrapper<TSource, bool>>(source, new FunctionWrapper<TSource, bool>(predicate));
 
 
