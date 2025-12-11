@@ -146,5 +146,19 @@ namespace NetFabric.Hyperlinq.UnitTests
             // Assert
             action.Must().Throw<ArgumentOutOfRangeException>();
         }
+
+        [Test]
+        [Arguments(42)]
+        public void Repeat_Infinite_Should_ReturnInfiniteSequence(int element)
+        {
+            // Arrange
+            var expected = Enumerable.Repeat(element, 10).ToArray();
+
+            // Act
+            var result = ValueEnumerable.Repeat(element).Take(10);
+
+            // Assert
+            result.ToArray().Must().BeEqualTo(expected);
+        }
     }
 }

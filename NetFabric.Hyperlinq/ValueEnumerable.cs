@@ -34,5 +34,9 @@ namespace NetFabric.Hyperlinq
 
             return new RepeatEnumerable<T>(element, count);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static RepeatInfiniteEnumerable<T> Repeat<T>(T element)
+            => new RepeatInfiniteEnumerable<T>(element);
     }
 }
