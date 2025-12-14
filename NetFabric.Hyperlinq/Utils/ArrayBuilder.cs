@@ -73,9 +73,8 @@ struct ArrayBuilder<T> : IDisposable
 
         if (previousBuffers is not null)
         {
-            for (var i = 0; i < previousBuffersCount; i++)
+            foreach (var buffer in previousBuffers.AsSpan(0, previousBuffersCount))
             {
-                var buffer = previousBuffers[i];
                 buffer.AsSpan().CopyTo(destination);
                 destination = destination.Slice(buffer.Length);
             }
@@ -99,9 +98,9 @@ struct ArrayBuilder<T> : IDisposable
             // Return previous buffers if any (though typically there won't be if totalCount is 0)
             if (previousBuffers is not null)
             {
-                for (var i = 0; i < previousBuffersCount; i++)
+                foreach (var buffer in previousBuffers.AsSpan(0, previousBuffersCount))
                 {
-                    pool.Return(previousBuffers[i], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                    pool.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 }
             }
 
@@ -124,9 +123,8 @@ struct ArrayBuilder<T> : IDisposable
         var resultBuffer = pool.Rent(totalCount);
         var destination = resultBuffer.AsSpan(0, totalCount);
 
-        for (var i = 0; i < previousBuffersCount; i++)
+        foreach (var buffer in previousBuffers.AsSpan(0, previousBuffersCount))
         {
-            var buffer = previousBuffers[i];
             buffer.AsSpan().CopyTo(destination);
             destination = destination.Slice(buffer.Length);
 
@@ -154,9 +152,9 @@ struct ArrayBuilder<T> : IDisposable
 
         if (previousBuffers is not null)
         {
-            for (var i = 0; i < previousBuffersCount; i++)
+            foreach (var buffer in previousBuffers.AsSpan(0, previousBuffersCount))
             {
-                pool.Return(previousBuffers[i], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                pool.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
             }
             previousBuffers = null;
         }
