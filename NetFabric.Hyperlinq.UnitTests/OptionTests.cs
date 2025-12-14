@@ -151,4 +151,136 @@ public class OptionTests
 
         _ = option.ToString().Must().BeEqualTo("None");
     }
+
+    [Test]
+    public void Match_Func_WhenHasValue_ShouldExecuteSome()
+    {
+        var option = Option<int>.Some(42);
+
+        var result = option.Match(
+            some: value => value * 2,
+            none: () => 0
+        );
+
+        _ = result.Must().BeEqualTo(84);
+    }
+
+    [Test]
+    public void Match_Func_WhenNoValue_ShouldExecuteNone()
+    {
+        var option = Option<int>.None();
+
+        var result = option.Match(
+            some: value => value * 2,
+            none: () => 0
+        );
+
+        _ = result.Must().BeEqualTo(0);
+    }
+
+    [Test]
+    public void Match_Value_WhenHasValue_ShouldExecuteSome()
+    {
+        var option = Option<int>.Some(42);
+
+        var result = option.Match(
+            some: value => value * 2,
+            none: 0
+        );
+
+        _ = result.Must().BeEqualTo(84);
+    }
+
+    [Test]
+    public void Match_Value_WhenNoValue_ShouldReturnNoneValue()
+    {
+        var option = Option<int>.None();
+
+        var result = option.Match(
+            some: value => value * 2,
+            none: 10
+        );
+
+        _ = result.Must().BeEqualTo(10);
+    }
+
+    [Test]
+    public void Match_Action_WhenHasValue_ShouldExecuteSome()
+    {
+        var option = Option<int>.Some(42);
+        var result = 0;
+
+        option.Match(
+            some: value => result = value,
+            none: () => result = -1
+        );
+
+        _ = result.Must().BeEqualTo(42);
+    }
+
+    [Test]
+    public void Match_Action_WhenNoValue_ShouldExecuteNone()
+    {
+        var option = Option<int>.None();
+        var result = 0;
+
+        option.Match(
+            some: value => result = value,
+            none: () => result = -1
+        );
+
+        _ = result.Must().BeEqualTo(-1);
+    }
+
+    [Test]
+    public void Map_WhenHasValue_ShouldTransformValue()
+    {
+        var option = Option<int>.Some(42);
+
+        var result = option.Map(value => value.ToString());
+
+        _ = result.HasValue.Must().BeTrue();
+        _ = result.Value.Must().BeEqualTo("42");
+    }
+
+    [Test]
+    public void Map_WhenNoValue_ShouldReturnNone()
+    {
+        var option = Option<int>.None();
+
+        var result = option.Map(value => value.ToString());
+
+        _ = result.HasValue.Must().BeFalse();
+    }
+
+    [Test]
+    public void Bind_WhenHasValue_AndBindReturnsSome_ShouldReturnSome()
+    {
+        var option = Option<int>.Some(42);
+
+        var result = option.Bind(value => Option<string>.Some(value.ToString()));
+
+        _ = result.HasValue.Must().BeTrue();
+        _ = result.Value.Must().BeEqualTo("42");
+    }
+
+    [Test]
+    public void Bind_WhenHasValue_AndBindReturnsNone_ShouldReturnNone()
+    {
+        var option = Option<int>.Some(42);
+
+        var result = option.Bind(value => Option<string>.None());
+
+        _ = result.HasValue.Must().BeFalse();
+    }
+
+    [Test]
+    public void Bind_WhenNoValue_ShouldReturnNone()
+    {
+        var option = Option<int>.None();
+
+        var result = option.Bind(value => Option<string>.Some(value.ToString()));
+
+        _ = result.HasValue.Must().BeFalse();
+    }
 }
