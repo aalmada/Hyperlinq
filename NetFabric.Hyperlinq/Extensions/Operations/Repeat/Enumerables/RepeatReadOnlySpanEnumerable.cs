@@ -5,108 +5,123 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace NetFabric.Hyperlinq
+namespace NetFabric.Hyperlinq;
+
+public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
 {
-    public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
+    private readonly ReadOnlySpan<TSource> source;
+    private readonly int count;
+
+    internal RepeatReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, int count)
+    {
+        this.source = source;
+        this.count = count;
+    }
+
+    public readonly int Count
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            if (count == 0)
+            {
+                return 0;
+            }
+
+            var sourceCount = source.Length;
+            if (sourceCount == 0)
+            {
+                return 0;
+            }
+
+            try
+            {
+                return checked(sourceCount * count);
+            }
+            catch (OverflowException)
+            {
+                throw new OverflowException("The number of elements in the repeated sequence exceeds Int32.MaxValue.");
+            }
+        }
+    }
+
+    public readonly TSource this[int index]
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            if (index < 0 || index >= Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            return source[index % source.Length];
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly Enumerator GetEnumerator() => new Enumerator(source, count);
+
+    public ref struct Enumerator
     {
         private readonly ReadOnlySpan<TSource> source;
-        private readonly int count;
+        private int remaining;
+        private int index;
 
-        internal RepeatReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, int count)
+        internal Enumerator(ReadOnlySpan<TSource> source, int count)
         {
             this.source = source;
-            this.count = count;
+            remaining = checked(source.Length * count);
+            index = -1;
         }
 
-        public readonly int Count
+        public readonly TSource Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (count == 0) return 0;
-                var sourceCount = source.Length;
-                if (sourceCount == 0) return 0;
-                try
-                {
-                    return checked(sourceCount * count);
-                }
-                catch (OverflowException)
-                {
-                    throw new OverflowException("The number of elements in the repeated sequence exceeds Int32.MaxValue.");
-                }
-            }
-        }
-
-        public readonly TSource this[int index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(nameof(index));
-
-                return source[index % source.Length];
-            }
+            get => source[index % source.Length];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Enumerator GetEnumerator() => new Enumerator(source, count);
-
-        public ref struct Enumerator
+        public bool MoveNext()
         {
-            private readonly ReadOnlySpan<TSource> source;
-            private int remaining;
-            private int index;
-
-            internal Enumerator(ReadOnlySpan<TSource> source, int count)
+            if (remaining == 0)
             {
-                this.source = source;
-                remaining = checked(source.Length * count);
-                index = -1;
+                return false;
             }
 
-            public readonly TSource Current
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => source[index % source.Length];
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext()
-            {
-                if (remaining == 0)
-                    return false;
-
-                remaining--;
-                index++;
-                return true;
-            }
+            remaining--;
+            index++;
+            return true;
         }
-        
-        // Optimize ToArray, ToList, etc.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TSource[] ToArray()
+    }
+
+    // Optimize ToArray, ToList, etc.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TSource[] ToArray()
+    {
+        var length = Count;
+        if (length == 0)
         {
-            var length = Count;
-            if (length == 0)
-                return Array.Empty<TSource>();
-                
-            var result = new TSource[length];
-            CopyTo(result);
-            return result;
+            return Array.Empty<TSource>();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<TSource> destination)
-        {
-            if (destination.Length < Count)
-                 throw new ArgumentException("Destination span is not long enough.");
+        var result = new TSource[length];
+        CopyTo(result);
+        return result;
+    }
 
-             var destSpan = destination.Slice(0, Count);
-             for(int i = 0; i < count; i++)
-             {
-                 source.CopyTo(destSpan.Slice(i * source.Length, source.Length));
-             }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyTo(Span<TSource> destination)
+    {
+        if (destination.Length < Count)
+        {
+            throw new ArgumentException("Destination span is not long enough.");
+        }
+
+        var destSpan = destination.Slice(0, Count);
+        for (int i = 0; i < count; i++)
+        {
+            source.CopyTo(destSpan.Slice(i * source.Length, source.Length));
         }
     }
 }

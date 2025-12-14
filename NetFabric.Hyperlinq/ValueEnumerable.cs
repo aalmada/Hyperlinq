@@ -1,42 +1,47 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace NetFabric.Hyperlinq
+namespace NetFabric.Hyperlinq;
+
+public static partial class ValueEnumerable
 {
-    public static partial class ValueEnumerable
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RangeEnumerable Range(int start, int count)
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static RangeEnumerable Range(int start, int count)
+        if (count < 0)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            var end = (long)start + count - 1;
-            if (end > int.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            return new RangeEnumerable(start, count);
+            throw new ArgumentOutOfRangeException(nameof(count));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReturnEnumerable<T> Return<T>(T value)
-            => new ReturnEnumerable<T>(value);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmptyEnumerable<T> Empty<T>()
-            => new EmptyEnumerable<T>();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static RepeatEnumerable<T> Repeat<T>(T element, int count)
+        var end = (long)start + count - 1;
+        if (end > int.MaxValue)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            return new RepeatEnumerable<T>(element, count);
+            throw new ArgumentOutOfRangeException(nameof(count));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static RepeatInfiniteEnumerable<T> Repeat<T>(T element)
-            => new RepeatInfiniteEnumerable<T>(element);
+        return new RangeEnumerable(start, count);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReturnEnumerable<T> Return<T>(T value)
+        => new ReturnEnumerable<T>(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static EmptyEnumerable<T> Empty<T>()
+        => new EmptyEnumerable<T>();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RepeatEnumerable<T> Repeat<T>(T element, int count)
+    {
+        if (count < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count));
+        }
+
+        return new RepeatEnumerable<T>(element, count);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RepeatInfiniteEnumerable<T> Repeat<T>(T element)
+        => new RepeatInfiniteEnumerable<T>(element);
 }

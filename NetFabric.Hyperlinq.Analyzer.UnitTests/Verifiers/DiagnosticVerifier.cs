@@ -1,94 +1,95 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 
-namespace NetFabric.Hyperlinq.Analyzer.UnitTests.Verifiers
+namespace NetFabric.Hyperlinq.Analyzer.UnitTests.Verifiers;
+
+public abstract class DiagnosticVerifier
 {
-    public abstract class DiagnosticVerifier
+    protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
+
+    public async Task VerifyCSharpDiagnostic(string source, params DiagnosticResult[] expected)
+        => await VerifyCSharpDiagnostic(new[] { source }, expected);
+
+    public async Task VerifyCSharpDiagnostic(string[] sources, params DiagnosticResult[] expected)
     {
-        protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
-
-        public async Task VerifyCSharpDiagnostic(string source, params DiagnosticResult[] expected)
-            => await VerifyCSharpDiagnostic(new[] { source }, expected);
-
-        public async Task VerifyCSharpDiagnostic(string[] sources, params DiagnosticResult[] expected)
+        var test = new TestImplementation(GetCSharpDiagnosticAnalyzer());
+        foreach (var source in sources)
         {
-            var test = new TestImplementation(GetCSharpDiagnosticAnalyzer());
-            foreach (var source in sources)
-            {
-                test.TestState.Sources.Add(source);
-            }
-            test.ExpectedDiagnostics.AddRange(expected);
-            await test.RunAsync();
+            test.TestState.Sources.Add(source);
         }
+        test.ExpectedDiagnostics.AddRange(expected);
+        await test.RunAsync();
+    }
 
-        private class TestImplementation : CSharpAnalyzerTest<DummyAnalyzer, TUnitVerifier>
+    private class TestImplementation : CSharpAnalyzerTest<DummyAnalyzer, TUnitVerifier>
+    {
+        private readonly DiagnosticAnalyzer _analyzer;
+
+        public TestImplementation(DiagnosticAnalyzer analyzer)
         {
-            private readonly DiagnosticAnalyzer _analyzer;
+            _analyzer = analyzer;
 
-            public TestImplementation(DiagnosticAnalyzer analyzer)
+            // Use Default just to provide a value and avoid NRE.
+            this.ReferenceAssemblies = ReferenceAssemblies.Default;
+
+            this.SolutionTransforms.Add((solution, projectId) =>
             {
-                _analyzer = analyzer;
+                var project = solution.GetProject(projectId)!;
 
-                // Use Default just to provide a value and avoid NRE.
-                this.ReferenceAssemblies = ReferenceAssemblies.Default;
-                
-                this.SolutionTransforms.Add((solution, projectId) =>
+                // Replace all references with current runtime assemblies + NetFabric.Hyperlinq
+                var newRefs = new List<MetadataReference>();
+
+                var hyperlinqAssembly = typeof(NetFabric.Hyperlinq.ValueEnumerable).Assembly;
+                newRefs.Add(MetadataReference.CreateFromFile(hyperlinqAssembly.Location));
+
+                var abstractionsPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(hyperlinqAssembly.Location)!, "NetFabric.Hyperlinq.Abstractions.dll");
+                if (System.IO.File.Exists(abstractionsPath))
                 {
-                    var project = solution.GetProject(projectId);
-                    
-                    // Replace all references with current runtime assemblies + NetFabric.Hyperlinq
-                    var newRefs = new List<MetadataReference>();
-                    
-                    var hyperlinqAssembly = typeof(NetFabric.Hyperlinq.ValueEnumerable).Assembly;
-                    newRefs.Add(MetadataReference.CreateFromFile(hyperlinqAssembly.Location));
-                    
-                    var abstractionsPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(hyperlinqAssembly.Location)!, "NetFabric.Hyperlinq.Abstractions.dll");
-                    if (System.IO.File.Exists(abstractionsPath))
-                    {
-                         newRefs.Add(MetadataReference.CreateFromFile(abstractionsPath));
-                    }
-                    
-                    // Add all runtime assemblies
-                    foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-                    {
-                        if (!asm.IsDynamic && !string.IsNullOrEmpty(asm.Location))
-                        {
-                            // Avoid duplicates or conflicts? 
-                            // Roslyn handles duplicates if paths are identical.
-                            // But if we have multiple versions of same assembly loaded (unlikely in default context), might be issue.
-                            // Safe enough.
-                            try {
-                                newRefs.Add(MetadataReference.CreateFromFile(asm.Location));
-                            } catch { /* ignore */ }
-                        }
-                    }
-                    
-                    return project.WithMetadataReferences(newRefs).Solution;
-                });
-            }
+                    newRefs.Add(MetadataReference.CreateFromFile(abstractionsPath));
+                }
 
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return _analyzer;
-            }
+                // Add all runtime assemblies
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (!asm.IsDynamic && !string.IsNullOrEmpty(asm.Location))
+                    {
+                        // Avoid duplicates or conflicts? 
+                        // Roslyn handles duplicates if paths are identical.
+                        // But if we have multiple versions of same assembly loaded (unlikely in default context), might be issue.
+                        // Safe enough.
+                        try
+                        {
+                            newRefs.Add(MetadataReference.CreateFromFile(asm.Location));
+                        }
+                        catch { /* ignore */ }
+                    }
+                }
+
+                return project.WithMetadataReferences(newRefs).Solution;
+            });
         }
 
-        [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class DummyAnalyzer : DiagnosticAnalyzer
+        protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-            public override void Initialize(AnalysisContext context) 
-            {
-                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-                context.EnableConcurrentExecution();
-            }
+            yield return _analyzer;
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    private class DummyAnalyzer : DiagnosticAnalyzer
+    {
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+        public override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
         }
     }
 }

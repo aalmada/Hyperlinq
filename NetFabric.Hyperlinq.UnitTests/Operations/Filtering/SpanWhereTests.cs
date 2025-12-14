@@ -1,63 +1,67 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TUnit.Core;
 using NetFabric.Assertive;
+using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests.Span;
 
 public class SpanWhereTests
 {
     // ===== Basic Where Operations =====
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Where_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        
+
         var hyperlinqResult = array.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(array, x => x % 2 == 0);
-        
-        hyperlinqResult.ToArray().Must()
+
+        _ = hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void List_Where_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var list = new List<int>(testCase.Factory());
-        
+
         var hyperlinqResult = list.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(list, x => x % 2 == 0);
-        
-        hyperlinqResult.ToArray().Must()
+
+        _ = hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Memory_Where_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
-        
+
         var hyperlinqResult = memory.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(array, x => x % 2 == 0);
-        
+
         var i = 0;
         foreach (var item in hyperlinqResult)
         {
             if (item != linqResult.ElementAt(i++))
+            {
                 throw new Exception("Mismatch");
+            }
         }
         if (i != linqResult.Count())
+        {
             throw new Exception("Count mismatch");
+        }
     }
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void ArraySegment_Where_ShouldMatchLinq(TestCase<int[]> testCase)
@@ -68,8 +72,8 @@ public class SpanWhereTests
             var segment = new ArraySegment<int>(array);
             var hyperlinqResult = segment.Where(x => x % 2 == 0);
             var linqResult = Enumerable.Where(segment, x => x % 2 == 0);
-            
-            hyperlinqResult.ToArray().Must()
+
+            _ = hyperlinqResult.ToArray().Must()
                 .BeEnumerableOf<int>()
                 .BeEqualTo(linqResult);
         }
@@ -78,27 +82,27 @@ public class SpanWhereTests
             var segment = new ArraySegment<int>(array, 0, array.Length);
             var hyperlinqResult = segment.Where(x => x % 2 == 0);
             var linqResult = Enumerable.Where(segment, x => x % 2 == 0);
-            
-            hyperlinqResult.ToArray().Must()
+
+            _ = hyperlinqResult.ToArray().Must()
                 .BeEnumerableOf<int>()
                 .BeEqualTo(linqResult);
         }
     }
-    
+
     // ===== Type Verification =====
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
     public void Array_Where_ShouldReturnWhereReadOnlySpanEnumerable(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
         var result = array.Where(x => x % 2 == 0);
-        
+
         // Ref structs cannot be used in generic type arguments, so we can't use Must().BeOfType<T>()
         // We verify behavior instead
-        result.ToArray().Must().BeEnumerableOf<int>();
+        _ = result.ToArray().Must().BeEnumerableOf<int>();
     }
-    
+
 
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
@@ -107,65 +111,65 @@ public class SpanWhereTests
         var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
         var result = memory.Where(x => x % 2 == 0);
-        
+
 
     }
-    
+
     // ===== Edge Cases =====
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetEdgeCaseIntArraySources))]
     public void Array_Where_EdgeCases_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        
+
         var hyperlinqResult = array.Where(x => x % 2 == 0);
         var linqResult = Enumerable.Where(array, x => x % 2 == 0);
-        
-        hyperlinqResult.ToArray().Must()
+
+        _ = hyperlinqResult.ToArray().Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
-    
+
     // ===== Chained Operations =====
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Where_Count_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        
+
         var hyperlinqResult = array.Where(x => x % 2 == 0).Count();
         var linqResult = Enumerable.Count(Enumerable.Where(array, x => x % 2 == 0));
-        
-        hyperlinqResult.Must().BeEqualTo(linqResult);
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
     }
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
     public void Array_Where_Any_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        
+
         var hyperlinqResult = array.Where(x => x % 2 == 0).Any();
         var linqResult = Enumerable.Any(Enumerable.Where(array, x => x % 2 == 0));
-        
-        hyperlinqResult.Must().BeEqualTo(linqResult);
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
     }
-    
+
     [Test]
     [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetNonEmptyIntArraySources))]
     public void Array_Where_First_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
         var filtered = array.Where(x => x > 0);
-        
+
         if (filtered.Any())
         {
             var hyperlinqResult = filtered.First();
             var linqResult = Enumerable.First(Enumerable.Where(array, x => x > 0));
-            
-            hyperlinqResult.Must().BeEqualTo(linqResult);
+
+            _ = hyperlinqResult.Must().BeEqualTo(linqResult);
         }
     }
 }

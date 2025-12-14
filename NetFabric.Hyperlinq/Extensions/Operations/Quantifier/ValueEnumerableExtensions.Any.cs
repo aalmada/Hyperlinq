@@ -2,52 +2,55 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace NetFabric.Hyperlinq
-{
-    public static partial class ValueEnumerableExtensions
-    {
-        /// <summary>
-        /// Determines whether a sequence contains any elements.
-        /// Optimized for ICollection to use Count property.
-        /// </summary>
-        public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
-            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
-            where TEnumerator : struct, IEnumerator<TSource>
-        {
-            // Optimize for ICollection (includes IValueReadOnlyCollection implementations)
-            if (source is ICollection<TSource> collection)
-                return collection.Count != 0;
+namespace NetFabric.Hyperlinq;
 
-            // Fallback to enumeration
-            using var enumerator = source.GetEnumerator();
-            return enumerator.MoveNext();
+public static partial class ValueEnumerableExtensions
+{
+    /// <summary>
+    /// Determines whether a sequence contains any elements.
+    /// Optimized for ICollection to use Count property.
+    /// </summary>
+    public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
+        where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+        where TEnumerator : struct, IEnumerator<TSource>
+    {
+        // Optimize for ICollection (includes IValueReadOnlyCollection implementations)
+        if (source is ICollection<TSource> collection)
+        {
+            return collection.Count != 0;
         }
 
-        /// <summary>
-        /// Determines whether a collection contains any elements.
-        /// </summary>
+        // Fallback to enumeration
+        using var enumerator = source.GetEnumerator();
+        return enumerator.MoveNext();
+    }
+
+    /// <summary>
+    /// Determines whether a collection contains any elements.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Any<T>(this ICollection<T> source)
+    public static bool Any<T>(this ICollection<T> source)
             => source.Count != 0;
 
-        public static bool Any<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
-            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
-            where TEnumerator : struct, IEnumerator<TSource>
-            where TPredicate : struct, IFunction<TSource, bool>
+    public static bool Any<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
+        where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+        where TEnumerator : struct, IEnumerator<TSource>
+        where TPredicate : struct, IFunction<TSource, bool>
+    {
+        foreach (var item in source)
         {
-            foreach (var item in source)
+            if (predicate.Invoke(item))
             {
-                if (predicate.Invoke(item))
-                    return true;
+                return true;
             }
-            return false;
         }
-
-        public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
-            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
-            where TEnumerator : struct, IEnumerator<TSource>
-            => Any<TEnumerable, TEnumerator, TSource, FunctionWrapper<TSource, bool>>(source, new FunctionWrapper<TSource, bool>(predicate));
-
-
+        return false;
     }
+
+    public static bool Any<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
+        where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+        where TEnumerator : struct, IEnumerator<TSource>
+        => Any<TEnumerable, TEnumerator, TSource, FunctionWrapper<TSource, bool>>(source, new FunctionWrapper<TSource, bool>(predicate));
+
+
 }

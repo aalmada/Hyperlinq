@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using TUnit.Core;
 using NetFabric.Assertive;
+using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests;
 
@@ -13,8 +13,8 @@ public class FusionTests
     {
         var list = new List<int> { 1, 2, 3, 4, 5 };
         var result = list.AsValueEnumerable().Count(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(2);
+
+        _ = result.Must().BeEqualTo(2);
     }
 
     [Test]
@@ -22,8 +22,8 @@ public class FusionTests
     {
         var list = new List<int> { 1, 2, 3 };
         var result = list.AsValueEnumerable().Any(x => x > 2);
-        
-        result.Must().BeEqualTo(true);
+
+        _ = result.Must().BeEqualTo(true);
     }
 
     [Test]
@@ -31,8 +31,8 @@ public class FusionTests
     {
         var list = new List<int> { 1, 2, 3 };
         var result = list.AsValueEnumerable().First(x => x > 1);
-        
-        result.Must().BeEqualTo(2);
+
+        _ = result.Must().BeEqualTo(2);
     }
 
     [Test]
@@ -41,8 +41,8 @@ public class FusionTests
         var list = new List<int> { 1, 2, 3, 4 };
         // Sum should add up the values where predicate is true (2 + 4 = 6)
         var result = list.AsValueEnumerable().Sum(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(6);
+
+        _ = result.Must().BeEqualTo(6);
     }
 
     // Span Tests
@@ -51,8 +51,8 @@ public class FusionTests
     {
         var array = new int[] { 1, 2, 3, 4, 5 };
         var result = array.AsSpan().Count(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(2);
+
+        _ = result.Must().BeEqualTo(2);
     }
 
     [Test]
@@ -60,8 +60,8 @@ public class FusionTests
     {
         var array = new int[] { 1, 2, 3 };
         var result = array.AsSpan().Any(x => x > 2);
-        
-        result.Must().BeEqualTo(true);
+
+        _ = result.Must().BeEqualTo(true);
     }
 
     [Test]
@@ -69,8 +69,8 @@ public class FusionTests
     {
         var array = new int[] { 1, 2, 3 };
         var result = array.AsSpan().First(x => x > 1);
-        
-        result.Must().BeEqualTo(2);
+
+        _ = result.Must().BeEqualTo(2);
     }
 
     [Test]
@@ -78,8 +78,8 @@ public class FusionTests
     {
         var array = new int[] { 1, 2, 3, 4 };
         var result = array.AsSpan().Sum(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(6);
+
+        _ = result.Must().BeEqualTo(6);
     }
 
     // Array Tests (Delegating)
@@ -88,8 +88,8 @@ public class FusionTests
     {
         var array = new int[] { 1, 2, 3, 4, 5 };
         var result = array.Count(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(2);
+
+        _ = result.Must().BeEqualTo(2);
     }
 
     [Test]
@@ -97,8 +97,8 @@ public class FusionTests
     {
         var array = new int[] { 1, 2, 3, 4 };
         var result = array.Sum(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(6);
+
+        _ = result.Must().BeEqualTo(6);
     }
 
     // List Tests (Delegating)
@@ -107,8 +107,8 @@ public class FusionTests
     {
         var list = new List<int> { 1, 2, 3, 4, 5 };
         var result = list.Count(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(2);
+
+        _ = result.Must().BeEqualTo(2);
     }
 
     [Test]
@@ -116,7 +116,7 @@ public class FusionTests
     {
         var list = new List<int> { 1, 2, 3, 4 };
         var result = list.Sum(x => x % 2 == 0);
-        
-        result.Must().BeEqualTo(6);
+
+        _ = result.Must().BeEqualTo(6);
     }
 }

@@ -4,98 +4,103 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace NetFabric.Hyperlinq
+namespace NetFabric.Hyperlinq;
+
+public static partial class ValueEnumerableExtensions
 {
-    public static partial class ValueEnumerableExtensions
+    /// <summary>
+    /// Returns the minimum value in a sequence of numeric values.
+    /// </summary>
+    public static T Min<TEnumerable, TEnumerator, T>(this TEnumerable source)
+        where TEnumerable : IValueEnumerable<T, TEnumerator>
+        where TEnumerator : struct, IEnumerator<T>
+        where T : INumber<T>
+        => source.MinOrNone<TEnumerable, TEnumerator, T>().Value;
+
+    public static T Min<TEnumerable, TEnumerator, T, TPredicate>(this TEnumerable source, TPredicate predicate)
+        where TEnumerable : IValueEnumerable<T, TEnumerator>
+        where TEnumerator : struct, IEnumerator<T>
+        where T : INumber<T>
+        where TPredicate : struct, IFunction<T, bool>
+        => source.MinOrNone<TEnumerable, TEnumerator, T, TPredicate>(predicate).Value;
+
+    /// <summary>
+    /// Returns the minimum value in a sequence of values that satisfy a condition.
+    /// </summary>
+    public static T Min<TEnumerable, TEnumerator, T>(this TEnumerable source, Func<T, bool> predicate)
+        where TEnumerable : IValueEnumerable<T, TEnumerator>
+        where TEnumerator : struct, IEnumerator<T>
+        where T : INumber<T>
+        => source.MinOrNone<TEnumerable, TEnumerator, T>(predicate).Value;
+
+    /// <summary>
+    /// Returns the minimum value in a sequence, or None if empty.
+    /// </summary>
+    public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(this TEnumerable source)
+        where TEnumerable : IValueEnumerable<T, TEnumerator>
+        where TEnumerator : struct, IEnumerator<T>
+        where T : INumber<T>
     {
-        /// <summary>
-        /// Returns the minimum value in a sequence of numeric values.
-        /// </summary>
-        public static T Min<TEnumerable, TEnumerator, T>(this TEnumerable source)
-            where TEnumerable : IValueEnumerable<T, TEnumerator>
-            where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
-            => source.MinOrNone<TEnumerable, TEnumerator, T>().Value;
+        using var enumerator = source.GetEnumerator();
 
-        public static T Min<TEnumerable, TEnumerator, T, TPredicate>(this TEnumerable source, TPredicate predicate)
-            where TEnumerable : IValueEnumerable<T, TEnumerator>
-            where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
-            where TPredicate : struct, IFunction<T, bool>
-            => source.MinOrNone<TEnumerable, TEnumerator, T, TPredicate>(predicate).Value;
-
-        /// <summary>
-        /// Returns the minimum value in a sequence of values that satisfy a condition.
-        /// </summary>
-        public static T Min<TEnumerable, TEnumerator, T>(this TEnumerable source, Func<T, bool> predicate)
-            where TEnumerable : IValueEnumerable<T, TEnumerator>
-            where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
-            => source.MinOrNone<TEnumerable, TEnumerator, T>(predicate).Value;
-
-        /// <summary>
-        /// Returns the minimum value in a sequence, or None if empty.
-        /// </summary>
-        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(this TEnumerable source)
-            where TEnumerable : IValueEnumerable<T, TEnumerator>
-            where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
+        if (!enumerator.MoveNext())
         {
-            using var enumerator = source.GetEnumerator();
-            
-            if (!enumerator.MoveNext())
-                return Option<T>.None();
-            
-            var min = enumerator.Current;
-            
-            while (enumerator.MoveNext())
-            {
-                var item = enumerator.Current;
-                if (item < min)
-                    min = item;
-            }
-            
-            return Option<T>.Some(min);
-        }
-
-        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T, TPredicate>(
-            this TEnumerable source, 
-            TPredicate predicate)
-            where TEnumerable : IValueEnumerable<T, TEnumerator>
-            where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
-            where TPredicate : struct, IFunction<T, bool>
-        {
-            using var enumerator = source.GetEnumerator();
-            
-            // Find first matching element
-            while (enumerator.MoveNext())
-            {
-                if (predicate.Invoke(enumerator.Current))
-                {
-                    var min = enumerator.Current;
-                    
-                    // Process remaining elements without branching on hasValue
-                    while (enumerator.MoveNext())
-                    {
-                        var item = enumerator.Current;
-                        if (predicate.Invoke(item) && item < min)
-                            min = item;
-                    }
-                    
-                    return Option<T>.Some(min);
-                }
-            }
-            
             return Option<T>.None();
         }
 
-        public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(
-            this TEnumerable source, 
-            Func<T, bool> predicate)
-            where TEnumerable : IValueEnumerable<T, TEnumerator>
-            where TEnumerator : struct, IEnumerator<T>
-            where T : INumber<T>
-            => MinOrNone<TEnumerable, TEnumerator, T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
+        var min = enumerator.Current;
+
+        while (enumerator.MoveNext())
+        {
+            var item = enumerator.Current;
+            if (item < min)
+            {
+                min = item;
+            }
+        }
+
+        return Option<T>.Some(min);
     }
+
+    public static Option<T> MinOrNone<TEnumerable, TEnumerator, T, TPredicate>(
+        this TEnumerable source,
+        TPredicate predicate)
+        where TEnumerable : IValueEnumerable<T, TEnumerator>
+        where TEnumerator : struct, IEnumerator<T>
+        where T : INumber<T>
+        where TPredicate : struct, IFunction<T, bool>
+    {
+        using var enumerator = source.GetEnumerator();
+
+        // Find first matching element
+        while (enumerator.MoveNext())
+        {
+            if (predicate.Invoke(enumerator.Current))
+            {
+                var min = enumerator.Current;
+
+                // Process remaining elements without branching on hasValue
+                while (enumerator.MoveNext())
+                {
+                    var item = enumerator.Current;
+                    if (predicate.Invoke(item) && item < min)
+                    {
+                        min = item;
+                    }
+                }
+
+                return Option<T>.Some(min);
+            }
+        }
+
+        return Option<T>.None();
+    }
+
+    public static Option<T> MinOrNone<TEnumerable, TEnumerator, T>(
+        this TEnumerable source,
+        Func<T, bool> predicate)
+        where TEnumerable : IValueEnumerable<T, TEnumerator>
+        where TEnumerator : struct, IEnumerator<T>
+        where T : INumber<T>
+        => MinOrNone<TEnumerable, TEnumerator, T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
 }

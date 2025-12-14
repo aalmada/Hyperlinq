@@ -2,8 +2,8 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using TUnit.Core;
 using NetFabric.Assertive;
+using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests;
 
@@ -13,11 +13,11 @@ public class PooledBufferTests
     public void ReadOnlySpan_ToArrayPooled_EmptySpan_ShouldReturnEmptyBuffer()
     {
         var span = ReadOnlySpan<int>.Empty;
-        
+
         using var buffer = span.ToArrayPooled();
-        
-        buffer.Length.Must().BeEqualTo(0);
-        buffer.AsSpan().Length.Must().BeEqualTo(0);
+
+        _ = buffer.Length.Must().BeEqualTo(0);
+        _ = buffer.AsSpan().Length.Must().BeEqualTo(0);
     }
 
     [Test]
@@ -25,11 +25,11 @@ public class PooledBufferTests
     {
         var array = new[] { 42 };
         var span = array.AsSpan();
-        
+
         using var buffer = span.ToArrayPooled();
-        
-        buffer.Length.Must().BeEqualTo(1);
-        buffer.AsSpan()[0].Must().BeEqualTo(42);
+
+        _ = buffer.Length.Must().BeEqualTo(1);
+        _ = buffer.AsSpan()[0].Must().BeEqualTo(42);
     }
 
     [Test]
@@ -38,11 +38,11 @@ public class PooledBufferTests
     {
         var array = testCase.Factory();
         var span = array.AsSpan();
-        
+
         using var buffer = span.ToArrayPooled();
-        
-        buffer.Length.Must().BeEqualTo(array.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(array);
+
+        _ = buffer.Length.Must().BeEqualTo(array.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(array);
     }
 
     [Test]
@@ -52,12 +52,12 @@ public class PooledBufferTests
         var array = testCase.Factory();
         var span = array.AsSpan();
         var predicate = (int x) => x % 2 == 0;
-        
+
         using var buffer = span.ToArrayPooled(predicate);
-        
+
         var expected = array.Where(predicate).ToArray();
-        buffer.Length.Must().BeEqualTo(expected.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
     [Test]
@@ -67,12 +67,12 @@ public class PooledBufferTests
         var array = Enumerable.Range(0, 100).ToArray();
         var span = array.AsSpan();
         var predicate = (int x) => x % 2 == 0;
-        
+
         using var buffer = span.ToArrayPooled(predicate);
-        
+
         var expected = array.Where(predicate).ToArray();
-        buffer.Length.Must().BeEqualTo(expected.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
 
@@ -82,12 +82,12 @@ public class PooledBufferTests
     {
         var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         var whereEnumerable = list.AsValueEnumerable().Where(x => x % 2 == 0);
-        
+
         using var buffer = whereEnumerable.ToArrayPooled();
-        
+
         var expected = list.Where(x => x % 2 == 0).ToArray();
-        buffer.Length.Must().BeEqualTo(expected.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
 
@@ -98,12 +98,12 @@ public class PooledBufferTests
         var array = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         var span = array.AsSpan();
         var whereEnumerable = span.Where(x => x > 5);
-        
+
         using var buffer = whereEnumerable.ToArrayPooled();
-        
+
         var expected = array.Where(x => x > 5).ToArray();
-        buffer.Length.Must().BeEqualTo(expected.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
     [Test]
@@ -112,12 +112,12 @@ public class PooledBufferTests
         var array = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         var span = array.AsSpan();
         var whereSelectEnumerable = span.Where(x => x % 2 == 0).Select(x => x * 3);
-        
+
         using var buffer = whereSelectEnumerable.ToArrayPooled();
-        
+
         var expected = array.Where(x => x % 2 == 0).Select(x => x * 3).ToArray();
-        buffer.Length.Must().BeEqualTo(expected.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
     [Test]
@@ -125,15 +125,15 @@ public class PooledBufferTests
     {
         var array = new[] { 1, 2, 3 };
         var span = array.AsSpan();
-        
+
         using var buffer = span.ToArrayPooled();
         var copy = buffer.ToArray();
-        
+
         // Modify copy
         copy[0] = 999;
-        
+
         // Original buffer should be unchanged
-        buffer.AsSpan()[0].Must().BeEqualTo(1);
+        _ = buffer.AsSpan()[0].Must().BeEqualTo(1);
     }
 
     [Test]
@@ -141,14 +141,14 @@ public class PooledBufferTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var span = array.AsSpan();
-        
+
         // Create and dispose buffer
         var buffer = span.ToArrayPooled();
         buffer.Dispose();
-        
+
         // Create another buffer - should potentially reuse the same pooled array
         using var buffer2 = span.ToArrayPooled();
-        buffer2.Length.Must().BeEqualTo(array.Length);
+        _ = buffer2.Length.Must().BeEqualTo(array.Length);
     }
 
     [Test]
@@ -157,12 +157,12 @@ public class PooledBufferTests
         var pool = new TrackingArrayPool<string>();
         var array = new[] { "a", "b", "c" };
         var span = array.AsSpan();
-        
+
         var buffer = span.ToArrayPooled(pool);
         buffer.Dispose();
-        
-        pool.Returns.Count.Must().BeEqualTo(1);
-        pool.Returns[0].clearArray.Must().BeTrue();
+
+        _ = pool.Returns.Count.Must().BeEqualTo(1);
+        _ = pool.Returns[0].clearArray.Must().BeTrue();
     }
 
     [Test]
@@ -170,16 +170,16 @@ public class PooledBufferTests
     {
         // Create a custom pool
         var customPool = ArrayPool<int>.Create(maxArrayLength: 1024, maxArraysPerBucket: 10);
-        
+
         var array = new[] { 1, 2, 3, 4, 5 };
         var span = array.AsSpan();
-        
+
         // Use custom pool
         using var buffer = span.ToArrayPooled(customPool);
-        
-        buffer.Length.Must().BeEqualTo(array.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(array);
-        
+
+        _ = buffer.Length.Must().BeEqualTo(array.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(array);
+
         // Buffer will be returned to custom pool on dispose
     }
 
@@ -190,12 +190,12 @@ public class PooledBufferTests
         var array = Enumerable.Range(0, 50).ToArray();
         var span = array.AsSpan();
         var predicate = (int x) => x % 2 == 0;
-        
+
         using var buffer = span.ToArrayPooled(predicate, customPool);
-        
+
         var expected = array.Where(predicate).ToArray();
-        buffer.Length.Must().BeEqualTo(expected.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
     [Test]
@@ -205,11 +205,11 @@ public class PooledBufferTests
         var array = Enumerable.Range(0, 1000).ToArray();
         var span = array.AsSpan();
         var predicate = (int x) => x % 3 == 0; // ~333 elements
-        
+
         using var buffer = span.ToArrayPooled(predicate);
-        
+
         var expected = array.Where(predicate).ToArray();
-        buffer.Length.Must().BeEqualTo(expected.Length);
-        buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 }

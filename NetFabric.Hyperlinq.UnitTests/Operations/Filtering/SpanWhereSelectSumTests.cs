@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TUnit.Core;
 using NetFabric.Assertive;
+using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests.Span;
 
@@ -14,14 +14,14 @@ public class SpanWhereSelectSumTests
     {
         var array = testCase.Factory();
         ReadOnlyMemory<int> memory = array.AsMemory();
-        
+
         var result = memory
             .Where(x => x % 2 == 0)
             .Select(x => x * 2)
             .Sum();
-            
+
         var expected = Enumerable.Sum(Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
-        
-        result.Must().BeEqualTo(expected);
+
+        _ = result.Must().BeEqualTo(expected);
     }
 }

@@ -1,7 +1,7 @@
 using System;
-using TUnit.Core;
 using NetFabric.Assertive;
 using NetFabric.Hyperlinq;
+using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests.Span;
 
@@ -12,43 +12,43 @@ public class SpanFirstOrDefaultTests
     {
         var array = new int[] { 1, 2, 3 };
         var result = array.FirstOrDefault();
-        
-        result.Must().BeEqualTo(1);
+
+        _ = result.Must().BeEqualTo(1);
     }
-    
+
     [Test]
     public void Array_FirstOrDefault_Empty_ShouldReturnDefault()
     {
         var memory = Array.Empty<int>().AsMemory();
         var result = memory.Span.FirstOrDefault();
-        
-        result.Must().BeEqualTo(0);
+
+        _ = result.Must().BeEqualTo(0);
     }
-    
+
     [Test]
     public void Array_FirstOrDefault_Empty_WithDefault_ShouldReturnProvidedDefault()
     {
         var array = Array.Empty<int>();
         var result = array.FirstOrDefault(99);
-        
-        result.Must().BeEqualTo(99);
+
+        _ = result.Must().BeEqualTo(99);
     }
-    
+
     [Test]
     public void List_FirstOrDefault_NonEmpty_ShouldReturnFirst()
     {
         var list = new System.Collections.Generic.List<int> { 10, 20 };
         var result = list.FirstOrDefault();
-        
-        result.Must().BeEqualTo(10);
+
+        _ = result.Must().BeEqualTo(10);
     }
-    
+
     [Test]
     public void Memory_FirstOrDefault_NonEmpty_ShouldReturnFirst()
     {
         var memory = new int[] { 5, 6, 7 }.AsMemory();
         var result = memory.Span.FirstOrDefault();
-        
-        result.Must().BeEqualTo(5);
+
+        _ = result.Must().BeEqualTo(5);
     }
 }

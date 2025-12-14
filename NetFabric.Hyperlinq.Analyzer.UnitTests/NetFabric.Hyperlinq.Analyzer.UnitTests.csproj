@@ -4,6 +4,7 @@
     <IsPackable>false</IsPackable>
     <OutputType>Exe</OutputType>
     <EnableMSTestRunner>true</EnableMSTestRunner>
+    <NoWarn>$(NoWarn);RS1036</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

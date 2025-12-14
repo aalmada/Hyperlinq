@@ -2,51 +2,57 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace NetFabric.Hyperlinq
+namespace NetFabric.Hyperlinq;
+
+public static partial class ValueEnumerableExtensions
 {
-    public static partial class ValueEnumerableExtensions
+    /// <summary>
+    /// Returns an option containing the first element of a sequence, or None if the sequence is empty.
+    /// </summary>
+    public static Option<TSource> FirstOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
+        where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+        where TEnumerator : struct, IEnumerator<TSource>
     {
-        /// <summary>
-        /// Returns an option containing the first element of a sequence, or None if the sequence is empty.
-        /// </summary>
-        public static Option<TSource> FirstOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source)
-            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
-            where TEnumerator : struct, IEnumerator<TSource>
+        // Optimize for IList<T> - O(1) access via Count and indexer
+        if (source is IList<TSource> list)
         {
-            // Optimize for IList<T> - O(1) access via Count and indexer
-            if (source is IList<TSource> list)
+            if (list.Count == 0)
             {
-                if (list.Count == 0)
-                    return Option<TSource>.None();
-                return Option<TSource>.Some(list[0]);
+                return Option<TSource>.None();
             }
-            
-            using var enumerator = source.GetEnumerator();
-            if (enumerator.MoveNext())
+
+            return Option<TSource>.Some(list[0]);
+        }
+
+        using var enumerator = source.GetEnumerator();
+        if (enumerator.MoveNext())
+        {
+            return Option<TSource>.Some(enumerator.Current);
+        }
+
+        return Option<TSource>.None();
+    }
+
+    public static Option<TSource> FirstOrNone<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
+        where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+        where TEnumerator : struct, IEnumerator<TSource>
+        where TPredicate : struct, IFunction<TSource, bool>
+    {
+        using var enumerator = source.GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            if (predicate.Invoke(enumerator.Current))
+            {
                 return Option<TSource>.Some(enumerator.Current);
-            
-            return Option<TSource>.None();
-        }
-
-        public static Option<TSource> FirstOrNone<TEnumerable, TEnumerator, TSource, TPredicate>(this TEnumerable source, TPredicate predicate)
-            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
-            where TEnumerator : struct, IEnumerator<TSource>
-            where TPredicate : struct, IFunction<TSource, bool>
-        {
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                if (predicate.Invoke(enumerator.Current))
-                    return Option<TSource>.Some(enumerator.Current);
             }
-            return Option<TSource>.None();
         }
+        return Option<TSource>.None();
+    }
 
-        public static Option<TSource> FirstOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
-            where TEnumerable : IValueEnumerable<TSource, TEnumerator>
-            where TEnumerator : struct, IEnumerator<TSource>
-            => FirstOrNone<TEnumerable, TEnumerator, TSource, FunctionWrapper<TSource, bool>>(source, new FunctionWrapper<TSource, bool>(predicate));
-        
+    public static Option<TSource> FirstOrNone<TEnumerable, TEnumerator, TSource>(this TEnumerable source, Func<TSource, bool> predicate)
+        where TEnumerable : IValueEnumerable<TSource, TEnumerator>
+        where TEnumerator : struct, IEnumerator<TSource>
+        => FirstOrNone<TEnumerable, TEnumerator, TSource, FunctionWrapper<TSource, bool>>(source, new FunctionWrapper<TSource, bool>(predicate));
 
-    }    
+
 }

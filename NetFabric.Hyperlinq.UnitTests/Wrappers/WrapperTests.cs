@@ -34,7 +34,7 @@ public class WrapperTests
         IEnumerable<int> enumerable = source;
         var wrapper = enumerable.AsValueEnumerable<int, List<int>.Enumerator, EnumerableGetEnumeratorFn>(new EnumerableGetEnumeratorFn());
 
-        wrapper.Must()
+        _ = wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
     }
@@ -46,11 +46,11 @@ public class WrapperTests
         IEnumerable<int> enumerable = source;
         var wrapper = enumerable.AsValueEnumerable<int, List<int>.Enumerator>(s => ((List<int>)s).GetEnumerator());
 
-        wrapper.Must()
+        _ = wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
     }
-    
+
     [Test]
     public async Task Extensions_Collection_AsValueEnumerable_Struct_Should_Succeed()
     {
@@ -58,11 +58,11 @@ public class WrapperTests
         ICollection<int> collection = source;
         var wrapper = collection.AsValueEnumerable<int, List<int>.Enumerator, CollectionGetEnumeratorFn>(new CollectionGetEnumeratorFn());
 
-        wrapper.Must()
+        _ = wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
-        
-        await Assert.That(wrapper.Count).IsEqualTo(source.Count);
+
+        _ = await Assert.That(wrapper.Count).IsEqualTo(source.Count);
     }
 
     [Test]
@@ -72,11 +72,11 @@ public class WrapperTests
         ICollection<int> collection = source;
         var wrapper = collection.AsValueEnumerable<int, List<int>.Enumerator>(s => ((List<int>)s).GetEnumerator());
 
-        wrapper.Must()
+        _ = wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
-        
-        await Assert.That(wrapper.Count).IsEqualTo(source.Count);
+
+        _ = await Assert.That(wrapper.Count).IsEqualTo(source.Count);
     }
 
     [Test]
@@ -86,12 +86,12 @@ public class WrapperTests
         IList<int> list = source;
         var wrapper = list.AsValueEnumerable<int, List<int>.Enumerator, ListGetEnumeratorFn>(new ListGetEnumeratorFn());
 
-        wrapper.Must()
+        _ = wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
-        
-        await Assert.That(wrapper.Count).IsEqualTo(source.Count);
-        await Assert.That(wrapper[0]).IsEqualTo(source[0]);
+
+        _ = await Assert.That(wrapper.Count).IsEqualTo(source.Count);
+        _ = await Assert.That(wrapper[0]).IsEqualTo(source[0]);
     }
 
     [Test]
@@ -101,12 +101,12 @@ public class WrapperTests
         IList<int> list = source;
         var wrapper = list.AsValueEnumerable<int, List<int>.Enumerator>(s => ((List<int>)s).GetEnumerator());
 
-        wrapper.Must()
+        _ = wrapper.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(source);
-        
-        await Assert.That(wrapper.Count).IsEqualTo(source.Count);
-        await Assert.That(wrapper[0]).IsEqualTo(source[0]);
+
+        _ = await Assert.That(wrapper.Count).IsEqualTo(source.Count);
+        _ = await Assert.That(wrapper[0]).IsEqualTo(source[0]);
     }
 }
 

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TUnit.Core;
 using NetFabric.Assertive;
+using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests;
 
@@ -13,15 +13,15 @@ public class RefStructEnumerableTests
     public void Array_Select_RefStruct_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        
+
         // Direct Select returns ref struct enumerable
         var refStructResult = array.Select(x => x * 2);
-        
+
         var linqResult = Enumerable.Select(array, x => x * 2);
-        
+
         // Verify results match by converting to array
         var refStructArray = refStructResult.ToArray();
-        refStructArray.Must()
+        _ = refStructArray.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -31,15 +31,15 @@ public class RefStructEnumerableTests
     public void Array_Where_RefStruct_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        
+
         // Direct Where returns ref struct enumerable
         var refStructResult = array.Where(x => x % 2 == 0);
-        
+
         var linqResult = Enumerable.Where(array, x => x % 2 == 0);
-        
+
         // Verify results match by converting to array
         var refStructArray = refStructResult.ToArray();
-        refStructArray.Must()
+        _ = refStructArray.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -49,15 +49,15 @@ public class RefStructEnumerableTests
     public void List_Select_RefStruct_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var list = new List<int>(testCase.Factory());
-        
+
         // Direct Select returns ref struct enumerable
         var refStructResult = list.Select(x => x * 2);
-        
+
         var linqResult = Enumerable.Select(list, x => x * 2);
-        
+
         // Verify results match by converting to array
         var refStructArray = refStructResult.ToArray();
-        refStructArray.Must()
+        _ = refStructArray.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -67,15 +67,15 @@ public class RefStructEnumerableTests
     public void List_Where_RefStruct_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var list = new List<int>(testCase.Factory());
-        
+
         // Direct Where returns ref struct enumerable
         var refStructResult = list.Where(x => x % 2 == 0);
-        
+
         var linqResult = Enumerable.Where(list, x => x % 2 == 0);
-        
+
         // Verify results match by converting to array
         var refStructArray = refStructResult.ToArray();
-        refStructArray.Must()
+        _ = refStructArray.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(linqResult);
     }
@@ -85,8 +85,8 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Select(x => x * 2);
-        
-        result.Count().Must().BeEqualTo(5);
+
+        _ = result.Count().Must().BeEqualTo(5);
     }
 
     [Test]
@@ -94,12 +94,12 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Select(x => x * 2);
-        
-        result.Any().Must().BeTrue();
-        
+
+        _ = result.Any().Must().BeTrue();
+
         var emptyArray = Array.Empty<int>();
         var emptyResult = emptyArray.Select(x => x * 2);
-        emptyResult.Any().Must().BeFalse();
+        _ = emptyResult.Any().Must().BeFalse();
     }
 
     [Test]
@@ -107,8 +107,8 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Select(x => x * 2);
-        
-        result.First().Must().BeEqualTo(2);
+
+        _ = result.First().Must().BeEqualTo(2);
     }
 
     [Test]
@@ -116,15 +116,15 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Select(x => x * 2);
-        
+
         var firstOption = result.FirstOrNone();
-        firstOption.HasValue.Must().BeTrue();
-        firstOption.Value.Must().BeEqualTo(2);
-        
+        _ = firstOption.HasValue.Must().BeTrue();
+        _ = firstOption.Value.Must().BeEqualTo(2);
+
         var emptyArray = Array.Empty<int>();
         var emptyResult = emptyArray.Select(x => x * 2);
         var emptyOption = emptyResult.FirstOrNone();
-        emptyOption.HasValue.Must().BeFalse();
+        _ = emptyOption.HasValue.Must().BeFalse();
     }
 
     [Test]
@@ -132,8 +132,8 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 42 };
         var result = array.Select(x => x * 2);
-        
-        result.Single().Must().BeEqualTo(84);
+
+        _ = result.Single().Must().BeEqualTo(84);
     }
 
     [Test]
@@ -141,9 +141,9 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Select(x => x * 2);
-        
+
         var resultArray = result.ToArray();
-        resultArray.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 2, 4, 6, 8, 10 });
+        _ = resultArray.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 2, 4, 6, 8, 10 });
     }
 
     [Test]
@@ -151,9 +151,9 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Select(x => x * 2);
-        
+
         var resultList = result.ToList();
-        resultList.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 2, 4, 6, 8, 10 });
+        _ = resultList.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 2, 4, 6, 8, 10 });
     }
 
     [Test]
@@ -161,8 +161,8 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Where(x => x % 2 == 0);
-        
-        result.Count().Must().BeEqualTo(2);
+
+        _ = result.Count().Must().BeEqualTo(2);
     }
 
     [Test]
@@ -170,9 +170,9 @@ public class RefStructEnumerableTests
     {
         var array = new[] { 1, 2, 3, 4, 5 };
         var result = array.Where(x => x % 2 == 0);
-        
+
         var resultArray = result.ToArray();
-        resultArray.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 2, 4 });
+        _ = resultArray.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 2, 4 });
     }
 
     [Test]
@@ -180,8 +180,8 @@ public class RefStructEnumerableTests
     {
         var list = new List<int> { 1, 2, 3, 4, 5 };
         var result = list.Select(x => x * 2);
-        
-        result.Count().Must().BeEqualTo(5);
+
+        _ = result.Count().Must().BeEqualTo(5);
     }
 
     [Test]
@@ -189,35 +189,35 @@ public class RefStructEnumerableTests
     {
         var list = new List<int> { 1, 2, 3, 4, 5 };
         var result = list.Where(x => x % 2 == 0);
-        
-        result.Count().Must().BeEqualTo(2);
+
+        _ = result.Count().Must().BeEqualTo(2);
     }
 
     [Test]
     public void AsValueEnumerable_Select_ShouldBeChainable()
     {
         var array = new[] { 1, 2, 3, 4, 5 };
-        
+
         // AsValueEnumerable allows chaining
         var result = array.AsValueEnumerable()
                           .Select(x => x * 2)
                           .Where(x => x > 5)
                           .ToArray();
-        
-        result.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 6, 8, 10 });
+
+        _ = result.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 6, 8, 10 });
     }
 
     [Test]
     public void AsValueEnumerable_List_Select_ShouldBeChainable()
     {
         var list = new List<int> { 1, 2, 3, 4, 5 };
-        
+
         // AsValueEnumerable allows chaining
         var result = list.AsValueEnumerable()
                          .Select(x => x * 2)
                          .Where(x => x > 5)
                          .ToArray();
-        
-        result.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 6, 8, 10 });
+
+        _ = result.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 6, 8, 10 });
     }
 }

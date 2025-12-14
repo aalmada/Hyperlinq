@@ -2,114 +2,113 @@ using System;
 using System.Linq;
 using NetFabric.Assertive;
 
-namespace NetFabric.Hyperlinq.UnitTests
+namespace NetFabric.Hyperlinq.UnitTests;
+
+public class ValueEnumerableEmptyTests
 {
-    public class ValueEnumerableEmptyTests
+    [Test]
+    public void Empty_Should_ReturnExpectedSequence()
     {
-        [Test]
-        public void Empty_Should_ReturnExpectedSequence()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<int>().ToArray();
+        // Arrange
+        var expected = Enumerable.Empty<int>().ToArray();
 
-            // Act
-            var result = ValueEnumerable.Empty<int>();
+        // Act
+        var result = ValueEnumerable.Empty<int>();
 
-            // Assert
-            result.ToArray().Must().BeEqualTo(expected);
-        }
+        // Assert
+        _ = result.ToArray().Must().BeEqualTo(expected);
+    }
 
-        [Test]
-        public void Empty_String_Should_ReturnExpectedSequence()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<string>().ToArray();
+    [Test]
+    public void Empty_String_Should_ReturnExpectedSequence()
+    {
+        // Arrange
+        var expected = Enumerable.Empty<string>().ToArray();
 
-            // Act
-            var result = ValueEnumerable.Empty<string>();
+        // Act
+        var result = ValueEnumerable.Empty<string>();
 
-            // Assert
-            result.ToArray().Must().BeEqualTo(expected);
-        }
+        // Assert
+        _ = result.ToArray().Must().BeEqualTo(expected);
+    }
 
-        [Test]
-        public void Empty_ToArray_Should_ReturnExpectedArray()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<int>().ToArray();
+    [Test]
+    public void Empty_ToArray_Should_ReturnExpectedArray()
+    {
+        // Arrange
+        var expected = Enumerable.Empty<int>().ToArray();
 
-            // Act
-            var result = ValueEnumerable.Empty<int>().ToArray();
+        // Act
+        var result = ValueEnumerable.Empty<int>().ToArray();
 
-            // Assert
-            result.Must().BeEqualTo(expected);
-        }
+        // Assert
+        _ = result.Must().BeEqualTo(expected);
+    }
 
-        [Test]
-        public void Empty_String_ToArray_Should_ReturnExpectedArray()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<string>().ToArray();
+    [Test]
+    public void Empty_String_ToArray_Should_ReturnExpectedArray()
+    {
+        // Arrange
+        var expected = Enumerable.Empty<string>().ToArray();
 
-            // Act
-            var result = ValueEnumerable.Empty<string>().ToArray();
+        // Act
+        var result = ValueEnumerable.Empty<string>().ToArray();
 
-            // Assert
-            result.Must().BeEqualTo(expected);
-        }
+        // Assert
+        _ = result.Must().BeEqualTo(expected);
+    }
 
-        [Test]
-        public void Empty_ToList_Should_ReturnExpectedList()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<int>().ToList();
+    [Test]
+    public void Empty_ToList_Should_ReturnExpectedList()
+    {
+        // Arrange
+        var expected = Enumerable.Empty<int>().ToList();
 
-            // Act
-            var result = ValueEnumerable.Empty<int>().ToList();
+        // Act
+        var result = ValueEnumerable.Empty<int>().ToList();
 
-            // Assert
-            result.SequenceEqual(expected).Must().BeTrue();
-        }
+        // Assert
+        _ = result.SequenceEqual(expected).Must().BeTrue();
+    }
 
-        [Test]
-        public void Empty_String_ToList_Should_ReturnExpectedList()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<string>().ToList();
+    [Test]
+    public void Empty_String_ToList_Should_ReturnExpectedList()
+    {
+        // Arrange
+        var expected = Enumerable.Empty<string>().ToList();
 
-            // Act
-            var result = ValueEnumerable.Empty<string>().ToList();
+        // Act
+        var result = ValueEnumerable.Empty<string>().ToList();
 
-            // Assert
-            result.SequenceEqual(expected).Must().BeTrue();
-        }
+        // Assert
+        _ = result.SequenceEqual(expected).Must().BeTrue();
+    }
 
-        [Test]
-        public void Empty_ToArrayPooled_Should_ReturnExpectedBuffer()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<int>().ToArray();
+    [Test]
+    public void Empty_ToArrayPooled_Should_ReturnExpectedBuffer()
+    {
+        // Arrange
+        var expected = Enumerable.Empty<int>().ToArray();
 
-            // Act
-            using var buffer = ValueEnumerable.Empty<int>().ToArrayPooled();
+        // Act
+        using var buffer = ValueEnumerable.Empty<int>().ToArrayPooled();
 
-            // Assert
-            buffer.Length.Must().BeEqualTo(expected.Length);
-            buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
-        }
+        // Assert
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
+    }
 
-        [Test]
-        public void Empty_String_ToArrayPooled_Should_ReturnExpectedBuffer()
-        {
-            // Arrange
-            var expected = Enumerable.Empty<string>().ToArray();
+    [Test]
+    public void Empty_String_ToArrayPooled_Should_ReturnExpectedBuffer()
+    {
+        // Arrange
+        var expected = Enumerable.Empty<string>().ToArray();
 
-            // Act
-            using var buffer = ValueEnumerable.Empty<string>().ToArrayPooled();
+        // Act
+        using var buffer = ValueEnumerable.Empty<string>().ToArrayPooled();
 
-            // Assert
-            buffer.Length.Must().BeEqualTo(expected.Length);
-            buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
-        }
+        // Assert
+        _ = buffer.Length.Must().BeEqualTo(expected.Length);
+        _ = buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
     }
 }

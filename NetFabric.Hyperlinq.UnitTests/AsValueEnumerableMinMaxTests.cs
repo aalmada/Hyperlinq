@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TUnit.Core;
 using NetFabric.Assertive;
+using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests;
 
@@ -13,11 +13,14 @@ public class AsValueEnumerableMinMaxTests
     public void List_AsValueEnumerable_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var list = new List<int>(testCase.Factory());
-        if (list.Count == 0) return; // Skip empty for now, testing separately
+        if (list.Count == 0)
+        {
+            return; // Skip empty for now, testing separately
+        }
 
         var valueEnum = list.AsValueEnumerable();
-        
-        valueEnum.Must()
+
+        _ = valueEnum.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(list)
             .EvaluateTrue(e => e.Min() == list.Min());
@@ -28,11 +31,14 @@ public class AsValueEnumerableMinMaxTests
     public void List_AsValueEnumerable_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var list = new List<int>(testCase.Factory());
-        if (list.Count == 0) return;
+        if (list.Count == 0)
+        {
+            return;
+        }
 
         var valueEnum = list.AsValueEnumerable();
-        
-        valueEnum.Must()
+
+        _ = valueEnum.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(list)
             .EvaluateTrue(e => e.Max() == list.Max());
@@ -43,11 +49,14 @@ public class AsValueEnumerableMinMaxTests
     public void Array_AsValueEnumerable_Min_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        if (array.Length == 0) return;
+        if (array.Length == 0)
+        {
+            return;
+        }
 
         var valueEnum = array.AsValueEnumerable();
-        
-        valueEnum.Must()
+
+        _ = valueEnum.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(array)
             .EvaluateTrue(e => e.Min() == array.Min());
@@ -58,11 +67,14 @@ public class AsValueEnumerableMinMaxTests
     public void Array_AsValueEnumerable_Max_ShouldMatchLinq(TestCase<int[]> testCase)
     {
         var array = testCase.Factory();
-        if (array.Length == 0) return;
+        if (array.Length == 0)
+        {
+            return;
+        }
 
         var valueEnum = array.AsValueEnumerable();
-        
-        valueEnum.Must()
+
+        _ = valueEnum.Must()
             .BeEnumerableOf<int>()
             .BeEqualTo(array)
             .EvaluateTrue(e => e.Max() == array.Max());
@@ -74,7 +86,7 @@ public class AsValueEnumerableMinMaxTests
         var list = new List<int>();
         var valueEnum = list.AsValueEnumerable();
 
-        Assert.Throws<InvalidOperationException>(() => valueEnum.Min());
+        _ = Assert.Throws<InvalidOperationException>(() => valueEnum.Min());
     }
 
     [Test]
@@ -83,7 +95,7 @@ public class AsValueEnumerableMinMaxTests
         var array = Array.Empty<int>();
         var valueEnum = array.AsValueEnumerable();
 
-        Assert.Throws<InvalidOperationException>(() => valueEnum.Min());
+        _ = Assert.Throws<InvalidOperationException>(() => valueEnum.Min());
     }
 
 }
