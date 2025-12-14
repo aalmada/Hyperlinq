@@ -11,8 +11,8 @@ public readonly partial struct RepeatListEnumerable<TSource>
     , ICollection<TSource>
     , IList<TSource>
 {
-    private readonly List<TSource> source;
-    private readonly int count;
+    readonly List<TSource> source;
+    readonly int count;
 
     internal RepeatListEnumerable(List<TSource> source, int count)
     {
@@ -131,9 +131,9 @@ public readonly partial struct RepeatListEnumerable<TSource>
     public struct Enumerator
         : IEnumerator<TSource>
     {
-        private readonly List<TSource> source;
-        private int remaining;
-        private int index;
+        readonly List<TSource> source;
+        int remaining;
+        int index;
 
         internal Enumerator(in RepeatListEnumerable<TSource> enumerable)
         {

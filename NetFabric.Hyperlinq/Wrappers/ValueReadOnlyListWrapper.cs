@@ -14,8 +14,8 @@ public readonly struct ValueReadOnlyListWrapper<TList, TEnumerator, TGetEnumerat
     where TEnumerator : struct, IEnumerator<TSource>
     where TGetEnumerator : struct, IFunction<TList, TEnumerator>
 {
-    private readonly TList source;
-    private readonly TGetEnumerator getEnumerator;
+    readonly TList source;
+    readonly TGetEnumerator getEnumerator;
 
     public ValueReadOnlyListWrapper(TList source, TGetEnumerator getEnumerator)
     {

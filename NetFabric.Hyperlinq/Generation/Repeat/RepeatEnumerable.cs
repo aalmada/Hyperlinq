@@ -10,8 +10,8 @@ namespace NetFabric.Hyperlinq;
 public readonly partial struct RepeatEnumerable<T>
     : IValueReadOnlyList<T, RepeatEnumerable<T>.Enumerator>, IList<T>
 {
-    private readonly T element;
-    private readonly int count;
+    readonly T element;
+    readonly int count;
 
     internal RepeatEnumerable(T element, int count)
     {
@@ -42,8 +42,8 @@ public readonly partial struct RepeatEnumerable<T>
     public struct Enumerator
         : IEnumerator<T>
     {
-        private readonly T element;
-        private int remaining;
+        readonly T element;
+        int remaining;
 
         internal Enumerator(in RepeatEnumerable<T> enumerable)
         {

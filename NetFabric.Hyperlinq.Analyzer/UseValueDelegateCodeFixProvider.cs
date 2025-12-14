@@ -67,7 +67,7 @@ public class UseValueDelegateCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private async Task<Document> ConvertToValueDelegateAsync(Document document, LambdaExpressionSyntax lambda, CancellationToken cancellationToken)
+    async Task<Document> ConvertToValueDelegateAsync(Document document, LambdaExpressionSyntax lambda, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)

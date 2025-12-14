@@ -11,10 +11,10 @@ namespace NetFabric.Hyperlinq;
 /// <typeparam name="T">The type of the value.</typeparam>
 public readonly record struct Option<T>
 {
-    private readonly bool _hasValue;
-    private readonly T _value;
+    readonly bool _hasValue;
+    readonly T _value;
 
-    private Option(T value)
+    Option(T value)
     {
         _hasValue = true;
         _value = value;
@@ -23,48 +23,48 @@ public readonly record struct Option<T>
     /// <summary>
     /// Gets a value indicating whether this option contains a value.
     /// </summary>
-    public bool HasValue 
+    public bool HasValue
         => _hasValue;
 
     /// <summary>
     /// Gets the value if present, otherwise throws an exception.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the option has no value.</exception>
-    public T Value 
-        => _hasValue 
-            ? _value 
+    public T Value
+        => _hasValue
+            ? _value
             : throw new InvalidOperationException("Option has no value");
 
     /// <summary>
     /// Creates an option with a value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> Some(T value) 
+    public static Option<T> Some(T value)
         => new Option<T>(value);
 
     /// <summary>
     /// Creates an option without a value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> None() 
+    public static Option<T> None()
         => default;
 
     /// <summary>
     /// Gets the value if present, otherwise returns the default value for the type.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetValueOrDefault() 
-        => _hasValue 
-            ? _value 
+    public T GetValueOrDefault()
+        => _hasValue
+            ? _value
             : default!;
 
     /// <summary>
     /// Gets the value if present, otherwise returns the specified default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetValueOrDefault(T defaultValue) 
-        => _hasValue 
-            ? _value 
+    public T GetValueOrDefault(T defaultValue)
+        => _hasValue
+            ? _value
             : defaultValue;
 
     /// <summary>
@@ -81,8 +81,8 @@ public readonly record struct Option<T>
     /// Returns a string representation of this option.
     /// </summary>
     public override string ToString()
-        => _hasValue 
-            ? $"Some({_value})" 
+        => _hasValue
+            ? $"Some({_value})"
             : "None";
 
     /// <summary>
@@ -94,8 +94,8 @@ public readonly record struct Option<T>
     /// <returns>The result of the evaluated function.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TResult Match<TResult>(Func<T, TResult> some, Func<TResult> none)
-        => _hasValue 
-            ? some(_value) 
+        => _hasValue
+            ? some(_value)
             : none();
 
     /// <summary>
@@ -107,8 +107,8 @@ public readonly record struct Option<T>
     /// <returns>The result of the evaluated function or the default value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TResult Match<TResult>(Func<T, TResult> some, TResult none)
-        => _hasValue 
-            ? some(_value) 
+        => _hasValue
+            ? some(_value)
             : none;
 
     /// <summary>
@@ -137,8 +137,8 @@ public readonly record struct Option<T>
     /// <returns>An option containing the transformed value, or None if the original option had no value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<TResult> Map<TResult>(Func<T, TResult> map)
-        => _hasValue 
-            ? Option<TResult>.Some(map(_value)) 
+        => _hasValue
+            ? Option<TResult>.Some(map(_value))
             : Option<TResult>.None();
 
     /// <summary>
@@ -149,7 +149,7 @@ public readonly record struct Option<T>
     /// <returns>The result of the transformation, or None if the original option had no value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<TResult> Bind<TResult>(Func<T, Option<TResult>> bind)
-        => _hasValue 
-            ? bind(_value) 
+        => _hasValue
+            ? bind(_value)
             : Option<TResult>.None();
 }

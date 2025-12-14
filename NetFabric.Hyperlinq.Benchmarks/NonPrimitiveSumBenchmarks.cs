@@ -15,7 +15,7 @@ namespace NetFabric.Hyperlinq.Benchmarks;
 [CategoriesColumn]
 public class NonPrimitiveSumBenchmarks
 {
-    private MyInt[] array = null!;
+    MyInt[] array = null!;
 
     [Params(100, 1_000, 10_000)]
     public int Count { get; set; }
@@ -45,7 +45,7 @@ public class NonPrimitiveSumBenchmarks
 
     public readonly struct MyInt : INumber<MyInt>
     {
-        private readonly int value;
+        readonly int value;
 
         public MyInt(int value) => this.value = value;
 

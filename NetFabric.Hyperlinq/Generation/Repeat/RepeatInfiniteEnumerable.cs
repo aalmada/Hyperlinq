@@ -8,7 +8,7 @@ namespace NetFabric.Hyperlinq;
 public readonly partial struct RepeatInfiniteEnumerable<T>
     : IValueEnumerable<T, RepeatInfiniteEnumerable<T>.Enumerator>
 {
-    private readonly T element;
+    readonly T element;
 
     internal RepeatInfiniteEnumerable(T element) => this.element = element;
 
@@ -21,7 +21,7 @@ public readonly partial struct RepeatInfiniteEnumerable<T>
     public struct Enumerator
         : IEnumerator<T>
     {
-        private readonly T element;
+        readonly T element;
 
         internal Enumerator(in RepeatInfiniteEnumerable<T> enumerable) => element = enumerable.element;
 

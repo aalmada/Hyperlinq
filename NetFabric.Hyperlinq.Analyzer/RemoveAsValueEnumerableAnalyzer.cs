@@ -11,13 +11,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class RemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "NFHYPERLINQ002";
-    private const string Category = "Usage";
+    const string Category = "Usage";
 
-    private static readonly LocalizableString Title = "Remove unnecessary AsValueEnumerable";
-    private static readonly LocalizableString MessageFormat = "AsValueEnumerable() is not needed on '{0}' because {1}";
-    private static readonly LocalizableString Description = "AsValueEnumerable() should not be used when the type already has direct extension methods or is already a value enumerable.";
+    static readonly LocalizableString Title = "Remove unnecessary AsValueEnumerable";
+    static readonly LocalizableString MessageFormat = "AsValueEnumerable() is not needed on '{0}' because {1}";
+    static readonly LocalizableString Description = "AsValueEnumerable() should not be used when the type already has direct extension methods or is already a value enumerable.";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -35,7 +35,7 @@ public class RemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
@@ -102,7 +102,7 @@ public class RemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool IsValueEnumerableType(ITypeSymbol type)
+    static bool IsValueEnumerableType(ITypeSymbol type)
     {
         var typeName = type.ToString();
 
@@ -124,7 +124,7 @@ public class RemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
                typeName.StartsWith("NetFabric.Hyperlinq.WhereSelectMemoryEnumerable<");
     }
 
-    private static bool HasDirectExtensionMethod(ITypeSymbol type, string methodName)
+    static bool HasDirectExtensionMethod(ITypeSymbol type, string methodName)
     {
         // Methods that have direct extension methods for specific types
         if (methodName is not ("Any" or "Count" or "First" or "Last" or "Sum" or "Single"))

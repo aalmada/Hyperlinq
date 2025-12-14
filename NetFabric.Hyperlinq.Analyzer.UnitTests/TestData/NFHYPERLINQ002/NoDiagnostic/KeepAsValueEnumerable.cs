@@ -8,9 +8,9 @@ class C
 {
     void M(IEnumerable<int> enumerable)
     {
-        var x = enumerable.AsValueEnumerable().Count(); 
-        
+        var x = enumerable.AsValueEnumerable().Count();
+
         var list = new List<int>();
-        var y = list.AsValueEnumerable().Where(i => i > 0); 
+        var y = list.AsValueEnumerable().Where(i => i > 0);
     }
 }

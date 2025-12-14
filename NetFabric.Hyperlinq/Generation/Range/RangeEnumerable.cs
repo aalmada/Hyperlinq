@@ -10,8 +10,8 @@ namespace NetFabric.Hyperlinq;
 public readonly partial struct RangeEnumerable
     : IValueReadOnlyList<int, RangeEnumerable.Enumerator>, IList<int>
 {
-    private readonly int start;
-    private readonly int count;
+    readonly int start;
+    readonly int count;
 
     internal RangeEnumerable(int start, int count)
     {
@@ -42,8 +42,8 @@ public readonly partial struct RangeEnumerable
     public struct Enumerator
         : IEnumerator<int>
     {
-        private int current;
-        private readonly int end;
+        int current;
+        readonly int end;
 
         internal Enumerator(in RangeEnumerable enumerable)
         {

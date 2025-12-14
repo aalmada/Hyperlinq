@@ -11,7 +11,7 @@ namespace NetFabric.Hyperlinq;
 /// </summary>
 public readonly struct ListValueEnumerable<T> : IValueReadOnlyList<T, List<T>.Enumerator>, IList<T>
 {
-    private readonly List<T> source;
+    readonly List<T> source;
 
     public ListValueEnumerable(List<T> source) => this.source = source ?? throw new ArgumentNullException(nameof(source));
 

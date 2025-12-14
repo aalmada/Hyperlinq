@@ -46,7 +46,7 @@ public class SuggestAsValueEnumerableCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private static async Task<Document> AddAsValueEnumerableAsync(
+    static async Task<Document> AddAsValueEnumerableAsync(
         Document document,
         SyntaxNode expression,
         CancellationToken cancellationToken)

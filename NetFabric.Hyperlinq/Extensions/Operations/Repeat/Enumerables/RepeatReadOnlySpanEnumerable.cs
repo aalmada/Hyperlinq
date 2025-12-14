@@ -9,8 +9,8 @@ namespace NetFabric.Hyperlinq;
 
 public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
 {
-    private readonly ReadOnlySpan<TSource> source;
-    private readonly int count;
+    readonly ReadOnlySpan<TSource> source;
+    readonly int count;
 
     internal RepeatReadOnlySpanEnumerable(ReadOnlySpan<TSource> source, int count)
     {
@@ -64,9 +64,9 @@ public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
 
     public ref struct Enumerator
     {
-        private readonly ReadOnlySpan<TSource> source;
-        private int remaining;
-        private int index;
+        readonly ReadOnlySpan<TSource> source;
+        int remaining;
+        int index;
 
         internal Enumerator(ReadOnlySpan<TSource> source, int count)
         {

@@ -15,13 +15,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class SuggestRemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "NFHYPERLINQ003";
-    private const string Category = "Performance";
+    const string Category = "Performance";
 
-    private static readonly LocalizableString Title = "Remove AsValueEnumerable for better performance";
-    private static readonly LocalizableString MessageFormat = "Remove AsValueEnumerable() on '{0}' - direct extension methods provide better performance for non-chained operations";
-    private static readonly LocalizableString Description = "When chaining is not needed, direct array/List extension methods (ref struct) provide better performance than AsValueEnumerable() (chainable).";
+    static readonly LocalizableString Title = "Remove AsValueEnumerable for better performance";
+    static readonly LocalizableString MessageFormat = "Remove AsValueEnumerable() on '{0}' - direct extension methods provide better performance for non-chained operations";
+    static readonly LocalizableString Description = "When chaining is not needed, direct array/List extension methods (ref struct) provide better performance than AsValueEnumerable() (chainable).";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -39,7 +39,7 @@ public class SuggestRemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
@@ -100,7 +100,7 @@ public class SuggestRemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static bool HasHyperlinkUsing(SyntaxNodeAnalysisContext context)
+    static bool HasHyperlinkUsing(SyntaxNodeAnalysisContext context)
     {
         var root = context.Node.SyntaxTree.GetRoot(context.CancellationToken);
         if (root is not CompilationUnitSyntax compilationUnit)
@@ -112,7 +112,7 @@ public class SuggestRemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
             u.Name?.ToString() == "NetFabric.Hyperlinq");
     }
 
-    private static bool IsOptimizableType(ITypeSymbol type)
+    static bool IsOptimizableType(ITypeSymbol type)
     {
         // Check for List<T>
         if (type is INamedTypeSymbol namedType)
@@ -132,7 +132,7 @@ public class SuggestRemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool IsChainingNeeded(InvocationExpressionSyntax invocation)
+    static bool IsChainingNeeded(InvocationExpressionSyntax invocation)
     {
         // Check if there's a method call after AsValueEnumerable
         if (invocation.Parent is not MemberAccessExpressionSyntax parentMemberAccess ||
@@ -169,7 +169,7 @@ public class SuggestRemoveAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool IsLinqMethod(string methodName) => methodName is "Where" or "Select" or "Any" or "Count" or "First" or "Single" or "Sum" or
+    static bool IsLinqMethod(string methodName) => methodName is "Where" or "Select" or "Any" or "Count" or "First" or "Single" or "Sum" or
                              "FirstOrDefault" or "FirstOrNone" or "SingleOrDefault" or "SingleOrNone" or
                              "Last" or "ToArray" or "ToList";
 }

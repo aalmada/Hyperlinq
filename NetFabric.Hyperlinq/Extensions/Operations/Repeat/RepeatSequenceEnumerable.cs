@@ -9,8 +9,8 @@ public readonly partial struct RepeatSequenceEnumerable<TEnumerator, TSource>
     : IValueEnumerable<TSource, RepeatSequenceEnumerable<TEnumerator, TSource>.Enumerator>
     where TEnumerator : struct, IEnumerator<TSource>
 {
-    private readonly IValueEnumerable<TSource, TEnumerator> source;
-    private readonly int count;
+    readonly IValueEnumerable<TSource, TEnumerator> source;
+    readonly int count;
 
     internal RepeatSequenceEnumerable(IValueEnumerable<TSource, TEnumerator> source, int count)
     {
@@ -27,9 +27,9 @@ public readonly partial struct RepeatSequenceEnumerable<TEnumerator, TSource>
     public struct Enumerator
         : IEnumerator<TSource>
     {
-        private readonly IValueEnumerable<TSource, TEnumerator> source;
-        private TEnumerator enumerator;
-        private int remaining;
+        readonly IValueEnumerable<TSource, TEnumerator> source;
+        TEnumerator enumerator;
+        int remaining;
 
         internal Enumerator(in RepeatSequenceEnumerable<TEnumerator, TSource> enumerable)
         {

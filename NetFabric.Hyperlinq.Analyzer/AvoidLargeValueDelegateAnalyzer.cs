@@ -11,13 +11,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class AvoidLargeValueDelegateAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "HLQ010";
-    private const string Category = "Performance";
+    const string Category = "Performance";
 
-    private static readonly LocalizableString Title = "Use IFunctionIn for large value delegates";
-    private static readonly LocalizableString MessageFormat = "Struct '{0}' is {1} bytes. Consider implementing IFunctionIn<T, TResult> to avoid copying overhead.";
-    private static readonly LocalizableString Description = "Large value delegates should implement IFunctionIn to allow pass-by-reference, reducing copying overhead.";
+    static readonly LocalizableString Title = "Use IFunctionIn for large value delegates";
+    static readonly LocalizableString MessageFormat = "Struct '{0}' is {1} bytes. Consider implementing IFunctionIn<T, TResult> to avoid copying overhead.";
+    static readonly LocalizableString Description = "Large value delegates should implement IFunctionIn to allow pass-by-reference, reducing copying overhead.";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -35,7 +35,7 @@ public class AvoidLargeValueDelegateAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeStructDeclaration, SyntaxKind.StructDeclaration);
     }
 
-    private static void AnalyzeStructDeclaration(SyntaxNodeAnalysisContext context)
+    static void AnalyzeStructDeclaration(SyntaxNodeAnalysisContext context)
     {
         var structDeclaration = (StructDeclarationSyntax)context.Node;
         var symbol = context.SemanticModel.GetDeclaredSymbol(structDeclaration, context.CancellationToken);
@@ -72,7 +72,7 @@ public class AvoidLargeValueDelegateAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static int EstimateSize(ITypeSymbol type)
+    static int EstimateSize(ITypeSymbol type)
     {
         // Basic primitives
         switch (type.SpecialType)

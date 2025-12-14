@@ -11,13 +11,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class AvoidSmallValueDelegateInAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "HLQ012";
-    private const string Category = "Performance";
+    const string Category = "Performance";
 
-    private static readonly LocalizableString Title = "Use IFunction for small value delegates";
-    private static readonly LocalizableString MessageFormat = "Struct '{0}' is {1} bytes. Consider implementing IFunction<T, TResult> (pass-by-value) instead of IFunctionIn<T, TResult> to avoid indirection overhead.";
-    private static readonly LocalizableString Description = "Small value delegates (<= 64 bytes) perform better when passed by value (IFunction), avoiding pointer indirection.";
+    static readonly LocalizableString Title = "Use IFunction for small value delegates";
+    static readonly LocalizableString MessageFormat = "Struct '{0}' is {1} bytes. Consider implementing IFunction<T, TResult> (pass-by-value) instead of IFunctionIn<T, TResult> to avoid indirection overhead.";
+    static readonly LocalizableString Description = "Small value delegates (<= 64 bytes) perform better when passed by value (IFunction), avoiding pointer indirection.";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -35,7 +35,7 @@ public class AvoidSmallValueDelegateInAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeStructDeclaration, SyntaxKind.StructDeclaration);
     }
 
-    private static void AnalyzeStructDeclaration(SyntaxNodeAnalysisContext context)
+    static void AnalyzeStructDeclaration(SyntaxNodeAnalysisContext context)
     {
         var structDeclaration = (StructDeclarationSyntax)context.Node;
 
@@ -76,7 +76,7 @@ public class AvoidSmallValueDelegateInAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static int EstimateSize(ITypeSymbol type)
+    static int EstimateSize(ITypeSymbol type)
     {
         // Reusing size estimation logic (should be shared in a helper class ideally)
         switch (type.SpecialType)

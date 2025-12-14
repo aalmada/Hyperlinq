@@ -10,8 +10,8 @@ public readonly partial struct RepeatCollectionEnumerable<TEnumerator, TSource>
     , ICollection<TSource>
     where TEnumerator : struct, IEnumerator<TSource>
 {
-    private readonly IValueReadOnlyCollection<TSource, TEnumerator> source;
-    private readonly int count;
+    readonly IValueReadOnlyCollection<TSource, TEnumerator> source;
+    readonly int count;
 
     internal RepeatCollectionEnumerable(IValueReadOnlyCollection<TSource, TEnumerator> source, int count)
     {
@@ -110,9 +110,9 @@ public readonly partial struct RepeatCollectionEnumerable<TEnumerator, TSource>
     public struct Enumerator
         : IEnumerator<TSource>
     {
-        private readonly IValueEnumerable<TSource, TEnumerator> source;
-        private TEnumerator enumerator;
-        private int remaining;
+        readonly IValueEnumerable<TSource, TEnumerator> source;
+        TEnumerator enumerator;
+        int remaining;
 
         internal Enumerator(in RepeatCollectionEnumerable<TEnumerator, TSource> enumerable)
         {

@@ -15,13 +15,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class UseValueEnumerableGeneratorsAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "NFHYPERLINQ005";
-    private const string Category = "Performance";
+    const string Category = "Performance";
 
-    private static readonly LocalizableString Title = "Use ValueEnumerable generator methods";
-    private static readonly LocalizableString MessageFormat = "Use 'ValueEnumerable.{0}' instead of 'Enumerable.{0}' for better performance";
-    private static readonly LocalizableString Description = "ValueEnumerable.Range(), ValueEnumerable.Repeat(), ValueEnumerable.Return(), and ValueEnumerable.Empty() provide better performance than their LINQ counterparts.";
+    static readonly LocalizableString Title = "Use ValueEnumerable generator methods";
+    static readonly LocalizableString MessageFormat = "Use 'ValueEnumerable.{0}' instead of 'Enumerable.{0}' for better performance";
+    static readonly LocalizableString Description = "ValueEnumerable.Range(), ValueEnumerable.Repeat(), ValueEnumerable.Return(), and ValueEnumerable.Empty() provide better performance than their LINQ counterparts.";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -39,7 +39,7 @@ public class UseValueEnumerableGeneratorsAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 

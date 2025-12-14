@@ -47,7 +47,7 @@ public class UseValueEnumerableGeneratorsCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private static async Task<Document> ReplaceWithValueEnumerableAsync(
+    static async Task<Document> ReplaceWithValueEnumerableAsync(
         Document document,
         MemberAccessExpressionSyntax memberAccess,
         CancellationToken cancellationToken)

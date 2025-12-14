@@ -15,13 +15,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class SuggestAsValueEnumerableAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "NFHYPERLINQ004";
-    private const string Category = "Usage";
+    const string Category = "Usage";
 
-    private static readonly LocalizableString Title = "Use AsValueEnumerable to enable chaining";
-    private static readonly LocalizableString MessageFormat = "Use AsValueEnumerable() before '{0}' to enable chaining operations";
-    private static readonly LocalizableString Description = "Ref struct enumerables cannot be chained. Use AsValueEnumerable() to get a chainable enumerable.";
+    static readonly LocalizableString Title = "Use AsValueEnumerable to enable chaining";
+    static readonly LocalizableString MessageFormat = "Use AsValueEnumerable() before '{0}' to enable chaining operations";
+    static readonly LocalizableString Description = "Ref struct enumerables cannot be chained. Use AsValueEnumerable() to get a chainable enumerable.";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -39,7 +39,7 @@ public class SuggestAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
@@ -111,7 +111,7 @@ public class SuggestAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static bool HasHyperlinkUsing(SyntaxNodeAnalysisContext context)
+    static bool HasHyperlinkUsing(SyntaxNodeAnalysisContext context)
     {
         var root = context.Node.SyntaxTree.GetRoot(context.CancellationToken);
         if (root is not CompilationUnitSyntax compilationUnit)
@@ -123,7 +123,7 @@ public class SuggestAsValueEnumerableAnalyzer : DiagnosticAnalyzer
             u.Name?.ToString() == "NetFabric.Hyperlinq");
     }
 
-    private static bool IsDirectArrayOrList(ITypeSymbol type)
+    static bool IsDirectArrayOrList(ITypeSymbol type)
     {
         // Check for List<T>
         if (type is INamedTypeSymbol namedType)
@@ -143,7 +143,7 @@ public class SuggestAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool IsChainingAttempted(InvocationExpressionSyntax invocation)
+    static bool IsChainingAttempted(InvocationExpressionSyntax invocation)
     {
         // Check if there's another method call after this invocation
         if (invocation.Parent is MemberAccessExpressionSyntax parentMemberAccess &&
@@ -174,5 +174,5 @@ public class SuggestAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool IsLinqMethod(string methodName) => methodName is "Where" or "Select";
+    static bool IsLinqMethod(string methodName) => methodName is "Where" or "Select";
 }

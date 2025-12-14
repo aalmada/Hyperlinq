@@ -9,7 +9,7 @@ namespace NetFabric.Hyperlinq;
 /// A builder for arrays that uses pooled buffers to minimize allocations.
 /// </summary>
 /// <typeparam name="T">The type of elements in the array.</typeparam>
-internal struct ArrayBuilder<T> : IDisposable
+struct ArrayBuilder<T> : IDisposable
 {
     const int DefaultCapacity = 4;
 

@@ -28,9 +28,9 @@ public abstract class DiagnosticVerifier
         await test.RunAsync();
     }
 
-    private class TestImplementation : CSharpAnalyzerTest<DummyAnalyzer, TUnitVerifier>
+    class TestImplementation : CSharpAnalyzerTest<DummyAnalyzer, TUnitVerifier>
     {
-        private readonly DiagnosticAnalyzer _analyzer;
+        readonly DiagnosticAnalyzer _analyzer;
 
         public TestImplementation(DiagnosticAnalyzer analyzer)
         {
@@ -83,7 +83,7 @@ public abstract class DiagnosticVerifier
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    private class DummyAnalyzer : DiagnosticAnalyzer
+class DummyAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
         public override void Initialize(AnalysisContext context)

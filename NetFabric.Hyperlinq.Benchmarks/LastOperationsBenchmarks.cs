@@ -12,9 +12,9 @@ namespace NetFabric.Hyperlinq.Benchmarks;
 [CategoriesColumn]
 public class LastOperationsBenchmarks
 {
-    private int[] array = null!;
-    private List<int> list = null!;
-    private ReadOnlyMemory<int> memory;
+    int[] array = null!;
+    List<int> list = null!;
+    ReadOnlyMemory<int> memory;
 
     [Params(100, 1_000, 10_000)]
     public int Count { get; set; }

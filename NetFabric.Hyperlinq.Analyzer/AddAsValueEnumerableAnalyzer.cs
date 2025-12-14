@@ -11,13 +11,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class AddAsValueEnumerableAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "NFHYPERLINQ001";
-    private const string Category = "Performance";
+    const string Category = "Performance";
 
-    private static readonly LocalizableString Title = "Use AsValueEnumerable for better performance";
-    private static readonly LocalizableString MessageFormat = "Consider using AsValueEnumerable() on '{0}' for better performance with value-type enumeration";
-    private static readonly LocalizableString Description = "Using AsValueEnumerable() enables value-type enumeration which avoids boxing and improves performance.";
+    static readonly LocalizableString Title = "Use AsValueEnumerable for better performance";
+    static readonly LocalizableString MessageFormat = "Consider using AsValueEnumerable() on '{0}' for better performance with value-type enumeration";
+    static readonly LocalizableString Description = "Using AsValueEnumerable() enables value-type enumeration which avoids boxing and improves performance.";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -35,7 +35,7 @@ public class AddAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
@@ -96,9 +96,9 @@ public class AddAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool IsLinqMethod(string methodName) => methodName is "Where" or "Select" or "Any" or "Count" or "First" or "Single" or "Sum";
+    static bool IsLinqMethod(string methodName) => methodName is "Where" or "Select" or "Any" or "Count" or "First" or "Single" or "Sum";
 
-    private static bool IsOptimizableType(ITypeSymbol type)
+    static bool IsOptimizableType(ITypeSymbol type)
     {
         // Check for List<T>
         if (type is INamedTypeSymbol namedType)
@@ -118,7 +118,7 @@ public class AddAsValueEnumerableAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool IsAlreadyValueEnumerable(ExpressionSyntax expression)
+    static bool IsAlreadyValueEnumerable(ExpressionSyntax expression)
     {
         // Check if the expression is already a call to AsValueEnumerable
         if (expression is InvocationExpressionSyntax invocation &&

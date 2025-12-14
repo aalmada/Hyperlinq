@@ -11,13 +11,13 @@ namespace NetFabric.Hyperlinq.Analyzer;
 public class UseValueDelegateAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "HLQ011";
-    private const string Category = "Performance";
+    const string Category = "Performance";
 
-    private static readonly LocalizableString Title = "Use Value Delegate for better performance";
-    private static readonly LocalizableString MessageFormat = "Consider using a Value Delegate (struct implementing IFunction) instead of a lambda expression for improved performance significantly in 'Where' and 'Select' operations";
-    private static readonly LocalizableString Description = "Lambda expressions allocate delegates and prevent inlining. Value Delegates (structs implementing IFunction) avoid allocation and allow aggressive inlining.";
+    static readonly LocalizableString Title = "Use Value Delegate for better performance";
+    static readonly LocalizableString MessageFormat = "Consider using a Value Delegate (struct implementing IFunction) instead of a lambda expression for improved performance significantly in 'Where' and 'Select' operations";
+    static readonly LocalizableString Description = "Lambda expressions allocate delegates and prevent inlining. Value Delegates (structs implementing IFunction) avoid allocation and allow aggressive inlining.";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -35,7 +35,7 @@ public class UseValueDelegateAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)

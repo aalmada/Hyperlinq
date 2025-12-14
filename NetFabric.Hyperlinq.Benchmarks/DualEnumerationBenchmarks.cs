@@ -11,8 +11,8 @@ namespace NetFabric.Hyperlinq.Benchmarks;
 [CategoriesColumn]
 public class DualEnumerationBenchmarks
 {
-    private int[] array = null!;
-    private List<int> list = null!;
+    int[] array = null!;
+    List<int> list = null!;
 
     [Params(10_000)]
     public int Count { get; set; }

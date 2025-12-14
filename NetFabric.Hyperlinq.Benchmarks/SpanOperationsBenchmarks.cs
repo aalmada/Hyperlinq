@@ -11,7 +11,7 @@ namespace NetFabric.Hyperlinq.Benchmarks;
 [CategoriesColumn]
 public class SpanOperationsBenchmarks
 {
-    private int[] array = null!;
+    int[] array = null!;
 
     [Params(100, 1_000, 10_000)]
     public int Count { get; set; }

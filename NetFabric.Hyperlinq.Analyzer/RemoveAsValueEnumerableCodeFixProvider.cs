@@ -52,7 +52,7 @@ public class RemoveAsValueEnumerableCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private static async Task<Document> RemoveAsValueEnumerableAsync(
+    static async Task<Document> RemoveAsValueEnumerableAsync(
         Document document,
         InvocationExpressionSyntax invocation,
         MemberAccessExpressionSyntax memberAccess,

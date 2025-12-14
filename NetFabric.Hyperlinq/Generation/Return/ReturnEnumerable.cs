@@ -10,7 +10,7 @@ namespace NetFabric.Hyperlinq;
 public readonly partial struct ReturnEnumerable<T>
     : IValueReadOnlyList<T, ReturnEnumerable<T>.Enumerator>, IList<T>
 {
-    private readonly T value;
+    readonly T value;
 
     internal ReturnEnumerable(T value) => this.value = value;
 
@@ -45,8 +45,8 @@ public readonly partial struct ReturnEnumerable<T>
     public struct Enumerator
         : IEnumerator<T>
     {
-        private T? current;
-        private bool enumerated;
+        T? current;
+        bool enumerated;
 
         internal Enumerator(in ReturnEnumerable<T> enumerable)
         {

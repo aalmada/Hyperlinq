@@ -13,7 +13,7 @@ namespace NetFabric.Hyperlinq.UnitTests;
 /// </summary>
 public class FusionCompletenessTests
 {
-    private static readonly Assembly HyperlinqAssembly = typeof(ReadOnlySpanExtensions).Assembly;
+    static readonly Assembly HyperlinqAssembly = typeof(ReadOnlySpanExtensions).Assembly;
 
     [Test]
     public void AllWhereEnumerables_ShouldExposeSourceAndPredicateProperties()
@@ -163,7 +163,7 @@ public class FusionCompletenessTests
         }
     }
 
-    private static List<Type> GetEnumerableTypes(string namePattern, bool excludeWhereSelect = false) => HyperlinqAssembly.GetTypes()
+    static List<Type> GetEnumerableTypes(string namePattern, bool excludeWhereSelect = false) => HyperlinqAssembly.GetTypes()
             .Where(t => t.Name.Contains(namePattern) &&
                        t.Name.EndsWith("Enumerable") &&
                        !t.IsAbstract &&

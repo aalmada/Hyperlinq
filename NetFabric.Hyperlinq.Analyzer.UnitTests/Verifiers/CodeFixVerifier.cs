@@ -38,10 +38,10 @@ public abstract class CodeFixVerifier : DiagnosticVerifier
         await test.RunAsync();
     }
 
-    private class TestImplementation : CSharpCodeFixTest<DummyAnalyzer, DummyCodeFixProvider, TUnitVerifier>
+    class TestImplementation : CSharpCodeFixTest<DummyAnalyzer, DummyCodeFixProvider, TUnitVerifier>
     {
-        private readonly DiagnosticAnalyzer _analyzer;
-        private readonly CodeFixProvider _codeFix;
+        readonly DiagnosticAnalyzer _analyzer;
+        readonly CodeFixProvider _codeFix;
 
         public TestImplementation(DiagnosticAnalyzer analyzer, CodeFixProvider codeFix)
         {
@@ -92,7 +92,7 @@ public abstract class CodeFixVerifier : DiagnosticVerifier
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    private class DummyAnalyzer : DiagnosticAnalyzer
+class DummyAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
         public override void Initialize(AnalysisContext context)
@@ -102,7 +102,7 @@ public abstract class CodeFixVerifier : DiagnosticVerifier
         }
     }
 
-    private class DummyCodeFixProvider : CodeFixProvider
+    class DummyCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray<string>.Empty;
         public override Task RegisterCodeFixesAsync(CodeFixContext context) => Task.CompletedTask;

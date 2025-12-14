@@ -11,8 +11,8 @@ public readonly partial struct RepeatArrayEnumerable<TSource>
     , ICollection<TSource>
     , IList<TSource>
 {
-    private readonly TSource[] source;
-    private readonly int count;
+    readonly TSource[] source;
+    readonly int count;
 
     internal RepeatArrayEnumerable(TSource[] source, int count)
     {
@@ -131,9 +131,9 @@ public readonly partial struct RepeatArrayEnumerable<TSource>
     public struct Enumerator
         : IEnumerator<TSource>
     {
-        private readonly TSource[] source;
-        private int remaining;
-        private int index;
+        readonly TSource[] source;
+        int remaining;
+        int index;
 
         internal Enumerator(in RepeatArrayEnumerable<TSource> enumerable)
         {

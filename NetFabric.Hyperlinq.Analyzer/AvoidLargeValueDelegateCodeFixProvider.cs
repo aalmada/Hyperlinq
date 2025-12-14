@@ -47,7 +47,7 @@ public class AvoidLargeValueDelegateCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private async Task<Document> ImplementIFunctionInAsync(Document document, StructDeclarationSyntax structDeclaration, CancellationToken cancellationToken)
+    async Task<Document> ImplementIFunctionInAsync(Document document, StructDeclarationSyntax structDeclaration, CancellationToken cancellationToken)
     {
         // 1. Add Interface to Base List (using manual syntax to ensure correct format)
         var ifunctionBase = structDeclaration.BaseList?.Types.FirstOrDefault(t =>

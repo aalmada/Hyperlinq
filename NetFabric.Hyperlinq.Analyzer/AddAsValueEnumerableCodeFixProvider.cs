@@ -15,7 +15,7 @@ namespace NetFabric.Hyperlinq.Analyzer;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AddAsValueEnumerableCodeFixProvider)), Shared]
 public class AddAsValueEnumerableCodeFixProvider : CodeFixProvider
 {
-    private const string NetFabricHyperlinkNamespace = "NetFabric.Hyperlinq";
+    const string NetFabricHyperlinkNamespace = "NetFabric.Hyperlinq";
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(AddAsValueEnumerableAnalyzer.DiagnosticId);
 
@@ -48,7 +48,7 @@ public class AddAsValueEnumerableCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private static async Task<Document> AddAsValueEnumerableAsync(
+    static async Task<Document> AddAsValueEnumerableAsync(
         Document document,
         ExpressionSyntax expression,
         SyntaxNode root,

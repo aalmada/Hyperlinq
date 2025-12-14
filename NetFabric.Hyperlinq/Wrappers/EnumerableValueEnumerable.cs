@@ -10,7 +10,7 @@ namespace NetFabric.Hyperlinq;
 /// </summary>
 public readonly struct EnumerableValueEnumerable<T> : IValueEnumerable<T, EnumerableValueEnumerable<T>.Enumerator>
 {
-    private readonly IEnumerable<T> source;
+    readonly IEnumerable<T> source;
 
     public EnumerableValueEnumerable(IEnumerable<T> source) => this.source = source ?? throw new ArgumentNullException(nameof(source));
 
@@ -22,7 +22,7 @@ public readonly struct EnumerableValueEnumerable<T> : IValueEnumerable<T, Enumer
 
     public struct Enumerator : IEnumerator<T>
     {
-        private readonly IEnumerator<T> enumerator;
+        readonly IEnumerator<T> enumerator;
 
         public Enumerator(IEnumerator<T> enumerator) => this.enumerator = enumerator;
 

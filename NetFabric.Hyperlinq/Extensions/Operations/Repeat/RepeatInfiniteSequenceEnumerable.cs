@@ -9,7 +9,7 @@ public readonly partial struct RepeatInfiniteSequenceEnumerable<TEnumerator, TSo
     : IValueEnumerable<TSource, RepeatInfiniteSequenceEnumerable<TEnumerator, TSource>.Enumerator>
     where TEnumerator : struct, IEnumerator<TSource>
 {
-    private readonly IValueEnumerable<TSource, TEnumerator> source;
+    readonly IValueEnumerable<TSource, TEnumerator> source;
 
     internal RepeatInfiniteSequenceEnumerable(IValueEnumerable<TSource, TEnumerator> source) => this.source = source;
 
@@ -22,8 +22,8 @@ public readonly partial struct RepeatInfiniteSequenceEnumerable<TEnumerator, TSo
     public struct Enumerator
         : IEnumerator<TSource>
     {
-        private readonly IValueEnumerable<TSource, TEnumerator> source;
-        private TEnumerator enumerator;
+        readonly IValueEnumerable<TSource, TEnumerator> source;
+        TEnumerator enumerator;
 
         internal Enumerator(in RepeatInfiniteSequenceEnumerable<TEnumerator, TSource> enumerable)
         {

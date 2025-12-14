@@ -45,7 +45,7 @@ public class AvoidSmallValueDelegateInCodeFixProvider : CodeFixProvider
             diagnostic);
     }
 
-    private async Task<Document> ImplementIFunctionAsync(Document document, StructDeclarationSyntax structDeclaration, CancellationToken cancellationToken)
+    async Task<Document> ImplementIFunctionAsync(Document document, StructDeclarationSyntax structDeclaration, CancellationToken cancellationToken)
     {
         // Similar logic to Large delegate fixer, but adding IFunction and Invoke(T)
 

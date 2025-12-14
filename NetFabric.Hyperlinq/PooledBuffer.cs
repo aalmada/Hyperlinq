@@ -11,9 +11,9 @@ namespace NetFabric.Hyperlinq;
 /// <typeparam name="T">The type of elements in the buffer.</typeparam>
 public readonly struct PooledBuffer<T> : IDisposable
 {
-    private readonly T[]? buffer;
-    private readonly int length;
-    private readonly ArrayPool<T>? pool;
+    readonly T[]? buffer;
+    readonly int length;
+    readonly ArrayPool<T>? pool;
 
     internal PooledBuffer(T[] buffer, int length, ArrayPool<T>? pool = null)
     {

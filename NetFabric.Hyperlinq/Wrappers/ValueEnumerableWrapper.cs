@@ -14,8 +14,8 @@ public readonly struct ValueEnumerableWrapper<TEnumerable, TEnumerator, TGetEnum
     where TEnumerator : struct, IEnumerator<TSource>
     where TGetEnumerator : struct, IFunction<TEnumerable, TEnumerator>
 {
-    private readonly TEnumerable source;
-    private readonly TGetEnumerator getEnumerator;
+    readonly TEnumerable source;
+    readonly TGetEnumerator getEnumerator;
 
     public ValueEnumerableWrapper(TEnumerable source, TGetEnumerator getEnumerator)
     {

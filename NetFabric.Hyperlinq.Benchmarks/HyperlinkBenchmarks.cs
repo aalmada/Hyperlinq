@@ -15,9 +15,9 @@ namespace NetFabric.Hyperlinq.Benchmarks;
 [CategoriesColumn]
 public class HyperlinkBenchmarks
 {
-    private IEnumerable<int> enumerable = null!;
-    private List<int> list = null!;
-    private int[] array = null!;
+    IEnumerable<int> enumerable = null!;
+    List<int> list = null!;
+    int[] array = null!;
 
     [Params(1_000, 10_000)]
     public int Count { get; set; }

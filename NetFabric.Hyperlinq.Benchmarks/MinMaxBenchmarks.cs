@@ -8,8 +8,8 @@ namespace NetFabric.Hyperlinq.Benchmarks;
 [CategoriesColumn]
 public class MinMaxBenchmarks
 {
-    private int[] array = null!;
-    private List<int> list = null!;
+    int[] array = null!;
+    List<int> list = null!;
 
     [Params(100, 1_000, 10_000)]
     public int Count { get; set; }

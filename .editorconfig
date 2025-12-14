@@ -74,6 +74,8 @@ csharp_style_prefer_switch_expression = true:warning
 csharp_style_conditional_delegate_call = true:warning
 
 # Modifier preferences
+dotnet_diagnostic.IDE0040.severity = warning
+dotnet_style_require_accessibility_modifiers = omit_if_default:warning
 csharp_prefer_static_local_function = true:warning
 
 # Code-block preferences
