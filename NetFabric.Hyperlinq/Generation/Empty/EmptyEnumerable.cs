@@ -68,8 +68,5 @@ public readonly partial struct EmptyEnumerable<T>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool = null)
-    {
-        pool ??= ArrayPool<T>.Shared;
-        return new PooledBuffer<T>(pool.Rent(0), 0, pool);
-    }
+        => PooledBuffer.Empty<T>();
 }

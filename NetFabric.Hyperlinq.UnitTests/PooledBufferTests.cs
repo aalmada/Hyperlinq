@@ -212,4 +212,13 @@ public class PooledBufferTests
         _ = buffer.Length.Must().BeEqualTo(expected.Length);
         _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
+
+    [Test]
+    public void Empty_ShouldReturnEmptyBuffer()
+    {
+        using var buffer = PooledBuffer.Empty<int>();
+
+        _ = buffer.Length.Must().BeEqualTo(0);
+        _ = buffer.AsSpan().Length.Must().BeEqualTo(0);
+    }
 }

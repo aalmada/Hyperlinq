@@ -109,7 +109,7 @@ struct ArrayBuilder<T> : IDisposable
             currentBuffer = null!;
             previousBuffers = null;
 
-            return new PooledBuffer<T>(Array.Empty<T>(), 0, pool);
+            return PooledBuffer.Empty<T>();
         }
 
         // Optimization: if we have a single chunk, transfer ownership

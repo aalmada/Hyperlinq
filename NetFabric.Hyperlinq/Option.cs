@@ -1,5 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Buffers;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
@@ -10,6 +13,7 @@ namespace NetFabric.Hyperlinq;
 /// </summary>
 /// <typeparam name="T">The type of the value.</typeparam>
 public readonly record struct Option<T>
+    : IValueReadOnlyList<T, Option<T>.Enumerator>, IList<T>
 {
     readonly bool _hasValue;
     readonly T _value;
@@ -152,4 +156,140 @@ public readonly record struct Option<T>
         => _hasValue
             ? bind(_value)
             : Option<TResult>.None();
+    
+    public int Count 
+        => _hasValue ? 1 : 0;
+
+    public T this[int index]
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            if (_hasValue && index == 0)
+            {
+                return _value;
+            }
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
+
+    T IList<T>.this[int index]
+    {
+        get => this[index];
+        set => throw new NotSupportedException();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Enumerator GetEnumerator() => new Enumerator(in this);
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(in this);
+    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(in this);
+
+    public struct Enumerator
+        : IEnumerator<T>
+    {
+        readonly T _value;
+        readonly bool _hasValue;
+        bool _enumerated;
+
+        internal Enumerator(in Option<T> option)
+        {
+            _value = option._value;
+            _hasValue = option._hasValue;
+            _enumerated = false;
+        }
+
+        public readonly T Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _value;
+        }
+
+        readonly object? IEnumerator.Current 
+            => _hasValue ? _value : null;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool MoveNext()
+        {
+            if (_hasValue && !_enumerated)
+            {
+                _enumerated = true;
+                return true;
+            }
+            return false;
+        }
+
+        public void Reset() => _enumerated = false;
+
+        public void Dispose() { }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Any() 
+        => _hasValue;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(T item)
+        => _hasValue && EqualityComparer<T>.Default.Equals(_value, item);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int IndexOf(T item)
+        => _hasValue && EqualityComparer<T>.Default.Equals(_value, item)
+            ? 0
+            : -1;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        if (array is null)
+        {
+             throw new ArgumentNullException(nameof(array));
+        }
+
+        if (arrayIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+        }
+
+        if (array.Length - arrayIndex < Count)
+        {
+            throw new ArgumentException("Destination array is not long enough.");
+        }
+
+        if (_hasValue)
+        {
+            array[arrayIndex] = _value;
+        }
+    }
+
+    bool ICollection<T>.IsReadOnly => true;
+    void ICollection<T>.Add(T item) => throw new NotSupportedException();
+    void ICollection<T>.Clear() => throw new NotSupportedException();
+    bool ICollection<T>.Remove(T item) => throw new NotSupportedException();
+    void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
+    void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T[] ToArray()
+        => _hasValue ? [_value] : Array.Empty<T>();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<T> ToList()
+        => _hasValue ? [_value] : new List<T>();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool = null)
+    {
+        if (_hasValue)
+        {
+            pool ??= ArrayPool<T>.Shared;
+            var result = pool.Rent(1);
+            result[0] = _value;
+            return new PooledBuffer<T>(result, 1, pool);
+        }
+        else
+        {
+            return PooledBuffer.Empty<T>();
+        }
+    }
 }

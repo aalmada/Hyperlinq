@@ -5,6 +5,20 @@ using System.Runtime.CompilerServices;
 namespace NetFabric.Hyperlinq;
 
 /// <summary>
+/// Provides static methods for creating <see cref="PooledBuffer{T}"/> instances.
+/// </summary>
+public static class PooledBuffer
+{
+    /// <summary>
+    /// Returns an empty pooled buffer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the buffer.</typeparam>
+    /// <returns>An empty <see cref="PooledBuffer{T}"/>.</returns>
+    public static PooledBuffer<T> Empty<T>() 
+        => new PooledBuffer<T>(Array.Empty<T>(), 0, null);
+}
+
+/// <summary>
 /// A disposable wrapper around a pooled array from ArrayPool&lt;T&gt;.
 /// Must be disposed to return the buffer to the pool.
 /// </summary>
@@ -21,6 +35,7 @@ public readonly struct PooledBuffer<T> : IDisposable
         this.length = length;
         this.pool = pool;
     }
+
 
     /// <summary>
     /// Gets the number of elements in the buffer.

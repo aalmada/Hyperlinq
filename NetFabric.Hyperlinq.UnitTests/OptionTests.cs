@@ -283,4 +283,98 @@ public class OptionTests
 
         _ = result.HasValue.Must().BeFalse();
     }
+    [Test]
+    public void Count_WhenHasValue_ShouldBeOne()
+    {
+        var option = Option<int>.Some(42);
+        _ = option.Count.Must().BeEqualTo(1);
+    }
+
+    [Test]
+    public void Count_WhenNoValue_ShouldBeZero()
+    {
+        var option = Option<int>.None();
+        _ = option.Count.Must().BeEqualTo(0);
+    }
+
+    [Test]
+    public void GetEnumerator_WhenHasValue_ShouldIterateOnce()
+    {
+        var option = Option<int>.Some(42);
+        var count = 0;
+        foreach (var item in option)
+        {
+            _ = item.Must().BeEqualTo(42);
+            count++;
+        }
+        _ = count.Must().BeEqualTo(1);
+    }
+
+    [Test]
+    public void GetEnumerator_WhenNoValue_ShouldNotIterate()
+    {
+        var option = Option<int>.None();
+        var count = 0;
+        foreach (var item in option)
+        {
+            count++;
+        }
+        _ = count.Must().BeEqualTo(0);
+    }
+
+    [Test]
+    public void Any_WhenHasValue_ShouldBeTrue()
+    {
+        var option = Option<int>.Some(42);
+        _ = option.Any().Must().BeTrue();
+    }
+
+    [Test]
+    public void Any_WhenNoValue_ShouldBeFalse()
+    {
+        var option = Option<int>.None();
+        _ = option.Any().Must().BeFalse();
+    }
+
+    [Test]
+    public void Contains_WhenHasValue_AndContainsItem_ShouldBeTrue()
+    {
+        var option = Option<int>.Some(42);
+        _ = option.Contains(42).Must().BeTrue();
+    }
+
+    [Test]
+    public void Contains_WhenHasValue_AndDoesNotContainItem_ShouldBeFalse()
+    {
+        var option = Option<int>.Some(42);
+        _ = option.Contains(99).Must().BeFalse();
+    }
+
+    [Test]
+    public void Contains_WhenNoValue_ShouldBeFalse()
+    {
+        var option = Option<int>.None();
+        _ = option.Contains(42).Must().BeFalse();
+    }
+
+    [Test]
+    public void IndexOf_WhenHasValue_AndContainsItem_ShouldBeZero()
+    {
+        var option = Option<int>.Some(42);
+        _ = option.IndexOf(42).Must().BeEqualTo(0);
+    }
+
+    [Test]
+    public void IndexOf_WhenHasValue_AndDoesNotContainItem_ShouldBeNegative()
+    {
+        var option = Option<int>.Some(42);
+        _ = option.IndexOf(99).Must().BeEqualTo(-1);
+    }
+
+    [Test]
+    public void IndexOf_WhenNoValue_ShouldBeNegative()
+    {
+        var option = Option<int>.None();
+        _ = option.IndexOf(42).Must().BeEqualTo(-1);
+    }
 }
