@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -26,6 +27,17 @@ public readonly struct WhereSelectEnumerable<TSource, TResult> : IValueEnumerabl
     public Enumerator GetEnumerator() => new Enumerator(source.GetEnumerator(), predicate, selector);
     IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public List<TResult> ToList()
+    {
+        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        using var enumerator = GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            builder.Add(enumerator.Current);
+        }
+        return builder.ToList();
+    }
 
     public struct Enumerator : IEnumerator<TResult>
     {

@@ -316,7 +316,7 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        var list = new List<TResult>();
+        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
         var span = source.Source;
         var predicate = source.Predicate;
         var selector = source.Selector;
@@ -324,10 +324,10 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         {
             if (predicate.Invoke(item))
             {
-                list.Add(selector.Invoke(item));
+                builder.Add(selector.Invoke(item));
             }
         }
-        return list;
+        return builder.ToList();
     }
 
     public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult, TPredicate, TSelector>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult, TPredicate, TSelector> source)

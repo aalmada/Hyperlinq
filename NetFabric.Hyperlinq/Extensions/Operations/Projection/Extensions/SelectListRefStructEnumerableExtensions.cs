@@ -102,11 +102,14 @@ public static partial class SelectListRefStructEnumerableExtensions
     {
         var list = source.Source;
         var selector = source.Selector;
-        var result = new List<TResult>(list.Count);
-        var span = CollectionsMarshal.AsSpan(list);
-        for (var i = 0; i < span.Length; i++)
+        var count = list.Count;
+        var result = new List<TResult>(count);
+        CollectionsMarshal.SetCount(result, count);
+        var destination = CollectionsMarshal.AsSpan(result);
+        var sourceSpan = CollectionsMarshal.AsSpan(list);
+        for (var i = 0; i < count; i++)
         {
-            result.Add(selector(span[i]));
+            destination[i] = selector(sourceSpan[i]);
         }
 
         return result;

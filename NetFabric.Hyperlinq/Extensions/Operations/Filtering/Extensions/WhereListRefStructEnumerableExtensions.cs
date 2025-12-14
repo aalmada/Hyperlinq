@@ -181,17 +181,17 @@ public static partial class WhereListRefStructEnumerableExtensions
 
     public static List<TSource> ToList<TSource>(this WhereListRefStructEnumerable<TSource> source)
     {
-        var list = new List<TSource>();
+        using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        foreach (var item in span)
         {
-            if (predicate(span[i]))
+            if (predicate(item))
             {
-                list.Add(span[i]);
+                builder.Add(item);
             }
         }
-        return list;
+        return builder.ToList();
     }
 
     public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListRefStructEnumerable<TSource> source)

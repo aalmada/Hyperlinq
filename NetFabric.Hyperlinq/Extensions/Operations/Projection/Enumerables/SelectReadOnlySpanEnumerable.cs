@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
@@ -78,10 +79,13 @@ public readonly ref struct SelectReadOnlySpanEnumerable<TSource, TResult, TSelec
 
     public List<TResult> ToList()
     {
-        var list = new List<TResult>(source.Length);
-        foreach (ref readonly var item in source)
+        var count = source.Length;
+        var list = new List<TResult>(count);
+        CollectionsMarshal.SetCount(list, count);
+        var destination = CollectionsMarshal.AsSpan(list);
+        for (var i = 0; i < count; i++)
         {
-            list.Add(selector.Invoke(item));
+            destination[i] = selector.Invoke(source[i]);
         }
         return list;
     }

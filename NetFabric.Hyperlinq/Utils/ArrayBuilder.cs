@@ -1,7 +1,9 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
@@ -70,6 +72,31 @@ struct ArrayBuilder<T> : IDisposable
 
         var result = new T[totalCount];
         var destination = result.AsSpan();
+
+        if (previousBuffers is not null)
+        {
+            foreach (var buffer in previousBuffers.AsSpan(0, previousBuffersCount))
+            {
+                buffer.AsSpan().CopyTo(destination);
+                destination = destination.Slice(buffer.Length);
+            }
+        }
+
+        currentBuffer.AsSpan(0, currentCount).CopyTo(destination);
+
+        return result;
+    }
+
+    public List<T> ToList()
+    {
+        if (totalCount == 0)
+        {
+            return new List<T>();
+        }
+
+        var result = new List<T>(totalCount);
+        CollectionsMarshal.SetCount(result, totalCount);
+        var destination = CollectionsMarshal.AsSpan(result);
 
         if (previousBuffers is not null)
         {

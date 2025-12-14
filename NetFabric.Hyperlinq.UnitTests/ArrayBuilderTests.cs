@@ -131,4 +131,34 @@ public class ArrayBuilderTests
         _ = pool.Returns.Count.Must().BeEqualTo(1);
         _ = pool.Returns[0].clearArray.Must().BeTrue();
     }
+    [Test]
+    public void ArrayBuilder_ToList_ShouldReturnCorrectData()
+    {
+        using var builder = new ArrayBuilder<int>(ArrayPool<int>.Shared);
+        builder.Add(1);
+        builder.Add(2);
+        builder.Add(3);
+
+        var result = builder.ToList();
+
+        _ = result.Must().BeEnumerableOf<int>().BeEqualTo(new[] { 1, 2, 3 });
+        _ = result.GetType().Must().BeEqualTo(typeof(List<int>));
+    }
+
+    [Test]
+    public void ArrayBuilder_ToList_MultipleChunks_ShouldReturnCorrectData()
+    {
+        using var builder = new ArrayBuilder<int>(ArrayPool<int>.Shared);
+        // Default capacity is 4. Add 10 items to force growth.
+        var input = Enumerable.Range(0, 10).ToArray();
+        foreach (var item in input)
+        {
+            builder.Add(item);
+        }
+
+        var result = builder.ToList();
+
+        _ = result.Must().BeEnumerableOf<int>().BeEqualTo(input);
+        _ = result.GetType().Must().BeEqualTo(typeof(List<int>));
+    }
 }

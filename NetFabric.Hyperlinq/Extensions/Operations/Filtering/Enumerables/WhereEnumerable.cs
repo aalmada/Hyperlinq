@@ -39,6 +39,17 @@ public readonly struct WhereEnumerable<TSource> : IValueEnumerable<TSource, Wher
         return builder.ToPooledBuffer();
     }
 
+    public List<TSource> ToList()
+    {
+        using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
+        using var enumerator = GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            builder.Add(enumerator.Current);
+        }
+        return builder.ToList();
+    }
+
     public struct Enumerator : IEnumerator<TSource>
     {
         readonly IEnumerator<TSource> sourceEnumerator;

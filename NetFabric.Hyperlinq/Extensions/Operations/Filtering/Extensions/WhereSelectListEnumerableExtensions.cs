@@ -335,18 +335,18 @@ public static partial class WhereSelectListEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        var list = new List<TResult>();
+        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        for (var i = 0; i < span.Length; i++)
+        foreach (var item in span)
         {
-            if (predicate.Invoke(span[i]))
+            if (predicate.Invoke(item))
             {
-                list.Add(selector.Invoke(span[i]));
+                builder.Add(selector.Invoke(item));
             }
         }
-        return list;
+        return builder.ToList();
     }
 
     public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)

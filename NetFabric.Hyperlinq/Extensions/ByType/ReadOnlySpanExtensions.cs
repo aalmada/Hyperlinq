@@ -654,15 +654,15 @@ public static partial class ReadOnlySpanExtensions
     static List<T> ToListImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunction<T, bool>
     {
-        var list = new List<T>();
+        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared);
         foreach (var item in source)
         {
             if (predicate.Invoke(item))
             {
-                list.Add(item);
+                builder.Add(item);
             }
         }
-        return list;
+        return builder.ToList();
     }
 
     static PooledBuffer<T> ToArrayPooledImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
@@ -696,15 +696,15 @@ public static partial class ReadOnlySpanExtensions
     static List<T> ToListInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
-        var list = new List<T>();
+        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared);
         foreach (var item in source)
         {
             if (predicate.Invoke(in item))
             {
-                list.Add(item);
+                builder.Add(item);
             }
         }
-        return list;
+        return builder.ToList();
     }
 
     static PooledBuffer<T> ToArrayPooledInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
