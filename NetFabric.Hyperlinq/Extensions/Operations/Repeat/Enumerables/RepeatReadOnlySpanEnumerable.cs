@@ -105,8 +105,38 @@ public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
             return Array.Empty<TSource>();
         }
 
-        var result = new TSource[length];
+        var result = GC.AllocateUninitializedArray<TSource>(length);
         CopyTo(result);
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public PooledBuffer<TSource> ToArrayPooled(ArrayPool<TSource>? pool = null)
+    {
+        var length = Count;
+        if (length == 0)
+        {
+            return PooledBuffer.Empty<TSource>();
+        }
+
+        pool ??= ArrayPool<TSource>.Shared;
+        var buffer = pool.Rent(length);
+        CopyTo(buffer.AsSpan(0, length));
+        return new PooledBuffer<TSource>(buffer, length, pool);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<TSource> ToList()
+    {
+        var length = Count;
+        if (length == 0)
+        {
+            return new List<TSource>();
+        }
+
+        var result = new List<TSource>(length);
+        CollectionsMarshal.SetCount(result, length);
+        CopyTo(CollectionsMarshal.AsSpan(result));
         return result;
     }
 

@@ -28,13 +28,28 @@ public readonly struct WhereEnumerable<TSource> : IValueEnumerable<TSource, Wher
     IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+    public TSource[] ToArray()
+    {
+        using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
+        foreach (var item in source)
+        {
+            if (predicate(item))
+            {
+                builder.Add(item);
+            }
+        }
+        return builder.ToArray();
+    }
+
     public PooledBuffer<TSource> ToArrayPooled(ArrayPool<TSource>? pool = null)
     {
         using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
-        using var enumerator = GetEnumerator();
-        while (enumerator.MoveNext())
+        foreach (var item in source)
         {
-            builder.Add(enumerator.Current);
+            if (predicate(item))
+            {
+                builder.Add(item);
+            }
         }
         return builder.ToPooledBuffer();
     }
@@ -42,10 +57,12 @@ public readonly struct WhereEnumerable<TSource> : IValueEnumerable<TSource, Wher
     public List<TSource> ToList()
     {
         using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
-        using var enumerator = GetEnumerator();
-        while (enumerator.MoveNext())
+        foreach (var item in source)
         {
-            builder.Add(enumerator.Current);
+            if (predicate(item))
+            {
+                builder.Add(item);
+            }
         }
         return builder.ToList();
     }

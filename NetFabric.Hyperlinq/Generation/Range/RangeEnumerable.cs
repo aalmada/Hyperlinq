@@ -105,11 +105,10 @@ public readonly partial struct RangeEnumerable
             throw new ArgumentException("Destination array is not long enough.");
         }
 
-        var current = start;
         var span = array.AsSpan(arrayIndex, count);
-        foreach (ref var item in span)
+        for (var i = 0; i < count; i++)
         {
-            item = current++;
+            span[i] = start + i;
         }
     }
 
@@ -128,12 +127,11 @@ public readonly partial struct RangeEnumerable
             return Array.Empty<int>();
         }
 
-        var result = new int[count];
+        var result = GC.AllocateUninitializedArray<int>(count);
         var span = result.AsSpan();
-        var current = start;
-        foreach (ref var item in span)
+        for (var i = 0; i < count; i++)
         {
-            item = current++;
+            span[i] = start + i;
         }
         return result;
     }
@@ -144,10 +142,9 @@ public readonly partial struct RangeEnumerable
         var result = new List<int>(count);
         CollectionsMarshal.SetCount(result, count);
         var span = CollectionsMarshal.AsSpan(result);
-        var current = start;
-        foreach (ref var item in span)
+        for (var i = 0; i < count; i++)
         {
-            item = current++;
+            span[i] = start + i;
         }
         return result;
     }
@@ -160,10 +157,9 @@ public readonly partial struct RangeEnumerable
         if (count > 0)
         {
             var span = result.AsSpan(0, count);
-            var current = start;
-            foreach (ref var item in span)
+            for (var i = 0; i < count; i++)
             {
-                item = current++;
+                span[i] = start + i;
             }
         }
         return new PooledBuffer<int>(result, count, pool);

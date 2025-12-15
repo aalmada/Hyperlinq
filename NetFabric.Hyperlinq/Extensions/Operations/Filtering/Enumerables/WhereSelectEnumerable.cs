@@ -28,13 +28,41 @@ public readonly struct WhereSelectEnumerable<TSource, TResult> : IValueEnumerabl
     IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+    public TResult[] ToArray()
+    {
+        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        foreach (var item in source)
+        {
+            if (predicate(item))
+            {
+                builder.Add(selector(item));
+            }
+        }
+        return builder.ToArray();
+    }
+
+    public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
+    {
+        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
+        foreach (var item in source)
+        {
+            if (predicate(item))
+            {
+                builder.Add(selector(item));
+            }
+        }
+        return builder.ToPooledBuffer();
+    }
+
     public List<TResult> ToList()
     {
         using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
-        using var enumerator = GetEnumerator();
-        while (enumerator.MoveNext())
+        foreach (var item in source)
         {
-            builder.Add(enumerator.Current);
+            if (predicate(item))
+            {
+                builder.Add(selector(item));
+            }
         }
         return builder.ToList();
     }

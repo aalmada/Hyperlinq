@@ -299,16 +299,9 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TSelector : struct, IFunction<TSource, TResult>
     {
         using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
-        var span = source.Source;
         var predicate = source.Predicate;
         var selector = source.Selector;
-        for (var i = 0; i < span.Length; i++)
-        {
-            if (predicate.Invoke(span[i]))
-            {
-                builder.Add(selector.Invoke(span[i]));
-            }
-        }
+        builder.Add(source.Source, in predicate, in selector);
         return builder.ToArray();
     }
 
@@ -317,16 +310,9 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TSelector : struct, IFunction<TSource, TResult>
     {
         using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
-        var span = source.Source;
         var predicate = source.Predicate;
         var selector = source.Selector;
-        foreach (var item in span)
-        {
-            if (predicate.Invoke(item))
-            {
-                builder.Add(selector.Invoke(item));
-            }
-        }
+        builder.Add(source.Source, in predicate, in selector);
         return builder.ToList();
     }
 
@@ -340,16 +326,9 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TSelector : struct, IFunction<TSource, TResult>
     {
         using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
-        var span = source.Source;
         var predicate = source.Predicate;
         var selector = source.Selector;
-        for (var i = 0; i < span.Length; i++)
-        {
-            if (predicate.Invoke(span[i]))
-            {
-                builder.Add(selector.Invoke(span[i]));
-            }
-        }
+        builder.Add(source.Source, in predicate, in selector);
         return builder.ToPooledBuffer();
     }
 

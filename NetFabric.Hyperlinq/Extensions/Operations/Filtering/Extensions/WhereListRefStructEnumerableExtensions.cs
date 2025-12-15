@@ -167,30 +167,16 @@ public static partial class WhereListRefStructEnumerableExtensions
     public static TSource[] ToArray<TSource>(this WhereListRefStructEnumerable<TSource> source, ArrayPool<TSource>? pool = default)
     {
         using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
-        {
-            if (predicate(span[i]))
-            {
-                builder.Add(span[i]);
-            }
-        }
+        var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
+        builder.AddFunc(CollectionsMarshal.AsSpan(source.Source), in wrapper);
         return builder.ToArray();
     }
 
     public static List<TSource> ToList<TSource>(this WhereListRefStructEnumerable<TSource> source)
     {
         using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        foreach (var item in span)
-        {
-            if (predicate(item))
-            {
-                builder.Add(item);
-            }
-        }
+        var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
+        builder.AddFunc(CollectionsMarshal.AsSpan(source.Source), in wrapper);
         return builder.ToList();
     }
 
@@ -200,15 +186,8 @@ public static partial class WhereListRefStructEnumerableExtensions
     public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListRefStructEnumerable<TSource> source, ArrayPool<TSource>? pool)
     {
         using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
-        {
-            if (predicate(span[i]))
-            {
-                builder.Add(span[i]);
-            }
-        }
+        var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
+        builder.AddFunc(CollectionsMarshal.AsSpan(source.Source), in wrapper);
         return builder.ToPooledBuffer();
     }
 }

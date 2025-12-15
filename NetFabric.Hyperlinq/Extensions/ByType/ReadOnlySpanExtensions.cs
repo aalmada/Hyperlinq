@@ -641,13 +641,7 @@ public static partial class ReadOnlySpanExtensions
         where TPredicate : struct, IFunction<T, bool>
     {
         using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(item))
-            {
-                builder.Add(item);
-            }
-        }
+        builder.AddFunc(source, in predicate);
         return builder.ToArray();
     }
 
@@ -655,13 +649,7 @@ public static partial class ReadOnlySpanExtensions
         where TPredicate : struct, IFunction<T, bool>
     {
         using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(item))
-            {
-                builder.Add(item);
-            }
-        }
+        builder.AddFunc(source, in predicate);
         return builder.ToList();
     }
 
@@ -669,13 +657,7 @@ public static partial class ReadOnlySpanExtensions
         where TPredicate : struct, IFunction<T, bool>
     {
         using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(item))
-            {
-                builder.Add(item);
-            }
-        }
+        builder.AddFunc(source, in predicate);
         return builder.ToPooledBuffer();
     }
 
@@ -683,13 +665,7 @@ public static partial class ReadOnlySpanExtensions
         where TPredicate : struct, IFunctionIn<T, bool>
     {
         using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(in item))
-            {
-                builder.Add(item);
-            }
-        }
+        builder.Add(source, in predicate);
         return builder.ToArray();
     }
 
@@ -697,13 +673,7 @@ public static partial class ReadOnlySpanExtensions
         where TPredicate : struct, IFunctionIn<T, bool>
     {
         using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(in item))
-            {
-                builder.Add(item);
-            }
-        }
+        builder.Add(source, in predicate);
         return builder.ToList();
     }
 
@@ -711,13 +681,7 @@ public static partial class ReadOnlySpanExtensions
         where TPredicate : struct, IFunctionIn<T, bool>
     {
         using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(in item))
-            {
-                builder.Add(item);
-            }
-        }
+        builder.Add(source, in predicate);
         return builder.ToPooledBuffer();
     }
 

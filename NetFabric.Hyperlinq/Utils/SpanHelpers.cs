@@ -233,7 +233,7 @@ static class SpanHelpers
         TSelector selector)
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        var array = new TResult[source.Length];
+        var array = GC.AllocateUninitializedArray<TResult>(source.Length);
         var index = 0;
         foreach (ref readonly var item in source)
         {
@@ -251,7 +251,7 @@ static class SpanHelpers
         in TSelector selector)
         where TSelector : struct, IFunctionIn<TSource, TResult>
     {
-        var array = new TResult[source.Length];
+        var array = GC.AllocateUninitializedArray<TResult>(source.Length);
         var index = 0;
         foreach (ref readonly var item in source)
         {

@@ -123,7 +123,7 @@ public readonly partial struct RepeatEnumerable<T>
             return Array.Empty<T>();
         }
 
-        var result = new T[count];
+        var result = GC.AllocateUninitializedArray<T>(count);
         Array.Fill(result, element);
         return result;
     }

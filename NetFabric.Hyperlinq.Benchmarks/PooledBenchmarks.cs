@@ -15,7 +15,7 @@ public class PooledBenchmarks
     int[] array = null!;
     List<int> list = null!;
 
-    [Params(100, 1_000, 10_000)]
+    [Params(10_000)]
     public int Count { get; set; }
 
     [GlobalSetup]
@@ -131,4 +131,24 @@ public class PooledBenchmarks
         => ValueEnumerable.Range(0, Count).ToList();
 
 
+
+    // ===== Select_ToList =====
+
+    [BenchmarkCategory("Select_ToList"), Benchmark(Baseline = true)]
+    public List<int> Select_ToList_LINQ()
+        => Enumerable.ToList(Enumerable.Select(array, x => x * 2));
+
+    [BenchmarkCategory("Select_ToList"), Benchmark]
+    public List<int> Select_ToList_Hyperlinq()
+        => array.AsSpan().Select(x => x * 2).ToList();
+
+    // ===== WhereSelect_ToList =====
+
+    [BenchmarkCategory("WhereSelect_ToList"), Benchmark(Baseline = true)]
+    public List<int> WhereSelect_ToList_LINQ()
+        => Enumerable.ToList(Enumerable.Select(Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
+
+    [BenchmarkCategory("WhereSelect_ToList"), Benchmark]
+    public List<int> WhereSelect_ToList_Hyperlinq()
+        => array.AsSpan().Where(x => x % 2 == 0).Select(x => x * 2).ToList();
 }

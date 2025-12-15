@@ -73,7 +73,7 @@ public static partial class SelectListRefStructEnumerableExtensions
     {
         var list = source.Source;
         var selector = source.Selector;
-        var array = new TResult[list.Count];
+        var array = GC.AllocateUninitializedArray<TResult>(list.Count);
         var span = CollectionsMarshal.AsSpan(list);
         for (var i = 0; i < span.Length; i++)
         {
