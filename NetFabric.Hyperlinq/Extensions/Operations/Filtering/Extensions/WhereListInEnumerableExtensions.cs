@@ -23,20 +23,4 @@ public static partial class WhereListInEnumerableExtensions
         var predicate = source.Predicate;
         return CollectionsMarshal.AsSpan(source.Source).ToList(in predicate);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListInEnumerable<TSource, TPredicate> source)
-        where TPredicate : struct, IFunctionIn<TSource, bool>
-    {
-        var predicate = source.Predicate;
-        return CollectionsMarshal.AsSpan(source.Source).ToArrayPooled(in predicate);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListInEnumerable<TSource, TPredicate> source, ArrayPool<TSource>? pool)
-        where TPredicate : struct, IFunctionIn<TSource, bool>
-    {
-        var predicate = source.Predicate;
-        return CollectionsMarshal.AsSpan(source.Source).ToArrayPooled(in predicate, pool);
-    }
 }

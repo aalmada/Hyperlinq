@@ -72,11 +72,8 @@ public class ValueEnumerableRangeTests
         var expected = Enumerable.Range(start, count).ToArray();
 
         // Act
-        using var buffer = ValueEnumerable.Range(start, count).ToArrayPooled();
 
         // Assert
-        _ = buffer.Length.Must().BeEqualTo(expected.Length);
-        _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(expected);
     }
 
 

@@ -258,24 +258,6 @@ public static partial class ArrayValueEnumerableExtensions
             => source.Source.ToArray(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<T> ToArrayPooled()
-            => source.Source.ToArrayPooled((ArrayPool<T>?)null);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool)
-            => source.Source.ToArrayPooled(pool);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<T> ToArrayPooled<TPredicate>(TPredicate predicate)
-            where TPredicate : struct, IFunction<T, bool>
-            => source.Source.ToArrayPooled(predicate);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<T> ToArrayPooled<TPredicate>(TPredicate predicate, ArrayPool<T>? pool)
-            where TPredicate : struct, IFunction<T, bool>
-            => source.Source.ToArrayPooled(predicate, pool);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<T> ToList()
             => new List<T>(source.Source);
 

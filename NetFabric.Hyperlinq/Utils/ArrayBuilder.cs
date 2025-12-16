@@ -9,319 +9,497 @@ namespace NetFabric.Hyperlinq;
 
 /// <summary>
 /// A builder for arrays that uses pooled buffers to minimize allocations.
+/// Uses a LINQ-like pattern with scratch buffer and simple per-item adds.
 /// </summary>
 /// <typeparam name="T">The type of elements in the array.</typeparam>
-internal ref struct ArrayBuilder<T>
+ref struct ArrayBuilder<T>
 {
-    const int DefaultCapacity = 4;
-    const int MaxSubArrays = 32; // Enough for 4 billion elements with doubling strategy
+    const int ScratchBufferSize = 8;
+    const int MinimumRentSize = 16;
+
+    /// <summary>
+    /// Stack-allocated scratch buffer for small collections.
+    /// </summary>
+    [InlineArray(ScratchBufferSize)]
+    public struct ScratchBuffer
+    {
+        private T _element0;
+    }
 
     readonly ArrayPool<T> pool;
-    T[] currentBuffer;
-    int currentCount;
-    BackboneArrays previousBuffers;
-    int previousBuffersCount;
-    int totalCount;
+    Span<T> firstSegment;
+    Span<T> currentSegment;
+    BackboneArrays segments;
+    int segmentsCount;
+    int countInFinishedSegments;
+    int countInCurrentSegment;
 
-    [InlineArray(MaxSubArrays)]
+    [InlineArray(32)]
     struct BackboneArrays
     {
         private T[] _element0;
     }
 
-    public ArrayBuilder(ArrayPool<T> pool)
+    /// <summary>
+    /// Initialize the builder with a scratch buffer.
+    /// </summary>
+    /// <param name="pool">The array pool to use for renting arrays.</param>
+    /// <param name="scratchBuffer">A stack-allocated buffer for small collections.</param>
+    public ArrayBuilder(ArrayPool<T> pool, Span<T> scratchBuffer)
     {
         this.pool = pool;
-        currentBuffer = pool.Rent(DefaultCapacity);
-        currentCount = 0;
-        previousBuffers = default;
-        previousBuffersCount = 0;
-        totalCount = 0;
+        firstSegment = scratchBuffer;
+        currentSegment = scratchBuffer;
+        segments = default;
+        segmentsCount = 0;
+        countInFinishedSegments = 0;
+        countInCurrentSegment = 0;
     }
 
+    /// <summary>
+    /// Initialize the builder with a specific capacity (for known-size operations).
+    /// </summary>
+    /// <param name="pool">The array pool to use for renting arrays.</param>
+    /// <param name="capacity">The initial capacity.</param>
+    public ArrayBuilder(ArrayPool<T> pool, int capacity)
+    {
+        this.pool = pool;
+        var buffer = pool.Rent(Math.Max(capacity, MinimumRentSize));
+        firstSegment = buffer;
+        currentSegment = buffer;
+        segments = default;
+        segments[0] = buffer;
+        segmentsCount = 0; // Will be set to 1 on first Expand
+        countInFinishedSegments = 0;
+        countInCurrentSegment = 0;
+    }
+
+    /// <summary>
+    /// Initialize the builder with a pool and default capacity.
+    /// </summary>
+    /// <param name="pool">The array pool to use for renting arrays.</param>
+    public ArrayBuilder(ArrayPool<T> pool)
+        : this(pool, MinimumRentSize)
+    {
+    }
+
+    /// <summary>
+    /// Initialize the builder with ArrayPool.Shared and a specific capacity.
+    /// </summary>
+    /// <param name="capacity">The initial capacity.</param>
+    public ArrayBuilder(int capacity)
+        : this(ArrayPool<T>.Shared, capacity)
+    {
+    }
+
+    /// <summary>
+    /// Gets the total number of elements in the builder.
+    /// </summary>
+    public readonly int Count => countInFinishedSegments + countInCurrentSegment;
+
+    /// <summary>
+    /// Adds an item to the builder.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(T item)
     {
-        if ((uint)currentCount >= (uint)currentBuffer.Length)
+        Span<T> currentSegment = this.currentSegment;
+        int countInCurrentSegment = this.countInCurrentSegment;
+        if ((uint)countInCurrentSegment < (uint)currentSegment.Length)
         {
-            Grow();
+            currentSegment[countInCurrentSegment] = item;
+            this.countInCurrentSegment++;
         }
-
-        ref var destination = ref MemoryMarshal.GetArrayDataReference(currentBuffer);
-        Unsafe.Add(ref destination, currentCount++) = item;
+        else
+        {
+            AddSlow(item);
+        }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Add<TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
-        where TPredicate : struct, IFunction<T, bool>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    void AddSlow(T item)
     {
-        var count = currentCount;
-        var buffer = currentBuffer;
-        var length = buffer.Length;
-        ref var destination = ref MemoryMarshal.GetArrayDataReference(buffer);
-
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(item))
-            {
-                if ((uint)count >= (uint)length)
-                {
-                    currentCount = count;
-                    Grow();
-                    buffer = currentBuffer;
-                    length = buffer.Length;
-                    destination = ref MemoryMarshal.GetArrayDataReference(buffer);
-                    count = 0;
-                }
-
-                Unsafe.Add(ref destination, count++) = item;
-            }
-        }
-
-        currentCount = count;
+        Expand();
+        currentSegment[0] = item;
+        countInCurrentSegment = 1;
     }
 
+    /// <summary>
+    /// Adds filtered and projected items from a source span.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add<TSource, TPredicate, TSelector>(ReadOnlySpan<TSource> source, in TPredicate predicate, in TSelector selector)
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, T>
     {
-        var count = currentCount;
-        var buffer = currentBuffer;
-        var length = buffer.Length;
-        ref var destination = ref MemoryMarshal.GetArrayDataReference(buffer);
+        Span<T> currentSegment = this.currentSegment;
+        int countInCurrentSegment = this.countInCurrentSegment;
 
         foreach (var item in source)
         {
             if (predicate.Invoke(item))
             {
-                if ((uint)count >= (uint)length)
+                if ((uint)countInCurrentSegment < (uint)currentSegment.Length)
                 {
-                    currentCount = count;
-                    Grow();
-                    buffer = currentBuffer;
-                    length = buffer.Length;
-                    destination = ref MemoryMarshal.GetArrayDataReference(buffer);
-                    count = 0;
+                    currentSegment[countInCurrentSegment] = selector.Invoke(item);
+                    countInCurrentSegment++;
                 }
-
-                Unsafe.Add(ref destination, count++) = selector.Invoke(item);
+                else
+                {
+                    this.countInCurrentSegment = countInCurrentSegment;
+                    Expand();
+                    currentSegment = this.currentSegment;
+                    currentSegment[0] = selector.Invoke(item);
+                    countInCurrentSegment = 1;
+                }
             }
         }
 
-        currentCount = count;
+        this.countInCurrentSegment = countInCurrentSegment;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void AddFunc<TPredicate>(ReadOnlySpan<T> source, in TPredicate predicate)
-        where TPredicate : struct, IFunction<T, bool>
-    {
-        var count = currentCount;
-        var buffer = currentBuffer;
-        var length = buffer.Length;
-        ref var destination = ref MemoryMarshal.GetArrayDataReference(buffer);
-
-        foreach (var item in source)
-        {
-            if (predicate.Invoke(item))
-            {
-                if ((uint)count >= (uint)length)
-                {
-                    currentCount = count;
-                    Grow();
-                    buffer = currentBuffer;
-                    length = buffer.Length;
-                    destination = ref MemoryMarshal.GetArrayDataReference(buffer);
-                    count = 0;
-                }
-
-                Unsafe.Add(ref destination, count++) = item;
-            }
-        }
-
-        currentCount = count;
-    }
-
+    /// <summary>
+    /// Adds filtered items from a source span.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add<TPredicate>(ReadOnlySpan<T> source, in TPredicate predicate)
+        where TPredicate : struct, IFunction<T, bool>
+    {
+        Span<T> currentSegment = this.currentSegment;
+        int countInCurrentSegment = this.countInCurrentSegment;
+
+        foreach (var item in source)
+        {
+            if (predicate.Invoke(item))
+            {
+                if ((uint)countInCurrentSegment < (uint)currentSegment.Length)
+                {
+                    currentSegment[countInCurrentSegment] = item;
+                    countInCurrentSegment++;
+                }
+                else
+                {
+                    this.countInCurrentSegment = countInCurrentSegment;
+                    Expand();
+                    currentSegment = this.currentSegment;
+                    currentSegment[0] = item;
+                    countInCurrentSegment = 1;
+                }
+            }
+        }
+
+        this.countInCurrentSegment = countInCurrentSegment;
+    }
+
+    /// <summary>
+    /// Adds filtered items from a source span using IFunctionIn.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddIn<TPredicate>(ReadOnlySpan<T> source, in TPredicate predicate)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
-        var count = currentCount;
-        var buffer = currentBuffer;
-        var length = buffer.Length;
-        ref var destination = ref MemoryMarshal.GetArrayDataReference(buffer);
+        Span<T> currentSegment = this.currentSegment;
+        int countInCurrentSegment = this.countInCurrentSegment;
 
         foreach (ref readonly var item in source)
         {
             if (predicate.Invoke(in item))
             {
-                if ((uint)count >= (uint)length)
+                if ((uint)countInCurrentSegment < (uint)currentSegment.Length)
                 {
-                    currentCount = count;
-                    Grow();
-                    buffer = currentBuffer;
-                    length = buffer.Length;
-                    destination = ref MemoryMarshal.GetArrayDataReference(buffer);
-                    count = 0;
+                    currentSegment[countInCurrentSegment] = item;
+                    countInCurrentSegment++;
                 }
-
-                Unsafe.Add(ref destination, count++) = item;
+                else
+                {
+                    this.countInCurrentSegment = countInCurrentSegment;
+                    Expand();
+                    currentSegment = this.currentSegment;
+                    currentSegment[0] = item;
+                    countInCurrentSegment = 1;
+                }
             }
         }
 
-        currentCount = count;
+        this.countInCurrentSegment = countInCurrentSegment;
     }
 
+    /// <summary>
+    /// Adds a range of items from an enumerable source.
+    /// Optimized for arrays, lists, and collections.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Add<TPredicate>(List<T> source, TPredicate predicate)
-        where TPredicate : struct, IFunction<T, bool>
-        => Add(CollectionsMarshal.AsSpan(source), predicate);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Add<TPredicate>(List<T> source, in TPredicate predicate)
-        where TPredicate : struct, IFunctionIn<T, bool>
-        => Add(CollectionsMarshal.AsSpan(source), in predicate);
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    void Grow()
+    public void AddRange(IEnumerable<T> source)
     {
-        if (previousBuffersCount == MaxSubArrays)
+        if (source is ICollection<T> collection)
         {
-            ThrowOutOfMemory();
+            int collectionCount = collection.Count;
+            if (collectionCount == 0)
+            {
+                return;
+            }
+
+            // Try span-based bulk copy first (fastest path)
+            if (TryGetSpan(source, out ReadOnlySpan<T> sourceSpan))
+            {
+                AddSpan(sourceSpan);
+                return;
+            }
+
+            // Try ICollection.CopyTo (fast path for collections)
+            if (TryAddCollection(collection, collectionCount))
+            {
+                return;
+            }
         }
 
-        previousBuffers[previousBuffersCount++] = currentBuffer;
-        totalCount += currentBuffer.Length;
+        // Fallback to enumeration (slowest path)
+        AddEnumerable(source);
+    }
 
-        var newCapacity = currentBuffer.Length * 2;
-        currentBuffer = pool.Rent(newCapacity);
-        currentCount = 0;
+    /// <summary>
+    /// Tries to get a span from common collection types.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    bool TryGetSpan(IEnumerable<T> source, out ReadOnlySpan<T> span)
+    {
+        if (source is T[] array)
+        {
+            span = array;
+            return true;
+        }
+
+        if (source is List<T> list)
+        {
+            span = CollectionsMarshal.AsSpan(list);
+            return true;
+        }
+
+        span = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Adds items from a span using bulk copy operations.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void AddSpan(ReadOnlySpan<T> sourceSpan)
+    {
+        int available = currentSegment.Length - countInCurrentSegment;
+        int toCopy = Math.Min(available, sourceSpan.Length);
+        
+        // Copy what fits in current segment
+        ReadOnlySpan<T> firstPart = sourceSpan.Slice(0, toCopy);
+        firstPart.CopyTo(currentSegment.Slice(countInCurrentSegment));
+        countInCurrentSegment += toCopy;
+
+        // Handle remaining items
+        ReadOnlySpan<T> remaining = sourceSpan.Slice(toCopy);
+        if (!remaining.IsEmpty)
+        {
+            Expand(remaining.Length);
+            remaining.CopyTo(currentSegment);
+            countInCurrentSegment = remaining.Length;
+        }
+    }
+
+    /// <summary>
+    /// Tries to add items from an ICollection using CopyTo.
+    /// </summary>
+    bool TryAddCollection(ICollection<T> collection, int collectionCount)
+    {
+        // Can only use CopyTo if we're not using a scratch buffer with remaining space
+        bool currentSegmentIsScratchBufferWithRemainingSpace = 
+            segmentsCount == 0 && countInCurrentSegment < currentSegment.Length;
+        
+        if (currentSegmentIsScratchBufferWithRemainingSpace)
+        {
+            return false; // Can't use CopyTo with scratch buffer
+        }
+
+        int remainingSpace = currentSegment.Length - countInCurrentSegment;
+
+        // If no space remaining, expand and copy to new segment
+        if (remainingSpace == 0)
+        {
+            Expand(collectionCount);
+            collection.CopyTo(segments[segmentsCount - 1], 0);
+            countInCurrentSegment = collectionCount;
+            return true;
+        }
+
+        // If enough space remaining, copy to current segment
+        if (collectionCount <= remainingSpace)
+        {
+            collection.CopyTo(segments[segmentsCount - 1], countInCurrentSegment);
+            countInCurrentSegment += collectionCount;
+            return true;
+        }
+
+        // Not enough space and can't split - fallback to enumeration
+        return false;
+    }
+
+    /// <summary>
+    /// Adds items from an enumerable using optimized enumeration.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void AddEnumerable(IEnumerable<T> source)
+    {
+        Span<T> currentSegment = this.currentSegment;
+        int countInCurrentSegment = this.countInCurrentSegment;
+
+        foreach (T item in source)
+        {
+            if ((uint)countInCurrentSegment < (uint)currentSegment.Length)
+            {
+                currentSegment[countInCurrentSegment] = item;
+                countInCurrentSegment++;
+            }
+            else
+            {
+                this.countInCurrentSegment = countInCurrentSegment;
+                Expand();
+                currentSegment = this.currentSegment;
+                currentSegment[0] = item;
+                countInCurrentSegment = 1;
+            }
+        }
+
+        this.countInCurrentSegment = countInCurrentSegment;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    static void ThrowOutOfMemory() => throw new OutOfMemoryException();
+    void Expand() => Expand(MinimumRentSize);
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    void Expand(int minimumRequired)
+    {
+        if (minimumRequired < MinimumRentSize)
+        {
+            minimumRequired = MinimumRentSize;
+        }
+
+        // Track finished segments
+        int currentLength;
+        if (segmentsCount == 0)
+        {
+            // First expansion
+            countInFinishedSegments = firstSegment.Length;
+            currentLength = firstSegment.Length;
+            
+            // Check if we're expanding from a capacity-based constructor (segments[0] already has the first buffer)
+            if (segments[0] is not null)
+            {
+                // Capacity-based: segments[0] is the first buffer, add new buffer at segments[1]
+                segmentsCount = 1;
+            }
+            // else: Scratch buffer: segments[0] will get the new buffer
+        }
+        else
+        {
+            // Subsequent expansions
+            currentLength = currentSegment.Length;
+            checked { countInFinishedSegments += currentLength; }
+        }
+
+        // Check for overflow
+        if (countInFinishedSegments > Array.MaxLength)
+        {
+            throw new OutOfMemoryException();
+        }
+
+        // Use doubling algorithm with min/max constraints (matching LINQ)
+        int newSize = (int)Math.Min(
+            Math.Max(minimumRequired, currentLength * 2L),
+            Array.MaxLength
+        );
+        
+        T[] newArray = pool.Rent(newSize);
+        segments[segmentsCount++] = newArray;
+        currentSegment = newArray;
+    }
+
+    /// <summary>
+    /// Creates an array containing all elements in the builder.
+    /// </summary>
     public readonly T[] ToArray()
     {
-        var count = totalCount + currentCount;
+        int count = Count;
         if (count == 0)
         {
             return [];
         }
 
-        var result = GC.AllocateUninitializedArray<T>(count);
-        var destination = result.AsSpan();
-
-        if (previousBuffersCount > 0)
-        {
-            ReadOnlySpan<T[]> span = previousBuffers;
-            foreach (var buffer in span.Slice(0, previousBuffersCount))
-            {
-                buffer.AsSpan().CopyTo(destination);
-                destination = destination.Slice(buffer.Length);
-            }
-        }
-        currentBuffer.AsSpan(0, currentCount).CopyTo(destination);
-
+        T[] result = GC.AllocateUninitializedArray<T>(count);
+        ToSpan(result);
         return result;
     }
 
+    /// <summary>
+    /// Creates a list containing all elements in the builder.
+    /// </summary>
     public readonly List<T> ToList()
     {
-        var count = totalCount + currentCount;
+        int count = Count;
         if (count == 0)
         {
             return [];
         }
 
-        var result = new List<T>(count);
+        List<T> result = new(count);
         CollectionsMarshal.SetCount(result, count);
-        var destination = CollectionsMarshal.AsSpan(result);
-
-        if (previousBuffersCount > 0)
-        {
-            ReadOnlySpan<T[]> span = previousBuffers;
-            foreach (var buffer in span.Slice(0, previousBuffersCount))
-            {
-                buffer.AsSpan().CopyTo(destination);
-                destination = destination.Slice(buffer.Length);
-            }
-        }
-
-        currentBuffer.AsSpan(0, currentCount).CopyTo(destination);
-
+        ToSpan(CollectionsMarshal.AsSpan(result));
         return result;
     }
 
-    public PooledBuffer<T> ToPooledBuffer()
+
+    readonly void ToSpan(Span<T> destination)
     {
-        var count = totalCount + currentCount;
-        if (count == 0)
+        if (segmentsCount != 0)
         {
-            // Return empty buffer
-            if (currentBuffer is not null)
+            // Copy first segment (scratch buffer)
+            firstSegment.CopyTo(destination);
+            destination = destination.Slice(firstSegment.Length);
+
+            // Copy intermediate segments (all but last)
+            ReadOnlySpan<T[]> segmentSpan = segments;
+            for (int i = 0; i < segmentsCount - 1; i++)
             {
-                pool.Return(currentBuffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                T[] segment = segmentSpan[i];
+                segment.CopyTo(destination);
+                destination = destination.Slice(segment.Length);
             }
 
-            // Return previous buffers if any
-            for (var i = 0; i < previousBuffersCount; i++)
-            {
-                pool.Return(previousBuffers[i], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            }
-
-            // Important: set to null so Dispose doesn't double-return
-            currentBuffer = null!;
-            previousBuffers = default;
-            previousBuffersCount = 0;
-
-            return PooledBuffer.Empty<T>();
+            // Copy last segment (only used portion)
+            currentSegment.Slice(0, countInCurrentSegment).CopyTo(destination);
         }
-
-        // Optimization: if we have a single chunk, transfer ownership
-        if (previousBuffersCount == 0)
+        else
         {
-            var bufferToReturn = currentBuffer;
-            currentBuffer = null!; // Transfer ownership
-            return new PooledBuffer<T>(bufferToReturn, count, pool);
+            // Only first segment used (either scratch buffer or single pooled buffer)
+            currentSegment.Slice(0, countInCurrentSegment).CopyTo(destination);
         }
-
-        // Multiple chunks: allocate a single contiguous buffer
-        var resultBuffer = pool.Rent(count);
-        var destination = resultBuffer.AsSpan(0, count);
-
-        if (previousBuffersCount > 0)
-        {
-            foreach (var buffer in MemoryMarshal.CreateSpan(ref previousBuffers[0], previousBuffersCount))
-            {
-                buffer.AsSpan().CopyTo(destination);
-                destination = destination.Slice(buffer.Length);
-                pool.Return(buffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            }
-        }
-        previousBuffers = default; // Prevent double return in Dispose
-        previousBuffersCount = 0;
-
-        currentBuffer.AsSpan(0, currentCount).CopyTo(destination);
-
-        // Return current chunk to pool immediately
-        pool.Return(currentBuffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-        currentBuffer = null!; // Prevent double return in Dispose
-
-        return new PooledBuffer<T>(resultBuffer, count, pool);
     }
 
+    /// <summary>
+    /// Disposes the builder, returning all rented arrays to the pool.
+    /// </summary>
     public void Dispose()
     {
-        if (currentBuffer is not null)
+        // Return the first buffer if it's a pooled array (not scratch)
+        if (segments[0] is not null)
         {
-            pool.Return(currentBuffer, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            currentBuffer = null!;
+            pool.Return(segments[0], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
         }
 
-        for (var i = 0; i < previousBuffersCount; i++)
+        // Return additional segments if we expanded
+        if (segmentsCount > 0)
         {
-            pool.Return(previousBuffers[i], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+            ReadOnlySpan<T[]> segmentSpan = segments;
+            for (int i = 1; i < segmentsCount; i++) // Start at 1, we already returned segments[0]
+            {
+                pool.Return(segmentSpan[i], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+            }
         }
     }
 }

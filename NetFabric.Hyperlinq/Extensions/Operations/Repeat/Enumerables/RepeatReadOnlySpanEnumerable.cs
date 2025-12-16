@@ -111,21 +111,6 @@ public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PooledBuffer<TSource> ToArrayPooled(ArrayPool<TSource>? pool = null)
-    {
-        var length = Count;
-        if (length == 0)
-        {
-            return PooledBuffer.Empty<TSource>();
-        }
-
-        pool ??= ArrayPool<TSource>.Shared;
-        var buffer = pool.Rent(length);
-        CopyTo(buffer.AsSpan(0, length));
-        return new PooledBuffer<TSource>(buffer, length, pool);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<TSource> ToList()
     {
         var length = Count;

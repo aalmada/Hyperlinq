@@ -280,13 +280,4 @@ public static partial class WhereListEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         => CollectionsMarshal.AsSpan(source.Source).ToList(source.Predicate);
 
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
-        where TPredicate : struct, IFunction<TSource, bool>
-        => CollectionsMarshal.AsSpan(source.Source).ToArrayPooled(source.Predicate);
-
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source, ArrayPool<TSource>? pool)
-        where TPredicate : struct, IFunction<TSource, bool>
-        => CollectionsMarshal.AsSpan(source.Source).ToArrayPooled(source.Predicate, pool);
-
-
 }

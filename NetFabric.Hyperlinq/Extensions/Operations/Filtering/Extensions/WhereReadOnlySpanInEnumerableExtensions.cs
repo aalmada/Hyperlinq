@@ -30,20 +30,4 @@ public static partial class WhereReadOnlySpanInEnumerableExtensions
         var predicate = source.Predicate;
         return source.Source.ToList(in predicate);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereReadOnlySpanInEnumerable<TSource, TPredicate> source)
-        where TPredicate : struct, IFunctionIn<TSource, bool>
-    {
-        var predicate = source.Predicate;
-        return source.Source.ToArrayPooled(in predicate);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereReadOnlySpanInEnumerable<TSource, TPredicate> source, ArrayPool<TSource>? pool)
-        where TPredicate : struct, IFunctionIn<TSource, bool>
-    {
-        var predicate = source.Predicate;
-        return source.Source.ToArrayPooled(in predicate, pool);
-    }
 }

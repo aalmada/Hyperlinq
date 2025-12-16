@@ -137,19 +137,4 @@ public readonly partial struct RepeatEnumerable<T>
         span.Fill(element);
         return result;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool = null)
-    {
-        pool ??= ArrayPool<T>.Shared;
-        var result = pool.Rent(count);
-        if (count > 0)
-        {
-            var span = result.AsSpan(0, count);
-            span.Fill(element);
-        }
-        return new PooledBuffer<T>(result, count, pool);
-    }
-
-
 }

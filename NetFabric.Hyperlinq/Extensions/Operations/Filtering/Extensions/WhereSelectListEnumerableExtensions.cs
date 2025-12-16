@@ -335,21 +335,5 @@ public static partial class WhereSelectListEnumerableExtensions
         return builder.ToList();
     }
 
-    public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
-        where TPredicate : struct, IFunction<TSource, bool>
-        where TSelector : struct, IFunction<TSource, TResult>
-        => source.ToArrayPooled((ArrayPool<TResult>?)null);
-
-    public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source, ArrayPool<TResult>? pool)
-        where TPredicate : struct, IFunction<TSource, bool>
-        where TSelector : struct, IFunction<TSource, TResult>
-    {
-        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
-        var predicate = source.Predicate;
-        var selector = source.Selector;
-        builder.Add(CollectionsMarshal.AsSpan(source.Source), in predicate, in selector);
-        return builder.ToPooledBuffer();
-    }
-
 
 }

@@ -168,7 +168,7 @@ public static partial class WhereListRefStructEnumerableExtensions
     {
         using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
         var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
-        builder.AddFunc(CollectionsMarshal.AsSpan(source.Source), in wrapper);
+        builder.Add(CollectionsMarshal.AsSpan(source.Source), in wrapper);
         return builder.ToArray();
     }
 
@@ -176,18 +176,7 @@ public static partial class WhereListRefStructEnumerableExtensions
     {
         using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
         var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
-        builder.AddFunc(CollectionsMarshal.AsSpan(source.Source), in wrapper);
+        builder.Add(CollectionsMarshal.AsSpan(source.Source), in wrapper);
         return builder.ToList();
-    }
-
-    public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListRefStructEnumerable<TSource> source)
-        => source.ToArrayPooled((ArrayPool<TSource>?)null);
-
-    public static PooledBuffer<TSource> ToArrayPooled<TSource>(this WhereListRefStructEnumerable<TSource> source, ArrayPool<TSource>? pool)
-    {
-        using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
-        var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
-        builder.AddFunc(CollectionsMarshal.AsSpan(source.Source), in wrapper);
-        return builder.ToPooledBuffer();
     }
 }

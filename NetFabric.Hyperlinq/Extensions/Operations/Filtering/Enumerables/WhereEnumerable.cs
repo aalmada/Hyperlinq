@@ -41,19 +41,6 @@ public readonly struct WhereEnumerable<TSource> : IValueEnumerable<TSource, Wher
         return builder.ToArray();
     }
 
-    public PooledBuffer<TSource> ToArrayPooled(ArrayPool<TSource>? pool = null)
-    {
-        using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate(item))
-            {
-                builder.Add(item);
-            }
-        }
-        return builder.ToPooledBuffer();
-    }
-
     public List<TSource> ToList()
     {
         using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);

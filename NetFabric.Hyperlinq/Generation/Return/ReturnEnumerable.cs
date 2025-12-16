@@ -120,13 +120,4 @@ public readonly partial struct ReturnEnumerable<T>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T> ToList() => [value];
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool = null)
-    {
-        pool ??= ArrayPool<T>.Shared;
-        var result = pool.Rent(1);
-        result[0] = value;
-        return new PooledBuffer<T>(result, 1, pool);
-    }
 }

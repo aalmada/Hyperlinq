@@ -53,9 +53,6 @@ public readonly struct SelectArrayInEnumerable<TSource, TResult, TSelector> : IV
         var span = source.AsSpan();
         SpanHelpers.CopyToIn(span, in selector, array.AsSpan(), arrayIndex);
     }
-
-    public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null) => SpanHelpers.ToArrayPooledIn(source.AsSpan(), in selector, pool);
-
     public bool Contains(TResult item) => SpanHelpers.ContainsIn(source.AsSpan(), in selector, item);
 
     public int IndexOf(TResult item) => SpanHelpers.IndexOfIn(source.AsSpan(), in selector, item);

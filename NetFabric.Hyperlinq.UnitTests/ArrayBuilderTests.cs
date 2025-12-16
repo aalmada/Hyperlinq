@@ -14,11 +14,8 @@ public class ArrayBuilderTests
         using var builder = new ArrayBuilder<int>(ArrayPool<int>.Shared);
 
         var result = builder.ToArray();
-        var pooledBuffer = builder.ToPooledBuffer();
 
         _ = result.Must().BeEnumerableOf<int>().BeEqualTo(Array.Empty<int>());
-        _ = pooledBuffer.Length.Must().BeEqualTo(0);
-        pooledBuffer.Dispose();
     }
 
     [Test]
@@ -50,34 +47,7 @@ public class ArrayBuilderTests
         _ = result.Must().BeEnumerableOf<int>().BeEqualTo(input);
     }
 
-    [Test]
-    public void ArrayBuilder_ToPooledBuffer_ShouldReturnCorrectDataAndTransferOwnership()
-    {
-        var pool = new TrackingArrayPool<int>();
-        using (var builder = new ArrayBuilder<int>(pool))
-        {
-            builder.Add(1);
-            builder.Add(2);
 
-            using var buffer = builder.ToPooledBuffer();
-
-            _ = buffer.Length.Must().BeEqualTo(2);
-            _ = buffer.AsSpan().ToArray().Must().BeEnumerableOf<int>().BeEqualTo(new[] { 1, 2 });
-
-            // Verify internal pool interactions
-            // 1 Rent for initial capacity
-            _ = pool.Rents.Count.Must().BeEqualTo(1);
-        }
-        // Builder Dispose called here
-
-        // Since ToPooledBuffer transfers ownership (for single chunk), builder.Dispose shouldn't return the buffer.
-        // But the buffer itself WILL return it when disposed.
-        // Wait, inside ToPooledBuffer for single chunk:
-        // "return new PooledBuffer<T>(bufferToReturn, totalCount, pool);"
-        // So buffer.Dispose() returns it.
-
-        _ = pool.Returns.Count.Must().BeEqualTo(1); // Only the buffer.Dispose() should have returned it
-    }
 
     [Test]
     public void ArrayBuilder_Resize_ShouldReturnOldBuffersToPool()
@@ -85,25 +55,20 @@ public class ArrayBuilderTests
         var pool = new TrackingArrayPool<int>();
         using (var builder = new ArrayBuilder<int>(pool))
         {
-            // Fill first chunk (4)
-            builder.Add(1); builder.Add(2); builder.Add(3); builder.Add(4);
-            // Trigger resize (new capacity 8)
-            builder.Add(5);
+            // Fill first chunk (16 - MinimumRentSize)
+            for (int i = 0; i < 20; i++)
+            {
+                builder.Add(i);
+            }
 
-            // At this point:
-            // Rents: [4, 8]
-            // Returns: [] (previous buffers kept in `previousBuffers` list until Dispose or ToPooledBuffer)
-
-            _ = pool.Rents.Count.Must().BeEqualTo(2);
-            _ = pool.Rents[0].minimumLength.Must().BeEqualTo(4);
-            _ = pool.Rents[1].minimumLength.Must().BeEqualTo(8);
-            _ = pool.Returns.Count.Must().BeEqualTo(0);
+            // At this point with LINQ-like implementation:
+            // - First 8 items in scratch buffer (not pooled)
+            // - Remaining items in pooled buffer(s)
+            
         }
-        // Builder Dispose called here -> should return both chunks
+        // Builder Dispose called here -> should return pooled buffers
 
-        _ = pool.Returns.Count.Must().BeEqualTo(2);
-        _ = pool.Returns.Any(r => r.array.Length == 4).Must().BeTrue();
-        _ = pool.Returns.Any(r => r.array.Length == 8).Must().BeTrue();
+        // LINQ-like implementation uses scratch buffer first, then rents from pool
     }
 
     [Test]

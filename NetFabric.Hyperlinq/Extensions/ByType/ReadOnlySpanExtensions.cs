@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using NetFabric.Numerics.Tensors;
 
@@ -565,37 +566,25 @@ public static partial class ReadOnlySpanExtensions
         /// Materializes the span into a pooled buffer. The buffer must be disposed to return memory to the pool.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<T> ToArrayPooled()
-            => source.ToArrayPooled((ArrayPool<T>?)null);
-
         /// <summary>
         /// Materializes the span into a pooled buffer using the specified pool. The buffer must be disposed to return memory to the pool.
         /// </summary>
         /// <param name="pool">The ArrayPool to use, or null to use ArrayPool.Shared.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool)
-        {
-            var poolToUse = pool ?? ArrayPool<T>.Shared;
-            var buffer = poolToUse.Rent(source.Length);
-            source.CopyTo(buffer);
-            return new PooledBuffer<T>(buffer, source.Length, pool);
-        }
 
         /// <summary>
         /// Filters and materializes the span into a pooled buffer. The buffer must be disposed to return memory to the pool.
         /// Uses dynamic growth strategy since result size is unknown.
+
+        /// <summary>
+        /// Creates a List from a ReadOnlySpan.
         /// </summary>
-        public PooledBuffer<T> ToArrayPooled<TPredicate>(TPredicate predicate, ArrayPool<T>? pool = default)
-            where TPredicate : struct, IFunction<T, bool>
-            => ToArrayPooledImpl(source, predicate, pool);
-
-        public PooledBuffer<T> ToArrayPooled<TPredicate>(in TPredicate predicate, ArrayPool<T>? pool = default)
-            where TPredicate : struct, IFunctionIn<T, bool>
-            => ToArrayPooledInImpl(source, predicate, pool);
-
-        public PooledBuffer<T> ToArrayPooled(Func<T, bool> predicate, ArrayPool<T>? pool = default)
-            => ToArrayPooledImpl(source, new FunctionWrapper<T, bool>(predicate), pool);
-
+        public List<T> ToList()
+        {
+             var list = new List<T>(source.Length);
+             CollectionsMarshal.SetCount(list, source.Length);
+             source.CopyTo(CollectionsMarshal.AsSpan(list));
+             return list;
+        }
 
         /// <summary>
         /// Bypasses a specified number of elements and returns the remaining elements.
@@ -640,49 +629,33 @@ public static partial class ReadOnlySpanExtensions
     static T[] ToArrayImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
         where TPredicate : struct, IFunction<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        builder.AddFunc(source, in predicate);
+        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared, source.Length);
+        builder.Add(source, in predicate);
         return builder.ToArray();
     }
 
     static List<T> ToListImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunction<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared);
-        builder.AddFunc(source, in predicate);
+        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared, source.Length);
+        builder.Add(source, in predicate);
         return builder.ToList();
-    }
-
-    static PooledBuffer<T> ToArrayPooledImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
-        where TPredicate : struct, IFunction<T, bool>
-    {
-        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        builder.AddFunc(source, in predicate);
-        return builder.ToPooledBuffer();
     }
 
     static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        builder.Add(source, in predicate);
+        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared, source.Length);
+        builder.AddIn(source, in predicate);
         return builder.ToArray();
     }
 
     static List<T> ToListInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared);
-        builder.Add(source, in predicate);
+        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared, source.Length);
+        builder.AddIn(source, in predicate);
         return builder.ToList();
-    }
-
-    static PooledBuffer<T> ToArrayPooledInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
-        where TPredicate : struct, IFunctionIn<T, bool>
-    {
-        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-        builder.Add(source, in predicate);
-        return builder.ToPooledBuffer();
     }
 
     static Option<T> LastOrNoneImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)

@@ -83,21 +83,6 @@ public static partial class SelectListRefStructEnumerableExtensions
         return array;
     }
 
-    public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source, ArrayPool<TResult>? pool = null)
-    {
-        var list = source.Source;
-        var selector = source.Selector;
-        pool ??= ArrayPool<TResult>.Shared;
-        var result = pool.Rent(list.Count);
-        var span = CollectionsMarshal.AsSpan(list);
-        for (var i = 0; i < span.Length; i++)
-        {
-            result[i] = selector(span[i]);
-        }
-
-        return new PooledBuffer<TResult>(result, list.Count, pool);
-    }
-
     public static List<TResult> ToList<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source)
     {
         var list = source.Source;
@@ -107,7 +92,7 @@ public static partial class SelectListRefStructEnumerableExtensions
         CollectionsMarshal.SetCount(result, count);
         var destination = CollectionsMarshal.AsSpan(result);
         var sourceSpan = CollectionsMarshal.AsSpan(list);
-        for (var i = 0; i < count; i++)
+        for (var i = 0; destination.Length > i && i < sourceSpan.Length; i++)
         {
             destination[i] = selector(sourceSpan[i]);
         }

@@ -74,16 +74,13 @@ public readonly ref struct SelectReadOnlySpanEnumerable<TSource, TResult, TSelec
     }
 
     public TResult[] ToArray() => SpanHelpers.ToArray<TSource, TResult, TSelector>(source, selector);
-
-    public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null) => SpanHelpers.ToArrayPooled(source, selector, pool);
-
     public List<TResult> ToList()
     {
         var count = source.Length;
         var list = new List<TResult>(count);
         CollectionsMarshal.SetCount(list, count);
         var destination = CollectionsMarshal.AsSpan(list);
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < source.Length; i++)
         {
             destination[i] = selector.Invoke(source[i]);
         }

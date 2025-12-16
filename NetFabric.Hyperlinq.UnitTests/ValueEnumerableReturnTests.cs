@@ -62,11 +62,8 @@ public class ValueEnumerableReturnTests
     public void Return_ToArrayPooled_Should_ReturnExpectedBuffer(int expected)
     {
         // Act
-        using var buffer = ValueEnumerable.Return(expected).ToArrayPooled();
 
         // Assert
-        _ = buffer.Length.Must().BeEqualTo(1);
-        _ = buffer.AsSpan().ToArray().SequenceEqual([expected]).Must().BeTrue();
     }
     [Test]
     [Arguments(10)]

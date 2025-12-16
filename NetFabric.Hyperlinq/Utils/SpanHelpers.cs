@@ -99,46 +99,6 @@ static class SpanHelpers
     }
 
     /// <summary>
-    /// Creates a pooled array from a source span, applying a selector function to each element.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult, TSelector>(
-        ReadOnlySpan<TSource> source,
-        TSelector selector,
-        ArrayPool<TResult>? pool = null)
-        where TSelector : struct, IFunction<TSource, TResult>
-    {
-        pool ??= ArrayPool<TResult>.Shared;
-        var result = pool.Rent(source.Length);
-        var index = 0;
-        foreach (ref readonly var item in source)
-        {
-            result[index++] = selector.Invoke(item);
-        }
-        return new PooledBuffer<TResult>(result, source.Length, pool);
-    }
-
-    /// <summary>
-    /// Creates a pooled array from a source span, applying a selector function (passed by reference) to each element.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TResult> ToArrayPooledIn<TSource, TResult, TSelector>(
-        ReadOnlySpan<TSource> source,
-        in TSelector selector,
-        ArrayPool<TResult>? pool = null)
-        where TSelector : struct, IFunctionIn<TSource, TResult>
-    {
-        pool ??= ArrayPool<TResult>.Shared;
-        var result = pool.Rent(source.Length);
-        var index = 0;
-        foreach (ref readonly var item in source)
-        {
-            result[index++] = selector.Invoke(in item);
-        }
-        return new PooledBuffer<TResult>(result, source.Length, pool);
-    }
-
-    /// <summary>
     /// Determines whether a span contains a specific value after applying a selector function.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

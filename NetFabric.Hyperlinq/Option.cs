@@ -276,20 +276,4 @@ public readonly record struct Option<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T> ToList()
         => _hasValue ? [_value] : new List<T>();
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool = null)
-    {
-        if (_hasValue)
-        {
-            pool ??= ArrayPool<T>.Shared;
-            var result = pool.Rent(1);
-            result[0] = _value;
-            return new PooledBuffer<T>(result, 1, pool);
-        }
-        else
-        {
-            return PooledBuffer.Empty<T>();
-        }
-    }
 }

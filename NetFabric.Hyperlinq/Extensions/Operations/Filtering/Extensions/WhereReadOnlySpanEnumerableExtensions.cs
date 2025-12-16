@@ -85,18 +85,8 @@ public static partial class WhereReadOnlySpanEnumerableExtensions
         => source.Source.ToList(source.Predicate);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
-        where TPredicate : struct, IFunction<TSource, bool>
-        => source.Source.ToArrayPooled(source.Predicate);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PooledBuffer<TSource> ToArrayPooled<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source, ArrayPool<TSource>? pool)
-        where TPredicate : struct, IFunction<TSource, bool>
-        => source.Source.ToArrayPooled(source.Predicate, pool);
 
 
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource Sum<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TSource : struct, INumberBase<TSource>
         where TPredicate : struct, IFunction<TSource, bool>

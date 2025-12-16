@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
@@ -298,7 +299,9 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
+        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
+        Span<TResult> scratchSpan = scratch;
+        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared, scratchSpan);
         var predicate = source.Predicate;
         var selector = source.Selector;
         builder.Add(source.Source, in predicate, in selector);
@@ -309,27 +312,13 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
+        Span<TResult> scratchSpan = scratch;
+        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared, scratchSpan);
         var predicate = source.Predicate;
         var selector = source.Selector;
         builder.Add(source.Source, in predicate, in selector);
         return builder.ToList();
-    }
-
-    public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult, TPredicate, TSelector>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult, TPredicate, TSelector> source)
-        where TPredicate : struct, IFunction<TSource, bool>
-        where TSelector : struct, IFunction<TSource, TResult>
-        => source.ToArrayPooled((ArrayPool<TResult>?)null);
-
-    public static PooledBuffer<TResult> ToArrayPooled<TSource, TResult, TPredicate, TSelector>(this WhereSelectReadOnlySpanEnumerable<TSource, TResult, TPredicate, TSelector> source, ArrayPool<TResult>? pool)
-        where TPredicate : struct, IFunction<TSource, bool>
-        where TSelector : struct, IFunction<TSource, TResult>
-    {
-        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
-        var predicate = source.Predicate;
-        var selector = source.Selector;
-        builder.Add(source.Source, in predicate, in selector);
-        return builder.ToPooledBuffer();
     }
 
 

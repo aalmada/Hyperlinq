@@ -31,16 +31,6 @@ public readonly struct SelectEnumerable<TSource, TResult> : IValueEnumerable<TRe
         return builder.ToArray();
     }
 
-    public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
-    {
-        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
-        foreach (var item in source)
-        {
-            builder.Add(selector(item));
-        }
-        return builder.ToPooledBuffer();
-    }
-
     public List<TResult> ToList()
     {
         using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);

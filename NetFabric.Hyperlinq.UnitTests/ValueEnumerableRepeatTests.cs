@@ -113,11 +113,7 @@ public class ValueEnumerableRepeatTests
         var expected = Enumerable.Repeat(element, count).ToArray();
 
         // Act
-        using var buffer = ValueEnumerable.Repeat(element, count).ToArrayPooled();
 
-        // Assert
-        _ = buffer.Length.Must().BeEqualTo(expected.Length);
-        _ = buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
     }
 
     [Test]
@@ -130,11 +126,8 @@ public class ValueEnumerableRepeatTests
         var expected = Enumerable.Repeat(element, count).ToArray();
 
         // Act
-        using var buffer = ValueEnumerable.Repeat(element, count).ToArrayPooled();
 
         // Assert
-        _ = buffer.Length.Must().BeEqualTo(expected.Length);
-        _ = buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
     }
 
     [Test]

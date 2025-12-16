@@ -161,20 +161,5 @@ public static partial class EnumerableValueEnumerableExtensions
         public WhereEnumerable<T> Where(Func<T, bool> predicate)
             => new WhereEnumerable<T>(source.Source, predicate);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PooledBuffer<T> ToArrayPooled()
-            => source.ToArrayPooled((ArrayPool<T>?)null);
-
-        public PooledBuffer<T> ToArrayPooled(ArrayPool<T>? pool)
-        {
-            using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared);
-            foreach (var item in source)
-            {
-                builder.Add(item);
-            }
-            return builder.ToPooledBuffer();
-        }
-
-
     }
 }

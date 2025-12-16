@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -72,6 +73,38 @@ public readonly partial struct RangeEnumerable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void Fill(Span<int> span)
+    {
+        var index = 0;
+
+        if (Vector.IsHardwareAccelerated && span.Length >= Vector<int>.Count)
+        {
+            // Initialize vector with sequence [start, start+1, ..., start+N-1]
+            Span<int> init = stackalloc int[Vector<int>.Count];
+            for (var i = 0; i < init.Length; i++)
+            {
+                init[i] = start + i;
+            }
+            var vector = new Vector<int>(init);
+            var increment = new Vector<int>(Vector<int>.Count);
+
+            ref var destination = ref MemoryMarshal.GetReference(span);
+
+            while (span.Length - index >= Vector<int>.Count)
+            {
+                vector.StoreUnsafe(ref destination, (nuint)index);
+                vector += increment;
+                index += Vector<int>.Count;
+            }
+        }
+
+        for (; index < span.Length; index++)
+        {
+            span[index] = start + index;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Any() => count > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -105,11 +138,7 @@ public readonly partial struct RangeEnumerable
             throw new ArgumentException("Destination array is not long enough.");
         }
 
-        var span = array.AsSpan(arrayIndex, count);
-        for (var i = 0; i < count; i++)
-        {
-            span[i] = start + i;
-        }
+        Fill(array.AsSpan(arrayIndex, count));
     }
 
     bool ICollection<int>.IsReadOnly => true;
@@ -128,11 +157,7 @@ public readonly partial struct RangeEnumerable
         }
 
         var result = GC.AllocateUninitializedArray<int>(count);
-        var span = result.AsSpan();
-        for (var i = 0; i < count; i++)
-        {
-            span[i] = start + i;
-        }
+        Fill(result.AsSpan());
         return result;
     }
 
@@ -141,29 +166,7 @@ public readonly partial struct RangeEnumerable
     {
         var result = new List<int>(count);
         CollectionsMarshal.SetCount(result, count);
-        var span = CollectionsMarshal.AsSpan(result);
-        for (var i = 0; i < count; i++)
-        {
-            span[i] = start + i;
-        }
+        Fill(CollectionsMarshal.AsSpan(result));
         return result;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PooledBuffer<int> ToArrayPooled(ArrayPool<int>? pool = null)
-    {
-        pool ??= ArrayPool<int>.Shared;
-        var result = pool.Rent(count);
-        if (count > 0)
-        {
-            var span = result.AsSpan(0, count);
-            for (var i = 0; i < count; i++)
-            {
-                span[i] = start + i;
-            }
-        }
-        return new PooledBuffer<int>(result, count, pool);
-    }
-
-
 }

@@ -57,12 +57,6 @@ public readonly struct SelectListEnumerable<TSource, TResult, TSelector> : IValu
         SpanHelpers.CopyTo(span, selector, array.AsSpan(), arrayIndex);
     }
 
-    public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
-    {
-        var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source);
-        return SpanHelpers.ToArrayPooled(span, selector, pool);
-    }
-
     public bool Contains(TResult item)
     {
         var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source);

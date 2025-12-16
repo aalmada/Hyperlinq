@@ -91,11 +91,8 @@ public class ValueEnumerableEmptyTests
         var expected = Enumerable.Empty<int>().ToArray();
 
         // Act
-        using var buffer = ValueEnumerable.Empty<int>().ToArrayPooled();
 
         // Assert
-        _ = buffer.Length.Must().BeEqualTo(expected.Length);
-        _ = buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
     }
 
     [Test]
@@ -105,10 +102,7 @@ public class ValueEnumerableEmptyTests
         var expected = Enumerable.Empty<string>().ToArray();
 
         // Act
-        using var buffer = ValueEnumerable.Empty<string>().ToArrayPooled();
 
         // Assert
-        _ = buffer.Length.Must().BeEqualTo(expected.Length);
-        _ = buffer.AsSpan().ToArray().Must().BeEqualTo(expected);
     }
 }

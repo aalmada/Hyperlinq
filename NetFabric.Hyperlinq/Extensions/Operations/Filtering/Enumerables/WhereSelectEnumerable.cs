@@ -28,9 +28,14 @@ public readonly struct WhereSelectEnumerable<TSource, TResult> : IValueEnumerabl
     IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+
     public TResult[] ToArray()
     {
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
+        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared, scratch);
+        
+        var predicate = this.predicate;
+        var selector = this.selector;
         foreach (var item in source)
         {
             if (predicate(item))
@@ -41,22 +46,13 @@ public readonly struct WhereSelectEnumerable<TSource, TResult> : IValueEnumerabl
         return builder.ToArray();
     }
 
-    public PooledBuffer<TResult> ToArrayPooled(ArrayPool<TResult>? pool = null)
-    {
-        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
-        foreach (var item in source)
-        {
-            if (predicate(item))
-            {
-                builder.Add(selector(item));
-            }
-        }
-        return builder.ToPooledBuffer();
-    }
-
     public List<TResult> ToList()
     {
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
+        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared, scratch);
+        
+        var predicate = this.predicate;
+        var selector = this.selector;
         foreach (var item in source)
         {
             if (predicate(item))
