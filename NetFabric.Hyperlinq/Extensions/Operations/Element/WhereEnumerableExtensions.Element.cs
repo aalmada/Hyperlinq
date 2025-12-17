@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
@@ -7,41 +6,7 @@ namespace NetFabric.Hyperlinq;
 public static partial class WhereEnumerableExtensions
 {
     extension<TSource>(WhereEnumerable<TSource> source)
-        where TSource : IAdditionOperators<TSource, TSource, TSource>, IAdditiveIdentity<TSource, TSource>
     {
-        public TSource Sum()
-        {
-            var sum = TSource.AdditiveIdentity;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                sum += enumerator.Current;
-            }
-
-            return sum;
-        }
-    }
-
-    extension<TSource>(WhereEnumerable<TSource> source)
-    {
-        public bool Any()
-        {
-            using var enumerator = source.GetEnumerator();
-            return enumerator.MoveNext();
-        }
-
-        public int Count()
-        {
-            var count = 0;
-            using var enumerator = source.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                count++;
-            }
-
-            return count;
-        }
-
         public TSource First()
             => source.FirstOrNone().Value;
 
