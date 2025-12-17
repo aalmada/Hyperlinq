@@ -18,15 +18,7 @@ public static partial class SelectListRefStructEnumerableExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TResult First<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source)
-    {
-        var list = source.Source;
-        if (list.Count == 0)
-        {
-            throw new InvalidOperationException("Sequence contains no elements");
-        }
-
-        return source.Selector(list[0]);
-    }
+        => source.FirstOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TResult> FirstOrNone<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source)
@@ -37,20 +29,7 @@ public static partial class SelectListRefStructEnumerableExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TResult Single<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source)
-    {
-        var list = source.Source;
-        if (list.Count == 0)
-        {
-            throw new InvalidOperationException("Sequence contains no elements");
-        }
-
-        if (list.Count > 1)
-        {
-            throw new InvalidOperationException("Sequence contains more than one element");
-        }
-
-        return source.Selector(list[0]);
-    }
+        => source.SingleOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TResult> SingleOrNone<TSource, TResult>(this SelectListRefStructEnumerable<TSource, TResult> source)

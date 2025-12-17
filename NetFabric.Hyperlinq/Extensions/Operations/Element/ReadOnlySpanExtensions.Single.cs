@@ -13,19 +13,7 @@ public static partial class ReadOnlySpanExtensions
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault()
-        {
-            if (source.Length == 0)
-            {
-                return default!;
-            }
-
-            if (source.Length > 1)
-            {
-                throw new InvalidOperationException("Sequence contains more than one element");
-            }
-
-            return source[0];
-        }
+            => source.SingleOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Single<TPredicate>(TPredicate predicate)

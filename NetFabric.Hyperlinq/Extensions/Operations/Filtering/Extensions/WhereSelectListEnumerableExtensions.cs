@@ -64,19 +64,7 @@ public static partial class WhereSelectListEnumerableExtensions
     public static TResult First<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
-    {
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        var selector = source.Selector;
-        for (var i = 0; (uint)i < (uint)span.Length; i++)
-        {
-            if (predicate.Invoke(span[i]))
-            {
-                return selector.Invoke(span[i]);
-            }
-        }
-        throw new InvalidOperationException("Sequence contains no elements");
-    }
+        => source.FirstOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TResult> FirstOrNone<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
@@ -100,32 +88,7 @@ public static partial class WhereSelectListEnumerableExtensions
     public static TResult Single<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
-    {
-        var found = false;
-        var result = default(TResult);
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        var selector = source.Selector;
-        for (var i = 0; (uint)i < (uint)span.Length; i++)
-        {
-            if (predicate.Invoke(span[i]))
-            {
-                if (found)
-                {
-                    throw new InvalidOperationException("Sequence contains more than one element");
-                }
-
-                result = selector.Invoke(span[i]);
-                found = true;
-            }
-        }
-        if (!found)
-        {
-            throw new InvalidOperationException("Sequence contains no elements");
-        }
-
-        return result!;
-    }
+        => source.SingleOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TResult> SingleOrNone<TSource, TResult, TPredicate, TSelector>(this WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> source)

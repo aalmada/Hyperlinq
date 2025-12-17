@@ -10,38 +10,38 @@ public static partial class ListValueEnumerableExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T First()
-            => CollectionsMarshal.AsSpan(source.Source).First();
+            => source.FirstOrNone().Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T First<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source.Source).First(predicate);
+            => source.FirstOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T First(Func<T, bool> predicate)
-            => CollectionsMarshal.AsSpan(source.Source).First(predicate);
+            => source.FirstOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault()
-            => CollectionsMarshal.AsSpan(source.Source).FirstOrDefault();
+            => source.FirstOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source.Source).FirstOrDefault(predicate);
+            => source.FirstOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault(Func<T, bool> predicate)
-            => CollectionsMarshal.AsSpan(source.Source).FirstOrDefault(predicate);
+            => source.FirstOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault<TPredicate>(TPredicate predicate, T defaultValue)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source.Source).FirstOrDefault(predicate, defaultValue);
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault(Func<T, bool> predicate, T defaultValue)
-            => CollectionsMarshal.AsSpan(source.Source).FirstOrDefault(predicate, defaultValue);
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> FirstOrNone()

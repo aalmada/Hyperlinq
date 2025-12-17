@@ -156,18 +156,7 @@ public static partial class WhereListEnumerableExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource First<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
         where TPredicate : struct, IFunction<TSource, bool>
-    {
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        for (var i = 0; (uint)i < (uint)span.Length; i++)
-        {
-            if (predicate.Invoke(span[i]))
-            {
-                return span[i];
-            }
-        }
-        throw new InvalidOperationException("Sequence contains no elements");
-    }
+        => source.FirstOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TSource> FirstOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
@@ -188,31 +177,7 @@ public static partial class WhereListEnumerableExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource Single<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)
         where TPredicate : struct, IFunction<TSource, bool>
-    {
-        var found = false;
-        var result = default(TSource);
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        for (var i = 0; (uint)i < (uint)span.Length; i++)
-        {
-            if (predicate.Invoke(span[i]))
-            {
-                if (found)
-                {
-                    throw new InvalidOperationException("Sequence contains more than one element");
-                }
-
-                result = span[i];
-                found = true;
-            }
-        }
-        if (!found)
-        {
-            throw new InvalidOperationException("Sequence contains no elements");
-        }
-
-        return result!;
-    }
+        => source.SingleOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TSource> SingleOrNone<TSource, TPredicate>(this WhereListEnumerable<TSource, TPredicate> source)

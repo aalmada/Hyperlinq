@@ -9,38 +9,38 @@ public static partial class ArrayValueEnumerableExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T First()
-            => source.Source.First();
+            => source.FirstOrNone().Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T First<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Source.First(predicate);
+            => source.FirstOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T First(Func<T, bool> predicate)
-            => source.Source.First(predicate);
+            => source.FirstOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault()
-            => source.Source.FirstOrDefault();
+            => source.FirstOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Source.FirstOrDefault(predicate);
+            => source.FirstOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault(Func<T, bool> predicate)
-            => source.Source.FirstOrDefault(predicate);
+            => source.FirstOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault<TPredicate>(TPredicate predicate, T defaultValue)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Source.FirstOrDefault(predicate, defaultValue);
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault(Func<T, bool> predicate, T defaultValue)
-            => source.Source.FirstOrDefault(predicate, defaultValue);
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> FirstOrNone()

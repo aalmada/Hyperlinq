@@ -9,38 +9,38 @@ public static partial class ArrayValueEnumerableExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Single()
-            => source.Source.Single();
+            => source.SingleOrNone().Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Single<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Source.Single(predicate);
+            => source.SingleOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Single(Func<T, bool> predicate)
-            => source.Source.Single(predicate);
+            => source.SingleOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault()
-            => source.Source.SingleOrDefault();
+            => source.SingleOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Source.SingleOrDefault(predicate);
+            => source.SingleOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault(Func<T, bool> predicate)
-            => source.Source.SingleOrDefault(predicate);
+            => source.SingleOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault<TPredicate>(TPredicate predicate, T defaultValue)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Source.SingleOrDefault(predicate, defaultValue);
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault(Func<T, bool> predicate, T defaultValue)
-            => source.Source.SingleOrDefault(predicate, defaultValue);
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> SingleOrNone()

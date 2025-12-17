@@ -49,7 +49,7 @@ public static partial class WhereReadOnlySpanEnumerableExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource First<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TPredicate : struct, IFunction<TSource, bool>
-        => source.Source.First(source.Predicate);
+        => source.FirstOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TSource> FirstOrNone<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
@@ -59,7 +59,7 @@ public static partial class WhereReadOnlySpanEnumerableExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource Single<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TPredicate : struct, IFunction<TSource, bool>
-        => source.Source.Single(source.Predicate);
+        => source.SingleOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TSource> SingleOrNone<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)

@@ -55,18 +55,7 @@ public static partial class WhereListRefStructEnumerableExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource First<TSource>(this WhereListRefStructEnumerable<TSource> source)
-    {
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        for (var i = 0; (uint)i < (uint)span.Length; i++)
-        {
-            if (predicate(span[i]))
-            {
-                return span[i];
-            }
-        }
-        throw new InvalidOperationException("Sequence contains no elements");
-    }
+        => source.FirstOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TSource> FirstOrNone<TSource>(this WhereListRefStructEnumerable<TSource> source)
@@ -85,31 +74,7 @@ public static partial class WhereListRefStructEnumerableExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource Single<TSource>(this WhereListRefStructEnumerable<TSource> source)
-    {
-        var found = false;
-        var result = default(TSource);
-        var span = CollectionsMarshal.AsSpan(source.Source);
-        var predicate = source.Predicate;
-        for (var i = 0; (uint)i < (uint)span.Length; i++)
-        {
-            if (predicate(span[i]))
-            {
-                if (found)
-                {
-                    throw new InvalidOperationException("Sequence contains more than one element");
-                }
-
-                result = span[i];
-                found = true;
-            }
-        }
-        if (!found)
-        {
-            throw new InvalidOperationException("Sequence contains no elements");
-        }
-
-        return result!;
-    }
+        => source.SingleOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TSource> SingleOrNone<TSource>(this WhereListRefStructEnumerable<TSource> source)

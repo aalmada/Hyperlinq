@@ -22,7 +22,7 @@ public static partial class ReadOnlySpanExtensions
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault()
-            => source.Length == 0 ? default! : source[0];
+            => source.FirstOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T FirstOrDefault<TPredicate>(TPredicate predicate)

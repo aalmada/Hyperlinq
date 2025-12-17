@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NetFabric.Hyperlinq.Analyzer\NetFabric.Hyperlinq.Analyzer.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\NetFabric.Hyperlinq.InternalAnalyzer\NetFabric.Hyperlinq.InternalAnalyzer.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <Target Name="_AddAnalyzersToPackage" BeforeTargets="_GetPackageFiles">

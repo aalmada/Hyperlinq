@@ -10,38 +10,38 @@ public static partial class ListValueEnumerableExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Single()
-            => CollectionsMarshal.AsSpan(source.Source).Single();
+            => source.SingleOrNone().Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Single<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source.Source).Single(predicate);
+            => source.SingleOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Single(Func<T, bool> predicate)
-            => CollectionsMarshal.AsSpan(source.Source).Single(predicate);
+            => source.SingleOrNone(predicate).Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault()
-            => CollectionsMarshal.AsSpan(source.Source).SingleOrDefault();
+            => source.SingleOrNone().GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source.Source).SingleOrDefault(predicate);
+            => source.SingleOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault(Func<T, bool> predicate)
-            => CollectionsMarshal.AsSpan(source.Source).SingleOrDefault(predicate);
+            => source.SingleOrNone(predicate).GetValueOrDefault();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault<TPredicate>(TPredicate predicate, T defaultValue)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source.Source).SingleOrDefault(predicate, defaultValue);
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T SingleOrDefault(Func<T, bool> predicate, T defaultValue)
-            => CollectionsMarshal.AsSpan(source.Source).SingleOrDefault(predicate, defaultValue);
+            => source.SingleOrNone(predicate).GetValueOrDefault(defaultValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> SingleOrNone()
