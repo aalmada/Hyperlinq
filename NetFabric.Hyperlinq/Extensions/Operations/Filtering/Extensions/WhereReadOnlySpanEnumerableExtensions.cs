@@ -76,17 +76,17 @@ public static partial class WhereReadOnlySpanEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         => source.Source.LastOrNone(source.Predicate);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource[] ToArray<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TPredicate : struct, IFunction<TSource, bool>
         => source.Source.ToArray(source.Predicate);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static List<TSource> ToList<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TPredicate : struct, IFunction<TSource, bool>
         => source.Source.ToList(source.Predicate);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-
-
     public static TSource Sum<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TSource : struct, INumberBase<TSource>
         where TPredicate : struct, IFunction<TSource, bool>

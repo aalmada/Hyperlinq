@@ -23,7 +23,8 @@ public readonly struct SelectEnumerable<TSource, TResult> : IValueEnumerable<TRe
 
     public TResult[] ToArray()
     {
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
         foreach (var item in source)
         {
             builder.Add(selector(item));
@@ -33,7 +34,8 @@ public readonly struct SelectEnumerable<TSource, TResult> : IValueEnumerable<TRe
 
     public List<TResult> ToList()
     {
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
         foreach (var item in source)
         {
             builder.Add(selector(item));

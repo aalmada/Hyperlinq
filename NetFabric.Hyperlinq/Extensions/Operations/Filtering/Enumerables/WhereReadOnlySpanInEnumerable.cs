@@ -42,7 +42,7 @@ public readonly ref struct WhereReadOnlySpanInEnumerable<TSource, TPredicate>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            while (++index < source.Length)
+            while ((uint)++index < (uint)source.Length)
             {
                 if (predicate.Invoke(in source[index]))
                 {

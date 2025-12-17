@@ -80,7 +80,7 @@ public readonly ref struct SelectReadOnlySpanInEnumerable<TSource, TResult, TSel
         var list = new List<TResult>(count);
         CollectionsMarshal.SetCount(list, count);
         var destination = CollectionsMarshal.AsSpan(list);
-        for (var i = 0; i < source.Length; i++)
+        for (var i = 0; (uint)i < (uint)source.Length; i++)
         {
             destination[i] = selector.Invoke(in source[i]);
         }
@@ -111,8 +111,7 @@ public readonly ref struct SelectReadOnlySpanInEnumerable<TSource, TResult, TSel
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            index++;
-            return index < source.Length;
+            return (uint)++index < (uint)source.Length;
         }
     }
 }

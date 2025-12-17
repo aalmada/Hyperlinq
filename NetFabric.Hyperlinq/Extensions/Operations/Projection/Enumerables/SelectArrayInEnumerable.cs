@@ -82,8 +82,7 @@ public readonly struct SelectArrayInEnumerable<TSource, TResult, TSelector> : IV
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            index++;
-            return index < source.Length;
+            return (uint)++index < (uint)source.Length;
         }
 
         public void Reset() => index = -1;

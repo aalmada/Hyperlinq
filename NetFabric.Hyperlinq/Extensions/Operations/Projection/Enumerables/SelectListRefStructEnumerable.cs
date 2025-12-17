@@ -49,8 +49,7 @@ public readonly ref struct SelectListRefStructEnumerable<TSource, TResult>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            index++;
-            return index < span.Length;
+            return (uint)++index < (uint)span.Length;
         }
     }
 }

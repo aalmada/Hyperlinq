@@ -165,7 +165,7 @@ public static partial class ReadOnlySpanExtensions
     {
         // Find first matching element
         var index = 0;
-        while (index < source.Length && !predicate.Invoke(source[index]))
+        while ((uint)index < (uint)source.Length && !predicate.Invoke(source[index]))
         {
             index++;
         }
@@ -180,7 +180,7 @@ public static partial class ReadOnlySpanExtensions
         index++;
 
         // Process remaining elements with minimal branching
-        while (index < source.Length)
+        while ((uint)index < (uint)source.Length)
         {
             var item = source[index];
             if (predicate.Invoke(item))
@@ -208,7 +208,7 @@ public static partial class ReadOnlySpanExtensions
     {
         // Find first matching element
         var index = 0;
-        while (index < source.Length && !predicate.Invoke(source[index]))
+        while ((uint)index < (uint)source.Length && !predicate.Invoke(source[index]))
         {
             index++;
         }
@@ -222,7 +222,7 @@ public static partial class ReadOnlySpanExtensions
         index++;
 
         // Process remaining elements without branching on hasValue
-        while (index < source.Length)
+        while ((uint)index < (uint)source.Length)
         {
             var item = source[index];
             if (predicate.Invoke(item) && item < min)
@@ -242,7 +242,7 @@ public static partial class ReadOnlySpanExtensions
     {
         // Find first matching element
         var index = 0;
-        while (index < source.Length && !predicate.Invoke(source[index]))
+        while ((uint)index < (uint)source.Length && !predicate.Invoke(source[index]))
         {
             index++;
         }
@@ -256,7 +256,7 @@ public static partial class ReadOnlySpanExtensions
         index++;
 
         // Process remaining elements without branching on hasValue
-        while (index < source.Length)
+        while ((uint)index < (uint)source.Length)
         {
             var item = source[index];
             if (predicate.Invoke(item) && item > max)
@@ -629,32 +629,60 @@ public static partial class ReadOnlySpanExtensions
     static T[] ToArrayImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
         where TPredicate : struct, IFunction<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared, source.Length);
-        builder.Add(source, in predicate);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<T>(scratch);
+        foreach (var item in source)
+        {
+            if (predicate.Invoke(item))
+            {
+                builder.Add(item);
+            }
+        }
         return builder.ToArray();
     }
 
     static List<T> ToListImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunction<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared, source.Length);
-        builder.Add(source, in predicate);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<T>(scratch);
+        foreach (var item in source)
+        {
+            if (predicate.Invoke(item))
+            {
+                builder.Add(item);
+            }
+        }
         return builder.ToList();
     }
 
     static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(pool ?? ArrayPool<T>.Shared, source.Length);
-        builder.AddIn(source, in predicate);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<T>(scratch);
+        foreach (ref readonly var item in source)
+        {
+            if (predicate.Invoke(in item))
+            {
+                builder.Add(item);
+            }
+        }
         return builder.ToArray();
     }
 
     static List<T> ToListInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
-        using var builder = new ArrayBuilder<T>(ArrayPool<T>.Shared, source.Length);
-        builder.AddIn(source, in predicate);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<T>(scratch);
+        foreach (ref readonly var item in source)
+        {
+            if (predicate.Invoke(in item))
+            {
+                builder.Add(item);
+            }
+        }
         return builder.ToList();
     }
 

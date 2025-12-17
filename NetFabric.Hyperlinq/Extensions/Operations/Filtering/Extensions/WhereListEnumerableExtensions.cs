@@ -129,7 +129,7 @@ public static partial class WhereListEnumerableExtensions
         var count = 0;
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             var result = predicate.Invoke(span[i]);
             count += Unsafe.As<bool, byte>(ref result);
@@ -143,7 +143,7 @@ public static partial class WhereListEnumerableExtensions
     {
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -159,7 +159,7 @@ public static partial class WhereListEnumerableExtensions
     {
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -175,7 +175,7 @@ public static partial class WhereListEnumerableExtensions
     {
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -193,7 +193,7 @@ public static partial class WhereListEnumerableExtensions
         var result = default(TSource);
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {

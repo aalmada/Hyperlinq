@@ -35,7 +35,7 @@ public static partial class WhereSelectListEnumerableExtensions
         var count = 0;
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             var result = predicate.Invoke(span[i]);
             count += Unsafe.As<bool, byte>(ref result);
@@ -50,7 +50,7 @@ public static partial class WhereSelectListEnumerableExtensions
     {
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -68,7 +68,7 @@ public static partial class WhereSelectListEnumerableExtensions
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -86,7 +86,7 @@ public static partial class WhereSelectListEnumerableExtensions
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -106,7 +106,7 @@ public static partial class WhereSelectListEnumerableExtensions
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -171,14 +171,14 @@ public static partial class WhereSelectListEnumerableExtensions
         var selector = source.Selector;
 
         // Find first matching element
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
                 var min = selector.Invoke(span[i]);
 
                 // Process remaining elements
-                for (i++; i < span.Length; i++)
+                for (i++; (uint)i < (uint)span.Length; i++)
                 {
                     if (predicate.Invoke(span[i]))
                     {
@@ -215,14 +215,14 @@ public static partial class WhereSelectListEnumerableExtensions
         var selector = source.Selector;
 
         // Find first matching element
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
                 var max = selector.Invoke(span[i]);
 
                 // Process remaining elements
-                for (i++; i < span.Length; i++)
+                for (i++; (uint)i < (uint)span.Length; i++)
                 {
                     if (predicate.Invoke(span[i]))
                     {
@@ -259,7 +259,7 @@ public static partial class WhereSelectListEnumerableExtensions
         var selector = source.Selector;
 
         // Find first matching element
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -268,7 +268,7 @@ public static partial class WhereSelectListEnumerableExtensions
                 var max = value;
 
                 // Process remaining elements
-                for (i++; i < span.Length; i++)
+                for (i++; (uint)i < (uint)span.Length; i++)
                 {
                     if (predicate.Invoke(span[i]))
                     {
@@ -302,7 +302,7 @@ public static partial class WhereSelectListEnumerableExtensions
         var predicate = source.Predicate;
         var selector = source.Selector;
 
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -317,10 +317,18 @@ public static partial class WhereSelectListEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
+        var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        builder.Add(CollectionsMarshal.AsSpan(source.Source), in predicate, in selector);
+        foreach (var item in span)
+        {
+            if (predicate.Invoke(item))
+            {
+                builder.Add(selector.Invoke(item));
+            }
+        }
         return builder.ToArray();
     }
 
@@ -328,10 +336,18 @@ public static partial class WhereSelectListEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
+        var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        builder.Add(CollectionsMarshal.AsSpan(source.Source), in predicate, in selector);
+        foreach (var item in span)
+        {
+            if (predicate.Invoke(item))
+            {
+                builder.Add(selector.Invoke(item));
+            }
+        }
         return builder.ToList();
     }
 

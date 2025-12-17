@@ -30,7 +30,7 @@ public static partial class WhereListRefStructEnumerableExtensions
         var count = 0;
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             var result = predicate(span[i]);
             count += Unsafe.As<bool, byte>(ref result);
@@ -43,7 +43,7 @@ public static partial class WhereListRefStructEnumerableExtensions
     {
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate(span[i]))
             {
@@ -58,7 +58,7 @@ public static partial class WhereListRefStructEnumerableExtensions
     {
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate(span[i]))
             {
@@ -73,7 +73,7 @@ public static partial class WhereListRefStructEnumerableExtensions
     {
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate(span[i]))
             {
@@ -90,7 +90,7 @@ public static partial class WhereListRefStructEnumerableExtensions
         var result = default(TSource);
         var span = CollectionsMarshal.AsSpan(source.Source);
         var predicate = source.Predicate;
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate(span[i]))
             {
@@ -166,17 +166,33 @@ public static partial class WhereListRefStructEnumerableExtensions
 
     public static TSource[] ToArray<TSource>(this WhereListRefStructEnumerable<TSource> source, ArrayPool<TSource>? pool = default)
     {
-        using var builder = new ArrayBuilder<TSource>(pool ?? ArrayPool<TSource>.Shared);
-        var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
-        builder.Add(CollectionsMarshal.AsSpan(source.Source), in wrapper);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TSource>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TSource>(scratch);
+        var span = CollectionsMarshal.AsSpan(source.Source);
+        var predicate = source.Predicate;
+        foreach (var item in span)
+        {
+            if (predicate(item))
+            {
+                builder.Add(item);
+            }
+        }
         return builder.ToArray();
     }
 
     public static List<TSource> ToList<TSource>(this WhereListRefStructEnumerable<TSource> source)
     {
-        using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
-        var wrapper = new FunctionWrapper<TSource, bool>(source.Predicate);
-        builder.Add(CollectionsMarshal.AsSpan(source.Source), in wrapper);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TSource>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TSource>(scratch);
+        var span = CollectionsMarshal.AsSpan(source.Source);
+        var predicate = source.Predicate;
+        foreach (var item in span)
+        {
+            if (predicate(item))
+            {
+                builder.Add(item);
+            }
+        }
         return builder.ToList();
     }
 }

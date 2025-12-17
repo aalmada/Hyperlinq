@@ -30,7 +30,8 @@ public readonly struct WhereEnumerable<TSource> : IValueEnumerable<TSource, Wher
 
     public TSource[] ToArray()
     {
-        using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TSource>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TSource>(scratch);
         foreach (var item in source)
         {
             if (predicate(item))
@@ -43,7 +44,8 @@ public readonly struct WhereEnumerable<TSource> : IValueEnumerable<TSource, Wher
 
     public List<TSource> ToList()
     {
-        using var builder = new ArrayBuilder<TSource>(ArrayPool<TSource>.Shared);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TSource>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TSource>(scratch);
         foreach (var item in source)
         {
             if (predicate(item))

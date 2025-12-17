@@ -97,7 +97,12 @@ dotnet run -c Release --filter '*AsValueEnumerable*'
 - **HyperlinkBenchmarks** - Core operations (Where, Select, Sum, Count, Any)
 - **LastOperationsBenchmarks** - Last() methods for various types
 - **MinMaxBenchmarks** - Min/Max operations on arrays and lists
-- **PooledBenchmarks** - Pooled memory (`ToArrayPooled`) vs regular materialization
+- **SegmentedArrayBuilderBenchmarks** - Segmented memory (`ToArrayPooled`) vs regular materialization
+
+To run benchmarks:
+```bash
+dotnet run -c Release --filter '*SegmentedArrayBuilderBenchmarks*'
+```
 - **NonPrimitiveSumBenchmarks** - Sum operations with custom numeric types
 
 ### Pooled Memory Performance

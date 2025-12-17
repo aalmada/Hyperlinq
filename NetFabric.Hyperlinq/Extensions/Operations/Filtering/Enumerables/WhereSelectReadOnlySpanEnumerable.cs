@@ -51,7 +51,7 @@ public readonly ref struct WhereSelectReadOnlySpanEnumerable<TSource, TResult, T
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            while (++index < source.Length)
+            while ((uint)++index < (uint)source.Length)
             {
                 if (predicate.Invoke(source[index]))
                 {

@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
 
@@ -31,8 +32,8 @@ public readonly struct WhereSelectEnumerable<TSource, TResult> : IValueEnumerabl
 
     public TResult[] ToArray()
     {
-        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared, scratch);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
         
         var predicate = this.predicate;
         var selector = this.selector;
@@ -48,9 +49,9 @@ public readonly struct WhereSelectEnumerable<TSource, TResult> : IValueEnumerabl
 
     public List<TResult> ToList()
     {
-        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared, scratch);
-        
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
+
         var predicate = this.predicate;
         var selector = this.selector;
         foreach (var item in source)

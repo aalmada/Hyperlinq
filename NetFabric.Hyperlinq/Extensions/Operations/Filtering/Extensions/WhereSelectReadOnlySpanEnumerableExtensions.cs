@@ -263,7 +263,7 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         var selector = source.Selector;
 
         // Find first matching element
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; (uint)i < (uint)span.Length; i++)
         {
             if (predicate.Invoke(span[i]))
             {
@@ -272,7 +272,7 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
                 var max = value;
 
                 // Process remaining elements
-                for (i++; i < span.Length; i++)
+                for (i++; (uint)i < (uint)span.Length; i++)
                 {
                     if (predicate.Invoke(span[i]))
                     {
@@ -299,12 +299,17 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
-        Span<TResult> scratchSpan = scratch;
-        using var builder = new ArrayBuilder<TResult>(pool ?? ArrayPool<TResult>.Shared, scratchSpan);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        builder.Add(source.Source, in predicate, in selector);
+        foreach(var item in source.Source)
+        {
+            if (predicate.Invoke(item))
+            {
+                builder.Add(selector.Invoke(item));
+            }
+        }
         return builder.ToArray();
     }
 
@@ -312,12 +317,17 @@ public static partial class WhereSelectReadOnlySpanEnumerableExtensions
         where TPredicate : struct, IFunction<TSource, bool>
         where TSelector : struct, IFunction<TSource, TResult>
     {
-        ArrayBuilder<TResult>.ScratchBuffer scratch = default;
-        Span<TResult> scratchSpan = scratch;
-        using var builder = new ArrayBuilder<TResult>(ArrayPool<TResult>.Shared, scratchSpan);
+        Unsafe.SkipInit(out SegmentedArrayBuilder<TResult>.ScratchBuffer scratch);
+        using var builder = new SegmentedArrayBuilder<TResult>(scratch);
         var predicate = source.Predicate;
         var selector = source.Selector;
-        builder.Add(source.Source, in predicate, in selector);
+        foreach(var item in source.Source)
+        {
+            if (predicate.Invoke(item))
+            {
+                builder.Add(selector.Invoke(item));
+            }
+        }
         return builder.ToList();
     }
 

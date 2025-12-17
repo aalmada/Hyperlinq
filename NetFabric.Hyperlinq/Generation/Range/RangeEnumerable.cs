@@ -81,7 +81,7 @@ public readonly partial struct RangeEnumerable
         {
             // Initialize vector with sequence [start, start+1, ..., start+N-1]
             Span<int> init = stackalloc int[Vector<int>.Count];
-            for (var i = 0; i < init.Length; i++)
+            for (var i = 0; (uint)i < (uint)init.Length; i++)
             {
                 init[i] = start + i;
             }
@@ -98,7 +98,7 @@ public readonly partial struct RangeEnumerable
             }
         }
 
-        for (; index < span.Length; index++)
+        for (; (uint)index < (uint)span.Length; index++)
         {
             span[index] = start + index;
         }
