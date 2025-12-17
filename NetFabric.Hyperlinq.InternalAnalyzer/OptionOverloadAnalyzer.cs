@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Generic;
 
 namespace NetFabric.Hyperlinq.InternalAnalyzer;
 
@@ -45,8 +46,19 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    public const string DiagnosticIdMissingMinMaxGroup = "HLQInternal008";
+    private static readonly LocalizableString TitleMissingMinMaxGroup = "Missing Min/Max/MinMax group methods";
+    private static readonly LocalizableString MessageFormatMissingMinMaxGroup = "The method '{0}' is part of a Min/Max/MinMax group. Missing counterparts: {1}";
+    private static readonly DiagnosticDescriptor RuleMissingMinMaxGroup = new DiagnosticDescriptor(
+        DiagnosticIdMissingMinMaxGroup,
+        TitleMissingMinMaxGroup,
+        MessageFormatMissingMinMaxGroup,
+        Category,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
-        ImmutableArray.Create(RuleMissingNonDefault, RuleMissingOption, RuleDelegation);
+        ImmutableArray.Create(RuleMissingNonDefault, RuleMissingOption, RuleDelegation, RuleMissingMinMaxGroup);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -131,7 +143,7 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
             var targetOptionName = methodName + "OrNone";
             
              // Only check if it's one of the standard LINQ operators we care about
-            if (methodName is "First" or "Single" or "ElementAt")
+            if (methodName is "First" or "Single" or "ElementAt" or "Min" or "Max" or "MinMax")
             {
                 var optionMethod = methodSymbol.ContainingType.GetMembers(targetOptionName)
                     .OfType<IMethodSymbol>()
@@ -141,6 +153,42 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
                 {
                     VerifyDelegation(context, methodSymbol, targetOptionName);
                 }
+            }
+        }
+
+        var cleanName = methodName;
+        if (cleanName.EndsWith("OrDefault")) cleanName = cleanName.Substring(0, cleanName.Length - 9);
+        if (cleanName.EndsWith("OrNone")) cleanName = cleanName.Substring(0, cleanName.Length - 6);
+
+        if (cleanName is "Min" or "Max" or "MinMax")
+        {
+            // Verify Min/Max/MinMax group
+            var expectedMethods = new[] { "Min", "MinOrNone", "Max", "MaxOrNone", "MinMax", "MinMaxOrNone" };
+            var missingMethods = new List<string>();
+
+            var members = methodSymbol.ContainingType.GetMembers();
+
+            foreach (var expectedMethod in expectedMethods)
+            {
+                if (expectedMethod == methodName) continue;
+
+                var found = members
+                    .OfType<IMethodSymbol>()
+                    .Any(m => m.Name == expectedMethod && SignaturesMatch(methodSymbol, m, out _));
+
+                if (!found)
+                {
+                    missingMethods.Add(expectedMethod);
+                }
+            }
+
+            if (missingMethods.Count > 0)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    RuleMissingMinMaxGroup,
+                    methodSymbol.Locations[0],
+                    methodName,
+                    string.Join(", ", missingMethods)));
             }
         }
     }

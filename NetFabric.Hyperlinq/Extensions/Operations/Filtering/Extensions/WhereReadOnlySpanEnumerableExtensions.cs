@@ -96,13 +96,13 @@ public static partial class WhereReadOnlySpanEnumerableExtensions
     public static TSource Min<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
         where TPredicate : struct, IFunction<TSource, bool>
-        => source.Source.Min(source.Predicate);
+        => source.MinOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TSource Max<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
         where TPredicate : struct, IFunction<TSource, bool>
-        => source.Source.Max(source.Predicate);
+        => source.MaxOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TSource> MinOrNone<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
@@ -120,7 +120,7 @@ public static partial class WhereReadOnlySpanEnumerableExtensions
     public static (TSource Min, TSource Max) MinMax<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
         where TSource : struct, INumber<TSource>, IMinMaxValue<TSource>
         where TPredicate : struct, IFunction<TSource, bool>
-        => source.Source.MinMax(source.Predicate);
+        => source.MinMaxOrNone().Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<(TSource Min, TSource Max)> MinMaxOrNone<TSource, TPredicate>(this WhereReadOnlySpanEnumerable<TSource, TPredicate> source)
