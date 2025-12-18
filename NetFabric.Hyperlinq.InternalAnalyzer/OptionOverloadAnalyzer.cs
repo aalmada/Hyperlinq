@@ -70,7 +70,9 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
     private void AnalyzeMethod(SymbolAnalysisContext context)
     {
         var methodSymbol = (IMethodSymbol)context.Symbol;
-        if (!methodSymbol.IsExtensionMethod)
+        
+        // 1. Check if it's an extension method OR inside an extension type (C# 14)
+        if (!methodSymbol.IsExtensionMethod && !IsInExtensionType(context, methodSymbol))
             return;
 
         var methodName = methodSymbol.Name;
@@ -92,7 +94,7 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
             {
                 var nonDefaultMethod = members
                     .OfType<IMethodSymbol>()
-                    .FirstOrDefault(m => m.Name == baseName && SignaturesMatch(methodSymbol, m, out _));
+                    .FirstOrDefault(m => m.Name == baseName && SignaturesMatch(context, methodSymbol, m, out _));
 
                 if (nonDefaultMethod is null)
                 {
@@ -118,8 +120,8 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
                     if (m.Name != orNoneName) return false;
                     
                     var match = hasDefaultValueParam 
-                        ? SignaturesMatchWithSkipLast(methodSymbol, m, out failureReason)
-                        : SignaturesMatch(methodSymbol, m, out failureReason);
+                        ? SignaturesMatchWithSkipLast(context, methodSymbol, m, out failureReason)
+                        : SignaturesMatch(context, methodSymbol, m, out failureReason);
                     
                     return match;
                 });
@@ -147,7 +149,7 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
             {
                 var optionMethod = methodSymbol.ContainingType.GetMembers(targetOptionName)
                     .OfType<IMethodSymbol>()
-                    .FirstOrDefault(m => SignaturesMatch(methodSymbol, m, out _));
+                    .FirstOrDefault(m => SignaturesMatch(context, methodSymbol, m, out _));
 
                 if (optionMethod is not null)
                 {
@@ -174,7 +176,7 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
 
                 var found = members
                     .OfType<IMethodSymbol>()
-                    .Any(m => m.Name == expectedMethod && SignaturesMatch(methodSymbol, m, out _));
+                    .Any(m => m.Name == expectedMethod && SignaturesMatch(context, methodSymbol, m, out _));
 
                 if (!found)
                 {
@@ -193,7 +195,23 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool SignaturesMatch(IMethodSymbol method1, IMethodSymbol method2, out string reason)
+    private static bool IsInExtensionType(SymbolAnalysisContext context, IMethodSymbol method)
+    {
+        var typeSymbol = method.ContainingType;
+        if (typeSymbol is null) return false;
+
+        foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
+        {
+             var syntax = syntaxRef.GetSyntax(context.CancellationToken);
+             if (syntax.Kind().ToString() == "ExtensionDeclaration" || 
+                 syntax.Kind().ToString() == "ExtensionBlockDeclaration" ||
+                 syntax.GetType().Name == "ExtensionDeclarationSyntax")
+                 return true;
+        }
+        return false;
+    }
+
+    private static bool SignaturesMatch(SymbolAnalysisContext context, IMethodSymbol method1, IMethodSymbol method2, out string reason)
     {
         reason = "";
         if (method1.TypeParameters.Length != method2.TypeParameters.Length) 
@@ -202,6 +220,22 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
+        // Logic for parameter matching considering implied receiver in C# 14
+        // If one is "Classic" (static + this) and other is "Instance" (C# 14), we might need offset.
+        // BUT, in OptionOverloadAnalyzer, we are usually comparing methods WITHIN the same type.
+        // It is unlikely one method in a type is "Classic Extension" and another is "Ordinary Instance" within the SAME type 
+        // unless it's a partial class mix (unlikely for Extension Types).
+        // For C# 14 Extension types, ALL methods are "instance-like" regarding parameters (receiver is not in param list).
+        // For Classic static classes, ALL methods are static (receiver IS in param list).
+        // So we can assume the offset is the same for both if they are in the same containing type.
+        
+        // HOWEVER, to be safe:
+        // Use IsExtensionMethod to detect "Classic".
+        // Use IsInExtensionType (or just !IsStatic if in extension type) for "New".
+        
+        // Simpler: Just compare parameters 1-to-1 if they are in the same type structure.
+        // Since we are looking for counterparts IN THE SAME TYPE.
+        
         if (method1.Parameters.Length != method2.Parameters.Length)
         {
             reason = $"Params length mismatch: {method1.Parameters.Length} vs {method2.Parameters.Length}";
@@ -223,7 +257,7 @@ public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
-    private static bool SignaturesMatchWithSkipLast(IMethodSymbol methodWithDefault, IMethodSymbol methodTarget, out string reason)
+    private static bool SignaturesMatchWithSkipLast(SymbolAnalysisContext context, IMethodSymbol methodWithDefault, IMethodSymbol methodTarget, out string reason)
     {
         reason = "";
         if (methodWithDefault.TypeParameters.Length != methodTarget.TypeParameters.Length)

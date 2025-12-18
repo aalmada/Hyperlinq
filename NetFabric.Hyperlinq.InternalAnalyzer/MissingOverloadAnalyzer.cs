@@ -61,15 +61,14 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
     {
         var methodSymbol = (IMethodSymbol)context.Symbol;
 
-        // 1. Check if it's an extension method
-        if (!methodSymbol.IsExtensionMethod)
+        // 1. Check if it's an extension method or C# 14 extension
+        // For C# 14, IsExtensionMethod is FALSE, but it's Inside an Extension Type.
+        // We defer check to TryGetReceiverType.
+
+        // 2. Check if the receiver is ReadOnlySpan<T>
+        if (!TryGetReceiverType(context, methodSymbol, out var firstParamType))
             return;
 
-        // 2. Check if the first parameter is ReadOnlySpan<T>
-        if (methodSymbol.Parameters.Length == 0)
-            return;
-
-        var firstParamType = methodSymbol.Parameters[0].Type;
         if (!IsReadOnlySpan(firstParamType))
             return;
 
@@ -91,16 +90,27 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
         var containingNamespace = methodSymbol.ContainingNamespace;
         var typesInNamespace = containingNamespace.GetMembers().OfType<INamedTypeSymbol>();
         
+        // Find candidates: check both extension methods and methods in extension types
+        // Note: In C# 14, extension types might be nested within the container class.
         var candidates = typesInNamespace
-            .SelectMany(t => t.GetMembers(methodSymbol.Name).OfType<IMethodSymbol>())
-            .Where(m => m.IsExtensionMethod && m.Parameters.Length == methodSymbol.Parameters.Length)
+            .SelectMany(t => 
+                t.GetMembers(methodSymbol.Name).OfType<IMethodSymbol>()
+                .Concat(t.GetTypeMembers().SelectMany(nested => nested.GetMembers(methodSymbol.Name).OfType<IMethodSymbol>()))
+            )
+            .Where(m => 
+            {
+                 if (m.IsExtensionMethod) return true;
+                 if (TryGetReceiverType(context, m, out _)) return true;
+                 return false;
+            })
             .ToList();
 
         foreach (var (targetSymbol, simpleName, targetKind) in requiredTypes)
         {
             var overload = candidates.FirstOrDefault(m => 
             {
-                var paramType = m.Parameters[0].Type;
+                if (!TryGetReceiverType(context, m, out var paramType)) return false;
+                
                 bool isTypeMatch = false;
 
                 if (targetKind == TypeKind.Array)
@@ -109,11 +119,11 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
                 }
                 else if (targetSymbol is not null)
                 {
-                    // Check if paramType matches targetSymbol (generic definition)
+                     // Check if paramType matches targetSymbol (generic definition)
                     isTypeMatch = SymbolEqualityComparer.Default.Equals(paramType.OriginalDefinition, targetSymbol);
                 }
 
-                return isTypeMatch && SignaturesMatch(methodSymbol, m);
+                return isTypeMatch && SignaturesMatch(context, methodSymbol, m);
             });
 
             if (overload is null)
@@ -137,18 +147,115 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
         return typeSymbol.OriginalDefinition.ToString() == "System.ReadOnlySpan<T>";
     }
 
-    private static bool SignaturesMatch(IMethodSymbol spanMethod, IMethodSymbol candidate)
+    private static bool TryGetReceiverType(SymbolAnalysisContext context, IMethodSymbol method, out ITypeSymbol receiverType)
+    {
+        receiverType = null!;
+        
+        // 1. Classic Extension Method (static method with 'this' param)
+        if (method.IsExtensionMethod)
+        {
+            if (method.Parameters.Length > 0)
+            {
+                receiverType = method.Parameters[0].Type;
+                return true;
+            }
+            return false;
+        }
+
+        // 2. C# 14 Explicit Extension Type
+        // Start by checking DeclaringSyntaxReferences (usually 1)
+        var syntaxRef = method.DeclaringSyntaxReferences.FirstOrDefault();
+        if (syntaxRef is not null)
+        {
+            var syntax = syntaxRef.GetSyntax(context.CancellationToken);
+            
+            // Traverse up to find ExtensionDeclaration
+            var parent = syntax.Parent;
+            while (parent is not null)
+            {
+                var kindName = parent.Kind().ToString();
+                
+                if (kindName == "ExtensionDeclaration" || kindName == "ExtensionBlockDeclaration") 
+                {
+                     // Found it. Use reflection.
+                     var type = parent.GetType();
+                     var paramListProp = type.GetProperty("ParameterList");
+                     if (paramListProp is not null)
+                     {
+                          var paramList = paramListProp.GetValue(parent);
+                          if (paramList is not null)
+                          {
+                               var parametersProp = paramList.GetType().GetProperty("Parameters");
+                               var parameters = parametersProp?.GetValue(paramList) as System.Collections.IEnumerable;
+                               
+                               if (parameters is not null)
+                               {
+                                   object? firstParam = null;
+                                   foreach(var p in parameters) { firstParam = p; break; }
+                                   
+                                   if (firstParam is not null)
+                                   {
+                                        var typeProp = firstParam.GetType().GetProperty("Type");
+                                        var typeSyntax = typeProp?.GetValue(firstParam) as TypeSyntax;
+                                        
+                                        if (typeSyntax is not null)
+                                        {
+                                             var semanticModel = context.Compilation.GetSemanticModel(parent.SyntaxTree);
+                                             var typeInfo = semanticModel.GetTypeInfo(typeSyntax, context.CancellationToken);
+                                             if (typeInfo.Type is not null)
+                                             {
+                                                 receiverType = typeInfo.Type;
+                                                 return true;
+                                             }
+                                        }
+                                   }
+                               }
+                          }
+                     }
+                     break; // Found extension declaration, stop traversing
+                }
+                
+                parent = parent.Parent;
+            }
+        }
+        
+        return false;
+    }
+
+    private static bool SignaturesMatch(SymbolAnalysisContext context, IMethodSymbol spanMethod, IMethodSymbol candidate)
     {
         // Compare generic parameters
         if (spanMethod.TypeParameters.Length != candidate.TypeParameters.Length)
             return false;
 
         // Compare parameters starting from index 1 (skipping 'this' parameter)
-        for (var i = 1; i < spanMethod.Parameters.Length; i++)
+        if (!TryGetReceiverType(context, spanMethod, out _)) return false;
+        if (!TryGetReceiverType(context, candidate, out _)) return false; // Also verify candidate is compatible extension type
+        
+        // Offset logic:
+        // Classic: calls are static(source, ...). Params: [source, arg1, ...]
+        // C# 14: calls are source.Method(...). Params: [arg1, ...] (Instance method of extension type)
+        // Wait, C# 14 extension methods in metadata might be different?
+        // Actually, for C# 14, the 'source' is in the Type declaration, not the Method parameters?
+        // Yes. 
+        // So for C# 14 method, Parameters.Length is just the arguments.
+        // For Classic method, Parameters.Length is source + arguments.
+        
+        var spanIsClassic = spanMethod.IsExtensionMethod;
+        var candidateIsClassic = candidate.IsExtensionMethod;
+        
+        var spanOffset = spanIsClassic ? 1 : 0;
+        var candidateOffset = candidateIsClassic ? 1 : 0;
+
+        if ((spanMethod.Parameters.Length - spanOffset) != (candidate.Parameters.Length - candidateOffset))
+             return false;
+
+        for (var i = 0; i < (spanMethod.Parameters.Length - spanOffset); i++)
         {
-            // Simple type comparison - strict equality might be too harsh if generic type arguments differ slightly, 
-            // but for overloads they usually match exactly.
-            if (!SymbolEqualityComparer.Default.Equals(spanMethod.Parameters[i].Type, candidate.Parameters[i].Type))
+            var spanParam = spanMethod.Parameters[i + spanOffset];
+            var candidateParam = candidate.Parameters[i + candidateOffset];
+            
+            if (!SymbolEqualityComparer.Default.Equals(spanParam.Type, candidateParam.Type))
                 return false;
         }
 

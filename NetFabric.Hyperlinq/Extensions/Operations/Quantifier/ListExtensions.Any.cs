@@ -14,7 +14,7 @@ public static partial class ListExtensions
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Any()
-            => source.Count > 0;
+            => CollectionsMarshal.AsSpan(source).Any();
 
         /// <summary>
         /// Determines whether any element satisfies a condition.
