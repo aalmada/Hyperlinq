@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NetFabric.Assertive;
+using NetFabric.Reflection;
 using TUnit.Core;
 
 namespace NetFabric.Hyperlinq.UnitTests;
@@ -163,11 +164,21 @@ public class FusionCompletenessTests
         }
     }
 
-    static List<Type> GetEnumerableTypes(string namePattern, bool excludeWhereSelect = false) => HyperlinqAssembly.GetTypes()
-            .Where(t => t.Name.Contains(namePattern) &&
-                       t.Name.EndsWith("Enumerable") &&
-                       !t.IsAbstract &&
-                       !t.IsInterface &&
-                       (!excludeWhereSelect || !t.Name.Contains("WhereSelect")))
-            .ToList();
+    static List<Type> GetEnumerableTypes(string namePattern, bool excludeWhereSelect = false)
+    {
+        var types = new List<Type>();
+        foreach (var t in HyperlinqAssembly.GetTypes())
+        {
+            if (t.IsEnumerable(out _, out _) &&
+                t.Name.Contains(namePattern) &&
+                t.Name.EndsWith("Enumerable") &&
+                !t.IsAbstract &&
+                !t.IsInterface &&
+                (!excludeWhereSelect || !t.Name.Contains("WhereSelect")))
+            {
+                types.Add(t);
+            }
+        }
+        return types;
+    }
 }

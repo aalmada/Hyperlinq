@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NetFabric.Reflection" Version="4.0.4" />
     <PackageReference Include="TUnit" Version="1.2.3" />
     <PackageReference Include="NetFabric.Assertive" Version="4.0.0" />
   </ItemGroup>
