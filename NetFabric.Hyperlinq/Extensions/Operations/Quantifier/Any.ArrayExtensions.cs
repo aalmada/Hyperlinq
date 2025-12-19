@@ -1,25 +1,23 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
-public static partial class ListExtensions
+public static partial class ArrayExtensions
 {
-    extension<T>(List<T> source)
+    extension<T>(T[] source)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Any()
-            => CollectionsMarshal.AsSpan(source).Any();
+            => source.AsSpan().Any();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Any<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source).Any(predicate);
+            => source.AsSpan().Any(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Any(Func<T, bool> predicate)
-            => CollectionsMarshal.AsSpan(source).Any(predicate);
+            => source.AsSpan().Any(predicate);
     }
 }

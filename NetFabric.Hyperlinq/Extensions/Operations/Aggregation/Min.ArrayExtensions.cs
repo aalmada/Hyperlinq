@@ -4,14 +4,11 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
 
-public static partial class ReadOnlyMemoryExtensions
+public static partial class ArrayExtensions
 {
-    extension<T>(ReadOnlyMemory<T> source)
+    extension<T>(T[] source)
         where T : struct, INumber<T>, IMinMaxValue<T>
     {
-        /// <summary>
-        /// Returns the minimum value in a memory using SIMD acceleration.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Min()
             => source.MinOrNone().Value;
@@ -53,41 +50,41 @@ public static partial class ReadOnlyMemoryExtensions
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> MinOrNone()
-            => source.Span.MinOrNone();
+            => source.AsSpan().MinOrNone();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> MinOrNone<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Span.MinOrNone(predicate);
+            => source.AsSpan().MinOrNone(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> MinOrNone(Func<T, bool> predicate)
-            => source.Span.MinOrNone(predicate);
+            => source.AsSpan().MinOrNone(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> MaxOrNone()
-            => source.Span.MaxOrNone();
+            => source.AsSpan().MaxOrNone();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> MaxOrNone<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Span.MaxOrNone(predicate);
+            => source.AsSpan().MaxOrNone(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> MaxOrNone(Func<T, bool> predicate)
-            => source.Span.MaxOrNone(predicate);
+            => source.AsSpan().MaxOrNone(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<(T Min, T Max)> MinMaxOrNone()
-            => source.Span.MinMaxOrNone();
+            => source.AsSpan().MinMaxOrNone();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<(T Min, T Max)> MinMaxOrNone<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Span.MinMaxOrNone(predicate);
+            => source.AsSpan().MinMaxOrNone(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<(T Min, T Max)> MinMaxOrNone(Func<T, bool> predicate)
-            => source.Span.MinMaxOrNone(predicate);
+            => source.AsSpan().MinMaxOrNone(predicate);
     }
 }

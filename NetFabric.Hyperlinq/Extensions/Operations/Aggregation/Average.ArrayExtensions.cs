@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
 
-public static partial class ArraySegmentExtensions
+public static partial class ArrayExtensions
 {
-    extension<T>(ArraySegment<T> source)
+    extension<T>(T[] source)
         where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

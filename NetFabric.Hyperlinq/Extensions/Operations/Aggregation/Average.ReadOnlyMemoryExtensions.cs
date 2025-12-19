@@ -7,32 +7,30 @@ namespace NetFabric.Hyperlinq;
 public static partial class ReadOnlyMemoryExtensions
 {
     extension<T>(ReadOnlyMemory<T> source)
-        where T : struct, INumber<T>, IMinMaxValue<T>
+        where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
     {
-        /// <summary>
-        /// Computes the average of a memory using SIMD acceleration.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Average()
             => source.Span.Average();
 
-        /// <summary>
-        /// Computes the average of elements that satisfy a condition.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Average<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.Span.Average(predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Average(Func<T, bool> predicate)
             => source.Span.Average(predicate);
 
-        /// <summary>
-        /// Computes the average of a memory, returning None if empty.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> AverageOrNone()
             => source.Span.AverageOrNone();
 
-        /// <summary>
-        /// Computes the average of elements that satisfy a condition, returning None if no matches.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<T> AverageOrNone<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.Span.AverageOrNone(predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> AverageOrNone(Func<T, bool> predicate)
             => source.Span.AverageOrNone(predicate);

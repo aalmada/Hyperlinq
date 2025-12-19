@@ -7,16 +7,15 @@ public static partial class ReadOnlyMemoryExtensions
 {
     extension<T>(ReadOnlyMemory<T> source)
     {
-        /// <summary>
-        /// Returns the number of elements in a sequence.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count()
-            => source.Length;
+            => source.Span.Count();
 
-        /// <summary>
-        /// Returns the number of elements that satisfy a condition.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Count<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.Span.Count(predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count(Func<T, bool> predicate)
             => source.Span.Count(predicate);

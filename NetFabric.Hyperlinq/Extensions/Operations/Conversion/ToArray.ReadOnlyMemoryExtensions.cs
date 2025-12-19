@@ -1,5 +1,5 @@
 using System;
-using System.Numerics;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
@@ -7,24 +7,19 @@ namespace NetFabric.Hyperlinq;
 public static partial class ReadOnlyMemoryExtensions
 {
     extension<T>(ReadOnlyMemory<T> source)
-        where T : struct, INumberBase<T>
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Sum()
-            => source.Span.Sum();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Sum<TPredicate>(TPredicate predicate)
+        public T[] ToArray<TPredicate>(TPredicate predicate, ArrayPool<T>? pool = default)
             where TPredicate : struct, IFunction<T, bool>
-            => source.Span.Sum(predicate);
+            => source.Span.ToArray(predicate, pool);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Sum<TPredicate>(in TPredicate predicate)
+        public T[] ToArray<TPredicate>(in TPredicate predicate, ArrayPool<T>? pool = default)
             where TPredicate : struct, IFunctionIn<T, bool>
-            => source.Span.Sum(in predicate);
+            => source.Span.ToArray(in predicate, pool);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Sum(Func<T, bool> predicate)
-            => source.Span.Sum(predicate);
+        public T[] ToArray(Func<T, bool> predicate, ArrayPool<T>? pool = default)
+            => source.Span.ToArray(predicate, pool);
     }
 }

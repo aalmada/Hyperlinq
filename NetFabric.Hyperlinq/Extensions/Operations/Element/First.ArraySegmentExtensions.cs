@@ -14,6 +14,11 @@ public static partial class ArraySegmentExtensions
         public T First()
             => source.FirstOrNone().Value;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T First<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.FirstOrNone(predicate).Value;
+
         /// <summary>
         /// Returns the first element that satisfies a condition.
         /// </summary>
@@ -42,6 +47,16 @@ public static partial class ArraySegmentExtensions
         public T FirstOrDefault(Func<T, bool> predicate)
             => source.FirstOrNone(predicate).GetValueOrDefault();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T FirstOrDefault<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.FirstOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T FirstOrDefault<TPredicate>(TPredicate predicate, T defaultValue)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.FirstOrNone(predicate).GetValueOrDefault(defaultValue);
+
         /// <summary>
         /// Returns the first element that satisfies a condition, or a specified default value.
         /// </summary>
@@ -61,6 +76,11 @@ public static partial class ArraySegmentExtensions
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> FirstOrNone(Func<T, bool> predicate)
+            => source.AsSpan().FirstOrNone(predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<T> FirstOrNone<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
             => source.AsSpan().FirstOrNone(predicate);
     }
 }

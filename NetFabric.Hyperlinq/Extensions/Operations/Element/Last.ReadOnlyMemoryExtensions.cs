@@ -7,18 +7,56 @@ public static partial class ReadOnlyMemoryExtensions
 {
     extension<T>(ReadOnlyMemory<T> source)
     {
-        /// <summary>
-        /// Returns the last element of a sequence.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Last()
-            => source.Span.Last();
+            => source.LastOrNone().Value;
 
-        /// <summary>
-        /// Returns the last element that satisfies a condition.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Last<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.LastOrNone(predicate).Value;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Last(Func<T, bool> predicate)
-            => source.Span.Last(predicate);
+            => source.LastOrNone(predicate).Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LastOrDefault()
+            => source.LastOrNone().GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LastOrDefault<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.LastOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LastOrDefault(Func<T, bool> predicate)
+            => source.LastOrNone(predicate).GetValueOrDefault();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LastOrDefault(T defaultValue)
+            => source.LastOrNone().GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LastOrDefault<TPredicate>(TPredicate predicate, T defaultValue)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.LastOrNone(predicate).GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LastOrDefault(Func<T, bool> predicate, T defaultValue)
+            => source.LastOrNone(predicate).GetValueOrDefault(defaultValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<T> LastOrNone()
+            => source.Span.LastOrNone();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<T> LastOrNone<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.Span.LastOrNone(predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<T> LastOrNone(Func<T, bool> predicate)
+            => source.Span.LastOrNone(predicate);
     }
 }

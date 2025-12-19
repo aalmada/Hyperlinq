@@ -11,16 +11,20 @@ public static partial class ListExtensions
     extension<T>(List<T> source)
         where T : struct, INumberBase<T>
     {
-        /// <summary>
-        /// Computes the sum of a sequence of numeric values using SIMD acceleration.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Sum()
             => CollectionsMarshal.AsSpan(source).Sum();
 
-        /// <summary>
-        /// Computes the sum of elements that satisfy a condition.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Sum<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => CollectionsMarshal.AsSpan(source).Sum(predicate);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Sum<TPredicate>(in TPredicate predicate)
+            where TPredicate : struct, IFunctionIn<T, bool>
+            => CollectionsMarshal.AsSpan(source).Sum(in predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Sum(Func<T, bool> predicate)
             => CollectionsMarshal.AsSpan(source).Sum(predicate);

@@ -3,25 +3,19 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
 
-public static partial class ArraySegmentExtensions
+public static partial class ArrayExtensions
 {
-    extension<T>(ArraySegment<T> source)
+    extension<T>(T[] source)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public WhereReadOnlySpanEnumerable<T, TPredicate> Where<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
             => new WhereReadOnlySpanEnumerable<T, TPredicate>(source.AsSpan(), predicate);
 
-        /// <summary>
-        /// Filters elements based on a predicate.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
             => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.AsSpan(), new FunctionWrapper<T, bool>(predicate));
 
-        /// <summary>
-        /// Filters elements based on a predicate using a value delegate passed by reference.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public WhereReadOnlySpanInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
             where TPredicate : struct, IFunctionIn<T, bool>

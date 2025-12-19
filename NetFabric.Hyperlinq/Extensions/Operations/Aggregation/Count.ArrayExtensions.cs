@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace NetFabric.Hyperlinq;
 
-public static partial class ArraySegmentExtensions
+public static partial class ArrayExtensions
 {
-    extension<T>(ArraySegment<T> source)
+    extension<T>(T[] source)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count()

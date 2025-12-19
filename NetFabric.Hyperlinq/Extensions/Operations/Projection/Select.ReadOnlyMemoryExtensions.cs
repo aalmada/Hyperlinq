@@ -7,6 +7,11 @@ public static partial class ReadOnlyMemoryExtensions
 {
     extension<T>(ReadOnlyMemory<T> source)
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SelectReadOnlySpanEnumerable<T, TResult, TSelector> Select<TResult, TSelector>(TSelector selector)
+            where TSelector : struct, IFunction<T, TResult>
+            => new SelectReadOnlySpanEnumerable<T, TResult, TSelector>(source.Span, selector);
+
         /// <summary>
         /// Projects each element into a new form.
         /// </summary>

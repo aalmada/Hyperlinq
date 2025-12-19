@@ -9,32 +9,30 @@ namespace NetFabric.Hyperlinq;
 public static partial class ListExtensions
 {
     extension<T>(List<T> source)
-        where T : struct, INumber<T>, IMinMaxValue<T>
+        where T : struct, INumberBase<T>, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IDivisionOperators<T, T, T>
     {
-        /// <summary>
-        /// Computes the average of a list using SIMD acceleration.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Average()
             => CollectionsMarshal.AsSpan(source).Average();
 
-        /// <summary>
-        /// Computes the average of elements that satisfy a condition.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Average<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => CollectionsMarshal.AsSpan(source).Average(predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Average(Func<T, bool> predicate)
             => CollectionsMarshal.AsSpan(source).Average(predicate);
 
-        /// <summary>
-        /// Computes the average of a list, returning None if empty.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> AverageOrNone()
             => CollectionsMarshal.AsSpan(source).AverageOrNone();
 
-        /// <summary>
-        /// Computes the average of elements that satisfy a condition, returning None if no matches.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Option<T> AverageOrNone<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => CollectionsMarshal.AsSpan(source).AverageOrNone(predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> AverageOrNone(Func<T, bool> predicate)
             => CollectionsMarshal.AsSpan(source).AverageOrNone(predicate);

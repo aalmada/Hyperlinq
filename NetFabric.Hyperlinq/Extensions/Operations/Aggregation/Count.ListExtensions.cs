@@ -9,16 +9,15 @@ public static partial class ListExtensions
 {
     extension<T>(List<T> source)
     {
-        /// <summary>
-        /// Returns the number of elements in a sequence.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count()
-            => source.Count;
+            => CollectionsMarshal.AsSpan(source).Count();
 
-        /// <summary>
-        /// Returns the number of elements that satisfy a condition.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Count<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => CollectionsMarshal.AsSpan(source).Count(predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Count(Func<T, bool> predicate)
             => CollectionsMarshal.AsSpan(source).Count(predicate);

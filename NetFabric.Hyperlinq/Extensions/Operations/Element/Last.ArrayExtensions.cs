@@ -1,13 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
-public static partial class ListExtensions
+public static partial class ArrayExtensions
 {
-    extension<T>(List<T> source)
+    extension<T>(T[] source)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Last()
@@ -50,15 +48,15 @@ public static partial class ListExtensions
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> LastOrNone()
-            => CollectionsMarshal.AsSpan(source).LastOrNone();
+            => source.AsSpan().LastOrNone();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> LastOrNone<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source).LastOrNone(predicate);
+            => source.AsSpan().LastOrNone(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Option<T> LastOrNone(Func<T, bool> predicate)
-            => CollectionsMarshal.AsSpan(source).LastOrNone(predicate);
+            => source.AsSpan().LastOrNone(predicate);
     }
 }

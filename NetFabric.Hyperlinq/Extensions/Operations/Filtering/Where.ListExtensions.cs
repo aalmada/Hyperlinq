@@ -6,26 +6,20 @@ namespace NetFabric.Hyperlinq;
 
 public static partial class ListExtensions
 {
-    /// <summary>
-    /// Filters elements based on a predicate.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WhereListEnumerable<T, TPredicate> Where<T, TPredicate>(this List<T> source, TPredicate predicate)
-        where TPredicate : struct, IFunction<T, bool>
-        => new WhereListEnumerable<T, TPredicate>(source, predicate);
+    extension<T>(List<T> source)
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public WhereListEnumerable<T, TPredicate> Where<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => new WhereListEnumerable<T, TPredicate>(source, predicate);
 
-    /// <summary>
-    /// Filters elements based on a predicate.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WhereListEnumerable<T, FunctionWrapper<T, bool>> Where<T>(this List<T> source, Func<T, bool> predicate)
-        => new WhereListEnumerable<T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public WhereListEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
+            => new WhereListEnumerable<T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
 
-    /// <summary>
-    /// Filters elements based on a predicate.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WhereListInEnumerable<T, TPredicate> Where<T, TPredicate>(this List<T> source, in TPredicate predicate)
-        where TPredicate : struct, IFunctionIn<T, bool>
-        => new WhereListInEnumerable<T, TPredicate>(source, predicate);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public WhereListInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
+            where TPredicate : struct, IFunctionIn<T, bool>
+            => new WhereListInEnumerable<T, TPredicate>(source, predicate);
+    }
 }

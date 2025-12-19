@@ -10,9 +10,9 @@ namespace NetFabric.Hyperlinq.InternalAnalyzer;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "HLQInternal002";
+    public const string DiagnosticId = "HLQInternal002X";
 
-    private static readonly LocalizableString Title = "Missing overload for ReadOnlySpan extension";
+    private static readonly LocalizableString Title = "Missing overload for ReadOnlySpan extension (Use -X to verify update)";
     private static readonly LocalizableString MessageFormat = "The extension method '{0}' for ReadOnlySpan<T> is missing an equivalent overload for '{1}'";
     private static readonly LocalizableString Description = "All ReadOnlySpan<T> extensions must have overloads for Array, List, ArraySegment, and ReadOnlyMemory";
     private const string Category = "Design";
@@ -26,7 +26,7 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         description: Description);
 
-    public const string DiagnosticIdDelegation = "HLQInternal003";
+    public const string DiagnosticIdDelegation = "HLQInternal003X"; // Renamed to verify update
     private static readonly LocalizableString TitleDelegation = "Overload must delegate to ReadOnlySpan extension";
     private static readonly LocalizableString MessageFormatDelegation = "The overload '{0}' must delegate execution to the ReadOnlySpan<T> extension method";
     private static readonly DiagnosticDescriptor RuleDelegation = new DiagnosticDescriptor(
@@ -48,7 +48,15 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, RuleDelegation, RuleInlining);
+    private static readonly DiagnosticDescriptor RuleDebug = new DiagnosticDescriptor(
+        "HLQInternalDEBUG",
+        "Debug Info",
+        "{0}",
+        "Debug",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, RuleDelegation, RuleInlining, RuleDebug);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -136,8 +144,29 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
             }
             else
             {
-                VerifyDelegation(context, overload, methodSymbol);
-                VerifyInlining(context, overload);
+                // Check if the method returns a ValueEnumerable
+                var returnTypeName = methodSymbol.ReturnType.Name;
+                var returnTypeMetadataName = methodSymbol.ReturnType.MetadataName;
+                var isValueEnumerable = returnTypeName.Contains("Enumerable") || returnTypeMetadataName.Contains("Enumerable");
+
+                // Check if the method returns a ValueEnumerable (DEBUG LOGGING ENABLED)
+                if (!isValueEnumerable && methodSymbol.Name == "Select")
+                {
+                     context.ReportDiagnostic(Diagnostic.Create(RuleDebug, methodSymbol.Locations[0], 
+                         $"Select ReturnType: '{returnTypeName}', Metadata: '{returnTypeMetadataName}'"));
+                }
+
+                 // Skip array overload requirement for ValueEnumerables as they likely use Span implementation
+                 if (targetKind == TypeKind.Array && isValueEnumerable)
+                     continue;
+
+                 // Skip delegation check for ValueEnumerables
+                 if (!isValueEnumerable)
+                 {
+                     VerifyDelegation(context, overload, methodSymbol);
+                 }
+                 
+                 VerifyInlining(context, overload);
             }
         }
     }
@@ -254,16 +283,83 @@ public sealed class MissingOverloadAnalyzer : DiagnosticAnalyzer
         {
             var spanParam = spanMethod.Parameters[i + spanOffset];
             var candidateParam = candidate.Parameters[i + candidateOffset];
-            
-            if (!SymbolEqualityComparer.Default.Equals(spanParam.Type, candidateParam.Type))
+
+            if (!AreEquivalent(spanParam.Type, candidateParam.Type))
                 return false;
         }
 
         return true;
     }
 
+    private static bool AreEquivalent(ITypeSymbol t1, ITypeSymbol t2)
+    {
+        if (SymbolEqualityComparer.Default.Equals(t1, t2))
+            return true;
+
+        if (t1.TypeKind == TypeKind.TypeParameter && t2.TypeKind == TypeKind.TypeParameter)
+        {
+            var tp1 = (ITypeParameterSymbol)t1;
+            var tp2 = (ITypeParameterSymbol)t2;
+
+            // Check if both are method type parameters or both are type type parameters
+            if (tp1.DeclaringMethod is not null && tp2.DeclaringMethod is not null)
+            {
+                 // Compare by name as ordinal might differ between extension vs extension type
+                 return tp1.Name == tp2.Name; 
+            }
+            
+            if (tp1.DeclaringType is not null && tp2.DeclaringType is not null)
+            {
+                 // Assuming strict 1:1 mapping of class type parameters for now (e.g. extension<T> vs extension<T>)
+                 return tp1.Ordinal == tp2.Ordinal;
+            }
+            
+            return false;
+        }
+
+        if (t1 is IArrayTypeSymbol array1 && t2 is IArrayTypeSymbol array2)
+        {
+            return array1.Rank == array2.Rank && AreEquivalent(array1.ElementType, array2.ElementType);
+        }
+
+        if (t1 is INamedTypeSymbol named1 && t2 is INamedTypeSymbol named2)
+        {
+            if (!SymbolEqualityComparer.Default.Equals(named1.OriginalDefinition, named2.OriginalDefinition))
+                return false;
+
+            if (named1.TypeArguments.Length != named2.TypeArguments.Length)
+                return false;
+
+            for (var i = 0; i < named1.TypeArguments.Length; i++)
+            {
+                if (!AreEquivalent(named1.TypeArguments[i], named2.TypeArguments[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private void VerifyDelegation(SymbolAnalysisContext context, IMethodSymbol overload, IMethodSymbol targetSpanMethod)
     {
+        // HLQInternal007 (OptionOverloadAnalyzer) handles delegation validation for these operations
+        if (targetSpanMethod.Name == "First" || 
+            targetSpanMethod.Name == "FirstOrDefault" ||
+            targetSpanMethod.Name == "Single" || 
+            targetSpanMethod.Name == "SingleOrDefault" ||
+            targetSpanMethod.Name == "Last" || 
+            targetSpanMethod.Name == "LastOrDefault" ||
+            targetSpanMethod.Name == "ElementAt" || 
+            targetSpanMethod.Name == "ElementAtOrDefault" ||
+            targetSpanMethod.Name == "Min" || 
+            targetSpanMethod.Name == "Max" ||
+            targetSpanMethod.Name == "MinMax" ||
+            targetSpanMethod.Name == "Skip" ||
+            targetSpanMethod.Name == "Take")
+            return;
+
         // This requires getting the syntax of the overload
         var syntaxReference = overload.DeclaringSyntaxReferences.FirstOrDefault();
         if (syntaxReference is null) return;

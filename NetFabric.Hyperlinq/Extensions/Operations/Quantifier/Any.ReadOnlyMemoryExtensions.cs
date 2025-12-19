@@ -7,16 +7,15 @@ public static partial class ReadOnlyMemoryExtensions
 {
     extension<T>(ReadOnlyMemory<T> source)
     {
-        /// <summary>
-        /// Determines whether a sequence contains any elements.
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Any()
-            => source.Length > 0;
+            => source.Span.Any();
 
-        /// <summary>
-        /// Determines whether any element satisfies a condition.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Any<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => source.Span.Any(predicate);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Any(Func<T, bool> predicate)
             => source.Span.Any(predicate);

@@ -7,6 +7,11 @@ public static partial class ReadOnlyMemoryExtensions
 {
     extension<T>(ReadOnlyMemory<T> source)
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public WhereReadOnlySpanEnumerable<T, TPredicate> Where<TPredicate>(TPredicate predicate)
+            where TPredicate : struct, IFunction<T, bool>
+            => new WhereReadOnlySpanEnumerable<T, TPredicate>(source.Span, predicate);
+
         /// <summary>
         /// Filters elements based on a predicate.
         /// </summary>
