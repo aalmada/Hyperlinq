@@ -130,8 +130,9 @@ var range = ValueEnumerable.Range(0, 100);
 // Supports indexing (IValueReadOnlyList)
 var tenth = range[10]; // 10
 
-// Optimized materialization (knows count upfront)
-var array = range.ToArray(); // No resizing needed
+// Materialization is SIMD-optimized for Range and Repeat!
+// Uses Vector<T> for ToArray(), ToList(), and CopyTo()
+var array = range.ToArray(); // No resizing needed, blazingly fast
 
 // Chain operations
 var evenSquares = range

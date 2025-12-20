@@ -35,6 +35,7 @@ While .NET has added SIMD to some basic operations (like `Sum` on arrays), it ge
 
 **Hyperlinq Advantage:**  
 Hyperlinq checks the underlying memory layout (e.g., contiguous memory in `List<T>`, `Span<T>`) and automatically leverages **Vector<T>** and **TensorPrimitives** for operations like `Sum`, `Min`, `Max`—often achieving 10x-20x speedups over scalar iteration, even with filtering predicates (where possible).
+The factory methods `ValueEnumerable.Range` and `ValueEnumerable.Repeat` also use SIMD to accelerate `ToArray`, `ToList`, and `CopyTo` operations.
 
 ## Comparison Summary
 
