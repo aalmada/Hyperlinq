@@ -11,17 +11,21 @@ public static partial class ListExtensions
     extension<T>(List<T> source)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T[] ToArray<TPredicate>(TPredicate predicate, ArrayPool<T>? pool = default)
+        public T[] ToArray()
+            => CollectionsMarshal.AsSpan(source).ToArray();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T[] ToArray<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => CollectionsMarshal.AsSpan(source).ToArray(predicate, pool);
+            => CollectionsMarshal.AsSpan(source).ToArray(predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T[] ToArray<TPredicate>(in TPredicate predicate, ArrayPool<T>? pool = default)
+        public T[] ToArray<TPredicate>(in TPredicate predicate)
             where TPredicate : struct, IFunctionIn<T, bool>
-            => CollectionsMarshal.AsSpan(source).ToArray(in predicate, pool);
+            => CollectionsMarshal.AsSpan(source).ToArray(in predicate);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T[] ToArray(Func<T, bool> predicate, ArrayPool<T>? pool = default)
-            => CollectionsMarshal.AsSpan(source).ToArray(predicate, pool);
+        public T[] ToArray(Func<T, bool> predicate)
+            => CollectionsMarshal.AsSpan(source).ToArray(predicate);
     }
 }

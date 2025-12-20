@@ -8,23 +8,23 @@ public static partial class ReadOnlyMemoryExtensions
     extension<T>(ReadOnlyMemory<T> source)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereReadOnlySpanEnumerable<T, TPredicate> Where<TPredicate>(TPredicate predicate)
+        public WhereReadOnlyMemoryEnumerable<T, TPredicate> Where<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => new WhereReadOnlySpanEnumerable<T, TPredicate>(source.Span, predicate);
+            => new WhereReadOnlyMemoryEnumerable<T, TPredicate>(source, predicate);
 
         /// <summary>
         /// Filters elements based on a predicate.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
-            => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.Span, new FunctionWrapper<T, bool>(predicate));
+        public WhereReadOnlyMemoryEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
+            => new WhereReadOnlyMemoryEnumerable<T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
 
         /// <summary>
         /// Filters elements based on a predicate using a value delegate passed by reference.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereReadOnlySpanInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
+        public WhereReadOnlyMemoryInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
             where TPredicate : struct, IFunctionIn<T, bool>
-            => new WhereReadOnlySpanInEnumerable<T, TPredicate>(source.Span, predicate);
+            => new WhereReadOnlyMemoryInEnumerable<T, TPredicate>(source, predicate);
     }
 }

@@ -2,27 +2,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
-/// <summary>
-/// WhereEnumerable for List sources (uses CollectionsMarshal for zero-copy)
-/// Supports IFunctionIn for pass-by-reference predicates.
-/// </summary>
-public readonly struct WhereListInEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereListInEnumerable<TSource, TPredicate>.Enumerator>
+public readonly struct WhereArrayInEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereArrayInEnumerable<TSource, TPredicate>.Enumerator>
     where TPredicate : struct, IFunctionIn<TSource, bool>
 {
-    readonly List<TSource> source;
+    readonly TSource[] source;
     readonly TPredicate predicate;
 
-    public WhereListInEnumerable(List<TSource> source, in TPredicate predicate)
+    public WhereArrayInEnumerable(TSource[] source, in TPredicate predicate)
     {
         this.source = source ?? throw new ArgumentNullException(nameof(source));
         this.predicate = predicate;
     }
 
-    internal List<TSource> Source => source;
+    internal TSource[] Source => source;
     internal TPredicate Predicate => predicate;
 
     public Enumerator GetEnumerator() => new Enumerator(source, in predicate);
@@ -31,24 +26,24 @@ public readonly struct WhereListInEnumerable<TSource, TPredicate> : IValueEnumer
 
     public struct Enumerator : IEnumerator<TSource>
     {
-        readonly List<TSource> list;
+        readonly TSource[] source;
         readonly TPredicate predicate;
         int index;
 
-        public Enumerator(List<TSource> list, in TPredicate predicate)
+        public Enumerator(TSource[] source, in TPredicate predicate)
         {
-            this.list = list;
+            this.source = source;
             this.predicate = predicate;
             this.index = -1;
         }
 
-        public TSource Current => CollectionsMarshal.AsSpan(list)[index];
+        public TSource Current => source[index];
         object? IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            var span = CollectionsMarshal.AsSpan(list);
+            var span = source.AsSpan();
             while (++index < span.Length)
             {
                 if (predicate.Invoke(in span[index]))

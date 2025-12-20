@@ -2,56 +2,53 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
-/// <summary>
-/// WhereEnumerable for List sources (uses CollectionsMarshal for zero-copy)
-/// Supports IFunctionIn for pass-by-reference predicates.
-/// </summary>
-public readonly struct WhereListInEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereListInEnumerable<TSource, TPredicate>.Enumerator>
+public readonly struct WhereReadOnlyMemoryInEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereReadOnlyMemoryInEnumerable<TSource, TPredicate>.Enumerator>
     where TPredicate : struct, IFunctionIn<TSource, bool>
 {
-    readonly List<TSource> source;
+    readonly ReadOnlyMemory<TSource> source;
     readonly TPredicate predicate;
 
-    public WhereListInEnumerable(List<TSource> source, in TPredicate predicate)
+    public WhereReadOnlyMemoryInEnumerable(ReadOnlyMemory<TSource> source, TPredicate predicate)
     {
-        this.source = source ?? throw new ArgumentNullException(nameof(source));
+        this.source = source;
         this.predicate = predicate;
     }
 
-    internal List<TSource> Source => source;
+    internal ReadOnlyMemory<TSource> Source => source;
     internal TPredicate Predicate => predicate;
 
-    public Enumerator GetEnumerator() => new Enumerator(source, in predicate);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Enumerator GetEnumerator() => new(source, predicate);
+
     IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public struct Enumerator : IEnumerator<TSource>
     {
-        readonly List<TSource> list;
+        readonly ReadOnlyMemory<TSource> source;
         readonly TPredicate predicate;
         int index;
 
-        public Enumerator(List<TSource> list, in TPredicate predicate)
+        public Enumerator(ReadOnlyMemory<TSource> source, TPredicate predicate)
         {
-            this.list = list;
+            this.source = source;
             this.predicate = predicate;
             this.index = -1;
         }
 
-        public TSource Current => CollectionsMarshal.AsSpan(list)[index];
+        public TSource Current => source.Span[index];
         object? IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            var span = CollectionsMarshal.AsSpan(list);
+            var span = source.Span;
             while (++index < span.Length)
             {
-                if (predicate.Invoke(in span[index]))
+                if (predicate.Invoke(span[index]))
                 {
                     return true;
                 }

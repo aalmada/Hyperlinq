@@ -2,54 +2,50 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
-/// <summary>
-/// WhereEnumerable for List sources (uses CollectionsMarshal for zero-copy)
-/// </summary>
-public readonly struct WhereListEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereListEnumerable<TSource, TPredicate>.Enumerator>
+public readonly struct WhereReadOnlyMemoryEnumerable<TSource, TPredicate> : IValueEnumerable<TSource, WhereReadOnlyMemoryEnumerable<TSource, TPredicate>.Enumerator>
     where TPredicate : struct, IFunction<TSource, bool>
 {
-    readonly List<TSource> source;
+    readonly ReadOnlyMemory<TSource> source;
     readonly TPredicate predicate;
 
-    public WhereListEnumerable(List<TSource> source, TPredicate predicate)
+    public WhereReadOnlyMemoryEnumerable(ReadOnlyMemory<TSource> source, TPredicate predicate)
     {
-        this.source = source ?? throw new ArgumentNullException(nameof(source));
+        this.source = source;
         this.predicate = predicate;
     }
 
-    internal List<TSource> Source => source;
+    internal ReadOnlyMemory<TSource> Source => source;
     internal TPredicate Predicate => predicate;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Enumerator GetEnumerator() => new(source, predicate);
 
-
-    public Enumerator GetEnumerator() => new Enumerator(source, predicate);
     IEnumerator<TSource> IEnumerable<TSource>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public struct Enumerator : IEnumerator<TSource>
     {
-        readonly List<TSource> list;
+        readonly ReadOnlyMemory<TSource> source;
         readonly TPredicate predicate;
         int index;
 
-        public Enumerator(List<TSource> list, TPredicate predicate)
+        public Enumerator(ReadOnlyMemory<TSource> source, TPredicate predicate)
         {
-            this.list = list;
+            this.source = source;
             this.predicate = predicate;
             this.index = -1;
         }
 
-        public TSource Current => CollectionsMarshal.AsSpan(list)[index];
+        public TSource Current => source.Span[index];
         object? IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            var span = CollectionsMarshal.AsSpan(list);
+            var span = source.Span;
             while (++index < span.Length)
             {
                 if (predicate.Invoke(span[index]))

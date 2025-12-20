@@ -8,19 +8,22 @@ public static partial class ReadOnlySpanExtensions
 {
     extension<T>(ReadOnlySpan<T> source)
     {
-        public T[] ToArray<TPredicate>(TPredicate predicate, ArrayPool<T>? pool = default)
+        public T[] ToArray()
+            => source.ToArray();
+
+        public T[] ToArray<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => ToArrayImpl(source, predicate, pool);
+            => ToArrayImpl(source, predicate);
 
-        public T[] ToArray<TPredicate>(in TPredicate predicate, ArrayPool<T>? pool = default)
+        public T[] ToArray<TPredicate>(in TPredicate predicate)
             where TPredicate : struct, IFunctionIn<T, bool>
-            => ToArrayInImpl(source, predicate, pool);
+            => ToArrayInImpl(source, predicate);
 
-        public T[] ToArray(Func<T, bool> predicate, ArrayPool<T>? pool = default)
-            => ToArrayImpl(source, new FunctionWrapper<T, bool>(predicate), pool);
+        public T[] ToArray(Func<T, bool> predicate)
+            => ToArrayImpl(source, new FunctionWrapper<T, bool>(predicate));
     }
 
-    static T[] ToArrayImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
+    static T[] ToArrayImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunction<T, bool>
     {
         Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);
@@ -35,7 +38,7 @@ public static partial class ReadOnlySpanExtensions
         return builder.ToArray();
     }
 
-    static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate, ArrayPool<T>? pool)
+    static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
         Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);

@@ -8,23 +8,23 @@ public static partial class ArraySegmentExtensions
     extension<T>(ArraySegment<T> source)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereReadOnlySpanEnumerable<T, TPredicate> Where<TPredicate>(TPredicate predicate)
+        public WhereArraySegmentEnumerable<T, TPredicate> Where<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>
-            => new WhereReadOnlySpanEnumerable<T, TPredicate>(source.AsSpan(), predicate);
+            => new WhereArraySegmentEnumerable<T, TPredicate>(source, predicate);
 
         /// <summary>
         /// Filters elements based on a predicate.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
-            => new WhereReadOnlySpanEnumerable<T, FunctionWrapper<T, bool>>(source.AsSpan(), new FunctionWrapper<T, bool>(predicate));
+        public WhereArraySegmentEnumerable<T, FunctionWrapper<T, bool>> Where(Func<T, bool> predicate)
+            => new WhereArraySegmentEnumerable<T, FunctionWrapper<T, bool>>(source, new FunctionWrapper<T, bool>(predicate));
 
         /// <summary>
         /// Filters elements based on a predicate using a value delegate passed by reference.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public WhereReadOnlySpanInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
+        public WhereArraySegmentInEnumerable<T, TPredicate> Where<TPredicate>(in TPredicate predicate)
             where TPredicate : struct, IFunctionIn<T, bool>
-            => new WhereReadOnlySpanInEnumerable<T, TPredicate>(source.AsSpan(), predicate);
+            => new WhereArraySegmentInEnumerable<T, TPredicate>(source, predicate);
     }
 }

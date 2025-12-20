@@ -2,60 +2,54 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
-/// <summary>
-/// WhereSelectEnumerable for List sources (fused Where+Select)
-/// </summary>
-public readonly struct WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector> : IValueEnumerable<TResult, WhereSelectListEnumerable<TSource, TResult, TPredicate, TSelector>.Enumerator>
+public readonly struct WhereSelectReadOnlyMemoryEnumerable<TSource, TResult, TPredicate, TSelector> : IValueEnumerable<TResult, WhereSelectReadOnlyMemoryEnumerable<TSource, TResult, TPredicate, TSelector>.Enumerator>
     where TPredicate : struct, IFunction<TSource, bool>
     where TSelector : struct, IFunction<TSource, TResult>
 {
-    readonly List<TSource> source;
+    readonly ReadOnlyMemory<TSource> source;
     readonly TPredicate predicate;
     readonly TSelector selector;
 
-    public WhereSelectListEnumerable(List<TSource> source, TPredicate predicate, TSelector selector)
+    public WhereSelectReadOnlyMemoryEnumerable(ReadOnlyMemory<TSource> source, TPredicate predicate, TSelector selector)
     {
-        this.source = source ?? throw new ArgumentNullException(nameof(source));
+        this.source = source;
         this.predicate = predicate;
         this.selector = selector;
     }
 
-    internal List<TSource> Source => source;
+    internal ReadOnlyMemory<TSource> Source => source;
     internal TPredicate Predicate => predicate;
     internal TSelector Selector => selector;
 
-    public Enumerator GetEnumerator() => new Enumerator(source, predicate, selector);
+    public Enumerator GetEnumerator() => new(source, predicate, selector);
     IEnumerator<TResult> IEnumerable<TResult>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-
-
     public struct Enumerator : IEnumerator<TResult>
     {
-        readonly List<TSource> list;
+        readonly ReadOnlyMemory<TSource> source;
         readonly TPredicate predicate;
         readonly TSelector selector;
         int index;
 
-        public Enumerator(List<TSource> list, TPredicate predicate, TSelector selector)
+        public Enumerator(ReadOnlyMemory<TSource> source, TPredicate predicate, TSelector selector)
         {
-            this.list = list;
+            this.source = source;
             this.predicate = predicate;
             this.selector = selector;
             this.index = -1;
         }
 
-        public TResult Current => selector.Invoke(CollectionsMarshal.AsSpan(list)[index]);
+        public TResult Current => selector.Invoke(source.Span[index]);
         object? IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            var span = CollectionsMarshal.AsSpan(list);
+            var span = source.Span;
             while (++index < span.Length)
             {
                 if (predicate.Invoke(span[index]))

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace NetFabric.Hyperlinq.InternalAnalyzer;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class OptionOverloadAnalyzer : DiagnosticAnalyzer
+public sealed class OptionMethodsAnalyzer : DiagnosticAnalyzer
 {
     private const string Category = "Design";
 
