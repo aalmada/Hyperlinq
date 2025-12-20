@@ -7,6 +7,9 @@ using System.Runtime.InteropServices;
 
 namespace NetFabric.Hyperlinq;
 
+using System.Numerics;
+
+
 public readonly partial struct RepeatEnumerable<T>
     : IValueReadOnlyList<T, RepeatEnumerable<T>.Enumerator>, IList<T>
 {
@@ -105,7 +108,25 @@ public readonly partial struct RepeatEnumerable<T>
             throw new ArgumentException("Destination array is not long enough.");
         }
 
-        Array.Fill(array, element, arrayIndex, count);
+        Fill(array.AsSpan(arrayIndex, count));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void Fill(Span<T> span)
+    {
+        if (Vector.IsHardwareAccelerated && Vector<T>.IsSupported && span.Length >= Vector<T>.Count)
+        {
+            var vector = new Vector<T>(element);
+            ref var destination = ref MemoryMarshal.GetReference(span);
+            var index = 0;
+            while (span.Length - index >= Vector<T>.Count)
+            {
+                vector.StoreUnsafe(ref destination, (nuint)index);
+                index += Vector<T>.Count;
+            }
+            span = span.Slice(index);
+        }
+        span.Fill(element);
     }
 
     bool ICollection<T>.IsReadOnly => true;
@@ -124,7 +145,7 @@ public readonly partial struct RepeatEnumerable<T>
         }
 
         var result = GC.AllocateUninitializedArray<T>(count);
-        Array.Fill(result, element);
+        Fill(result.AsSpan());
         return result;
     }
 
@@ -133,8 +154,7 @@ public readonly partial struct RepeatEnumerable<T>
     {
         var result = new List<T>(count);
         CollectionsMarshal.SetCount(result, count);
-        var span = CollectionsMarshal.AsSpan(result);
-        span.Fill(element);
+        Fill(CollectionsMarshal.AsSpan(result));
         return result;
     }
 }
