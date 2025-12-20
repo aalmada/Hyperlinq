@@ -22,6 +22,7 @@ public class ArrayOperationsBenchmarks
         array = ValueEnumerable.Range(0, Count).ToArray();
     }
 
+
     // ===== Array_Select =====
 
     [BenchmarkCategory("Array_Select"), Benchmark]

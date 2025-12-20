@@ -9,7 +9,7 @@ namespace NetFabric.Hyperlinq.Benchmarks;
 [MemoryDiagnoser]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 [CategoriesColumn]
-public class SpanOperationsBenchmarks
+public class ReadOnlySpanOperationsBenchmarks
 {
     int[] array = null!;
 
@@ -21,6 +21,7 @@ public class SpanOperationsBenchmarks
     {
         array = ValueEnumerable.Range(0, Count).ToArray();
     }
+
 
     // ===== Span_Select =====
 

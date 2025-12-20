@@ -24,6 +24,7 @@ public class ArraySegmentOperationsBenchmarks
         segment = new ArraySegment<int>(array);
     }
 
+
     // ===== ArraySegment_Select =====
 
     [BenchmarkCategory("ArraySegment_Select"), Benchmark]

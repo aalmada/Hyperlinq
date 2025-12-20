@@ -23,6 +23,7 @@ public class ReadOnlyMemoryOperationsBenchmarks
         array = ValueEnumerable.Range(0, Count).ToArray();
     }
 
+
     // ===== ReadOnlyMemory_Select =====
 
     [BenchmarkCategory("ReadOnlyMemory_Select"), Benchmark]
