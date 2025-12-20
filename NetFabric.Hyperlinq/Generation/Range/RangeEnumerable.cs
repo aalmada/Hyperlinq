@@ -153,7 +153,7 @@ public readonly partial struct RangeEnumerable
     {
         if (count == 0)
         {
-            return Array.Empty<int>();
+            return [];
         }
 
         var result = GC.AllocateUninitializedArray<int>(count);

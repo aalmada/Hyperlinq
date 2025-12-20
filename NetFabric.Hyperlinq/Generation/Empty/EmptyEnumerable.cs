@@ -61,8 +61,8 @@ public readonly partial struct EmptyEnumerable<T>
     void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T[] ToArray() => Array.Empty<T>();
+    public T[] ToArray() => [];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public List<T> ToList() => new List<T>();
+    public List<T> ToList() => [];
 }

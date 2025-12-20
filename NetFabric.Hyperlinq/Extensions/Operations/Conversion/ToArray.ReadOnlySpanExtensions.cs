@@ -9,7 +9,11 @@ public static partial class ReadOnlySpanExtensions
     extension<T>(ReadOnlySpan<T> source)
     {
         public T[] ToArray()
-            => source.ToArray();
+        {
+            var result = GC.AllocateUninitializedArray<T>(source.Length);
+            source.CopyTo(result);
+            return result;
+        }
 
         public T[] ToArray<TPredicate>(TPredicate predicate)
             where TPredicate : struct, IFunction<T, bool>

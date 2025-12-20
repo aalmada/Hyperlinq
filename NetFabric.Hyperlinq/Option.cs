@@ -271,9 +271,9 @@ public readonly record struct Option<T>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T[] ToArray()
-        => _hasValue ? [_value] : Array.Empty<T>();
+        => _hasValue ? [_value] : [];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T> ToList()
-        => _hasValue ? [_value] : new List<T>();
+        => _hasValue ? [_value] : [];
 }

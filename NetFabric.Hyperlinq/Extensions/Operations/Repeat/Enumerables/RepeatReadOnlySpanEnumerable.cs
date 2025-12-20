@@ -102,7 +102,7 @@ public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
         var length = Count;
         if (length == 0)
         {
-            return Array.Empty<TSource>();
+            return [];
         }
 
         var result = GC.AllocateUninitializedArray<TSource>(length);
@@ -116,7 +116,7 @@ public readonly ref struct RepeatReadOnlySpanEnumerable<TSource>
         var length = Count;
         if (length == 0)
         {
-            return new List<TSource>();
+            return [];
         }
 
         var result = new List<TSource>(length);

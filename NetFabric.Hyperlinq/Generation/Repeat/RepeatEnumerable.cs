@@ -141,7 +141,7 @@ public readonly partial struct RepeatEnumerable<T>
     {
         if (count == 0)
         {
-            return Array.Empty<T>();
+            return [];
         }
 
         var result = GC.AllocateUninitializedArray<T>(count);
