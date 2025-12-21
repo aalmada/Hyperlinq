@@ -22,14 +22,25 @@ public class ArrayOperationsBenchmarks
         array = ValueEnumerable.Range(0, Count).ToArray();
     }
 
-
     // ===== Array_Select =====
 
     [BenchmarkCategory("Array_Select"), Benchmark]
     public int Array_Select_Hyperlinq()
     {
         var sum = 0;
-        foreach (var item in array.AsValueEnumerable().Select(x => x * 2))
+        foreach (var item in array.Select(x => x * 2))
+        {
+            sum += item;
+        }
+
+        return sum;
+    }
+
+    [BenchmarkCategory("Array_Select"), Benchmark]
+    public int Array_Select_Value_Hyperlinq()
+    {
+        var sum = 0;
+        foreach (var item in array.Select<int, int, DoubleFunction>(new DoubleFunction()))
         {
             sum += item;
         }
@@ -55,7 +66,19 @@ public class ArrayOperationsBenchmarks
     public int Array_Where_Hyperlinq()
     {
         var sum = 0;
-        foreach (var item in array.AsValueEnumerable().Where(x => x % 2 == 0))
+        foreach (var item in array.Where(x => x % 2 == 0))
+        {
+            sum += item;
+        }
+
+        return sum;
+    }
+
+    [BenchmarkCategory("Array_Where"), Benchmark]
+    public int Array_Where_Value_Hyperlinq()
+    {
+        var sum = 0;
+        foreach (var item in array.Where(new IsEvenFunction()))
         {
             sum += item;
         }
@@ -81,7 +104,19 @@ public class ArrayOperationsBenchmarks
     public int Array_WhereSelect_Hyperlinq()
     {
         var sum = 0;
-        foreach (var item in array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2))
+        foreach (var item in array.Where(x => x % 2 == 0).Select(x => x * 2))
+        {
+            sum += item;
+        }
+
+        return sum;
+    }
+
+    [BenchmarkCategory("Array_WhereSelect"), Benchmark]
+    public int Array_WhereSelect_Value_Hyperlinq()
+    {
+        var sum = 0;
+        foreach (var item in array.Where(new IsEvenFunction()).Select<int, int, IsEvenFunction, DoubleFunction>(new DoubleFunction()))
         {
             sum += item;
         }
@@ -104,56 +139,104 @@ public class ArrayOperationsBenchmarks
     // ===== Array_WhereSum =====
 
     [BenchmarkCategory("Array_WhereSum"), Benchmark]
-    public int Array_WhereSum_Hyperlinq() => array.AsValueEnumerable().Where(x => x % 2 == 0).Sum();
+    public int Array_WhereSum_Hyperlinq() 
+        => array.Where(x => x % 2 == 0).Sum();
+
+    [BenchmarkCategory("Array_WhereSum"), Benchmark]
+    public int Array_WhereSum_Value_Hyperlinq() 
+        => array.Where(new IsEvenFunction()).Sum();
 
     [BenchmarkCategory("Array_WhereSum"), Benchmark(Baseline = true)]
-    public int Array_WhereSum_Linq() => System.Linq.Enumerable.Sum(System.Linq.Enumerable.Where(array, x => x % 2 == 0));
+    public int Array_WhereSum_Linq() 
+        => System.Linq.Enumerable.Sum(System.Linq.Enumerable.Where(array, x => x % 2 == 0));
 
     // ===== Array_WhereSelectSum =====
 
     [BenchmarkCategory("Array_WhereSelectSum"), Benchmark]
-    public int Array_WhereSelectSum_Hyperlinq() => array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+    public int Array_WhereSelectSum_Hyperlinq() 
+        => array.Where(x => x % 2 == 0).Select(x => x * 2).Sum();
+
+    [BenchmarkCategory("Array_WhereSelectSum"), Benchmark]
+    public int Array_WhereSelectSum_Value_Hyperlinq() 
+        => array.Where(new IsEvenFunction()).Select<int, int, IsEvenFunction, DoubleFunction>(new DoubleFunction()).Sum();
 
     [BenchmarkCategory("Array_WhereSelectSum"), Benchmark(Baseline = true)]
-    public int Array_WhereSelectSum_Linq() => System.Linq.Enumerable.Sum(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
+    public int Array_WhereSelectSum_Linq() 
+        => System.Linq.Enumerable.Sum(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
 
     // ===== Array_SelectCount =====
 
     [BenchmarkCategory("Array_SelectCount"), Benchmark]
-    public int Array_SelectCount_Hyperlinq() => array.AsValueEnumerable().Select(x => x * 2).Count();
+    public int Array_SelectCount_Hyperlinq() 
+        => array.Select(x => x * 2).Count();
+
+    [BenchmarkCategory("Array_SelectCount"), Benchmark]
+    public int Array_SelectCount_Value_Hyperlinq()
+    {
+        var selected = array.Select<int, int, DoubleFunction>(new DoubleFunction());
+        return selected.Count();
+    }
 
     [BenchmarkCategory("Array_SelectCount"), Benchmark(Baseline = true)]
-    public int Array_SelectCount_Linq() => System.Linq.Enumerable.Count(System.Linq.Enumerable.Select(array, x => x * 2));
+    public int Array_SelectCount_Linq() 
+        => System.Linq.Enumerable.Count(System.Linq.Enumerable.Select(array, x => x * 2));
 
     // ===== Array_WhereCount =====
 
     [BenchmarkCategory("Array_WhereCount"), Benchmark]
-    public int Array_WhereCount_Hyperlinq() => array.AsValueEnumerable().Where(x => x % 2 == 0).Count();
+    public int Array_WhereCount_Hyperlinq() 
+        => array.Where(x => x % 2 == 0).Count();
+
+    [BenchmarkCategory("Array_WhereCount"), Benchmark]
+    public int Array_WhereCount_Value_Hyperlinq() 
+        => array.Where(new IsEvenFunction()).Count();
 
     [BenchmarkCategory("Array_WhereCount"), Benchmark(Baseline = true)]
-    public int Array_WhereCount_Linq() => System.Linq.Enumerable.Count(System.Linq.Enumerable.Where(array, x => x % 2 == 0));
+    public int Array_WhereCount_Linq() 
+        => System.Linq.Enumerable.Count(System.Linq.Enumerable.Where(array, x => x % 2 == 0));
 
     // ===== Array_SelectToArray =====
 
     [BenchmarkCategory("Array_SelectToArray"), Benchmark]
-    public int[] Array_SelectToArray_Hyperlinq() => array.AsValueEnumerable().Select(x => x * 2).ToArray();
+    public int[] Array_SelectToArray_Hyperlinq() 
+        => array.Select(x => x * 2).ToArray();
+
+    [BenchmarkCategory("Array_SelectToArray"), Benchmark]
+    public int[] Array_SelectToArray_Value_Hyperlinq()
+    {
+        var selected = array.Select<int, int, DoubleFunction>(new DoubleFunction());
+        return selected.ToArray();
+    }
 
     [BenchmarkCategory("Array_SelectToArray"), Benchmark(Baseline = true)]
-    public int[] Array_SelectToArray_Linq() => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(array, x => x * 2));
+    public int[] Array_SelectToArray_Linq() 
+        => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(array, x => x * 2));
 
     // ===== Array_WhereToArray =====
 
     [BenchmarkCategory("Array_WhereToArray"), Benchmark]
-    public int[] Array_WhereToArray_Hyperlinq() => array.AsValueEnumerable().Where(x => x % 2 == 0).ToArray();
+    public int[] Array_WhereToArray_Hyperlinq() 
+        => array.Where(x => x % 2 == 0).ToArray();
+
+    [BenchmarkCategory("Array_WhereToArray"), Benchmark]
+    public int[] Array_WhereToArray_Value_Hyperlinq() 
+        => array.Where(new IsEvenFunction()).ToArray();
 
     [BenchmarkCategory("Array_WhereToArray"), Benchmark(Baseline = true)]
-    public int[] Array_WhereToArray_Linq() => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(array, x => x % 2 == 0));
+    public int[] Array_WhereToArray_Linq() 
+        => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(array, x => x % 2 == 0));
 
     // ===== Array_WhereSelectToArray =====
 
     [BenchmarkCategory("Array_WhereSelectToArray"), Benchmark]
-    public int[] Array_WhereSelectToArray_Hyperlinq() => array.AsValueEnumerable().Where(x => x % 2 == 0).Select(x => x * 2).ToArray();
+    public int[] Array_WhereSelectToArray_Hyperlinq() 
+        => array.Where(x => x % 2 == 0).Select(x => x * 2).ToArray();
+
+    [BenchmarkCategory("Array_WhereSelectToArray"), Benchmark]
+    public int[] Array_WhereSelectToArray_Value_Hyperlinq() 
+        => array.Where(new IsEvenFunction()).Select<int, int, IsEvenFunction, DoubleFunction>(new DoubleFunction()).ToArray();
 
     [BenchmarkCategory("Array_WhereSelectToArray"), Benchmark(Baseline = true)]
-    public int[] Array_WhereSelectToArray_Linq() => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
+    public int[] Array_WhereSelectToArray_Linq() 
+        => System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(array, x => x % 2 == 0), x => x * 2));
 }
