@@ -30,30 +30,96 @@ public static partial class ReadOnlySpanExtensions
     static T[] ToArrayImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunction<T, bool>
     {
+        var localSpan = source;
         Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);
         using var builder = new SegmentedArrayBuilder<T>(scratch);
-        foreach (var item in source)
+        var length = localSpan.Length;
+        var i = 0;
+        
+        // Process 4 elements at a time
+        for (; i <= length - 4; i += 4)
         {
-            if (predicate.Invoke(item))
-            {
-                builder.Add(item);
-            }
+            if (predicate.Invoke(localSpan[i]))
+                builder.Add(localSpan[i]);
+            if (predicate.Invoke(localSpan[i + 1]))
+                builder.Add(localSpan[i + 1]);
+            if (predicate.Invoke(localSpan[i + 2]))
+                builder.Add(localSpan[i + 2]);
+            if (predicate.Invoke(localSpan[i + 3]))
+                builder.Add(localSpan[i + 3]);
         }
+        
+        // Process remaining elements with switch
+        switch (length - i)
+        {
+            case 3:
+                if (predicate.Invoke(localSpan[i]))
+                    builder.Add(localSpan[i]);
+                if (predicate.Invoke(localSpan[i + 1]))
+                    builder.Add(localSpan[i + 1]);
+                if (predicate.Invoke(localSpan[i + 2]))
+                    builder.Add(localSpan[i + 2]);
+                break;
+            case 2:
+                if (predicate.Invoke(localSpan[i]))
+                    builder.Add(localSpan[i]);
+                if (predicate.Invoke(localSpan[i + 1]))
+                    builder.Add(localSpan[i + 1]);
+                break;
+            case 1:
+                if (predicate.Invoke(localSpan[i]))
+                    builder.Add(localSpan[i]);
+                break;
+        }
+        
         return builder.ToArray();
     }
 
     static T[] ToArrayInImpl<T, TPredicate>(ReadOnlySpan<T> source, TPredicate predicate)
         where TPredicate : struct, IFunctionIn<T, bool>
     {
+        var localSpan = source;
         Unsafe.SkipInit(out SegmentedArrayBuilder<T>.ScratchBuffer scratch);
         using var builder = new SegmentedArrayBuilder<T>(scratch);
-        foreach (ref readonly var item in source)
+        var length = localSpan.Length;
+        var i = 0;
+        
+        // Process 4 elements at a time
+        for (; i <= length - 4; i += 4)
         {
-            if (predicate.Invoke(in item))
-            {
-                builder.Add(item);
-            }
+            if (predicate.Invoke(in localSpan[i]))
+                builder.Add(localSpan[i]);
+            if (predicate.Invoke(in localSpan[i + 1]))
+                builder.Add(localSpan[i + 1]);
+            if (predicate.Invoke(in localSpan[i + 2]))
+                builder.Add(localSpan[i + 2]);
+            if (predicate.Invoke(in localSpan[i + 3]))
+                builder.Add(localSpan[i + 3]);
         }
+        
+        // Process remaining elements with switch
+        switch (length - i)
+        {
+            case 3:
+                if (predicate.Invoke(in localSpan[i]))
+                    builder.Add(localSpan[i]);
+                if (predicate.Invoke(in localSpan[i + 1]))
+                    builder.Add(localSpan[i + 1]);
+                if (predicate.Invoke(in localSpan[i + 2]))
+                    builder.Add(localSpan[i + 2]);
+                break;
+            case 2:
+                if (predicate.Invoke(in localSpan[i]))
+                    builder.Add(localSpan[i]);
+                if (predicate.Invoke(in localSpan[i + 1]))
+                    builder.Add(localSpan[i + 1]);
+                break;
+            case 1:
+                if (predicate.Invoke(in localSpan[i]))
+                    builder.Add(localSpan[i]);
+                break;
+        }
+        
         return builder.ToArray();
     }
 }

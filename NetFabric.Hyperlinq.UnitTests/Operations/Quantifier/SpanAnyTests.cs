@@ -43,4 +43,51 @@ public class SpanAnyTests
 
         _ = hyperlinqResult.Must().BeEqualTo(linqResult);
     }
+
+    // Direct predicate tests for optimized Any(predicate) method
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Span_Any_WithPredicate_ShouldMatchLinq(TestCase<int[]> testCase)
+    {
+        var array = testCase.Factory();
+        var span = array.AsSpan();
+
+        var hyperlinqResult = span.Any(x => x % 2 == 0);
+        var linqResult = Enumerable.Any(array, x => x % 2 == 0);
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Span_Any_WithValueDelegate_ShouldMatchLinq(TestCase<int[]> testCase)
+    {
+        var array = testCase.Factory();
+        var span = array.AsSpan();
+
+        var hyperlinqResult = span.Any(new IsEvenPredicate());
+        var linqResult = Enumerable.Any(array, x => x % 2 == 0);
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
+
+    [Test]
+    public void Span_Any_WithPredicate_EarlyExit_ShouldReturnTrue()
+    {
+        ReadOnlySpan<int> span = stackalloc int[] { 1, 3, 5, 6, 7, 9 };
+
+        var result = span.Any(x => x % 2 == 0);
+
+        _ = result.Must().BeTrue();
+    }
+
+    [Test]
+    public void Span_Any_WithPredicate_NoMatch_ShouldReturnFalse()
+    {
+        ReadOnlySpan<int> span = stackalloc int[] { 1, 3, 5, 7, 9 };
+
+        var result = span.Any(x => x % 2 == 0);
+
+        _ = result.Must().BeFalse();
+    }
 }

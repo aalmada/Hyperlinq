@@ -113,4 +113,31 @@ public class SpanSumTests
 
         _ = result.Must().BeEqualTo(15L);
     }
+
+    // Direct predicate tests for optimized Sum(predicate) method
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Span_Sum_WithPredicate_ShouldMatchLinq(TestCase<int[]> testCase)
+    {
+        var array = testCase.Factory();
+        var span = array.AsSpan();
+
+        var hyperlinqResult = span.Sum(x => x % 2 == 0);
+        var linqResult = Enumerable.Sum(Enumerable.Where(array, x => x % 2 == 0));
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Span_Sum_WithValueDelegate_ShouldMatchLinq(TestCase<int[]> testCase)
+    {
+        var array = testCase.Factory();
+        var span = array.AsSpan();
+
+        var hyperlinqResult = span.Sum(new IsEvenPredicate());
+        var linqResult = Enumerable.Sum(Enumerable.Where(array, x => x % 2 == 0));
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
 }

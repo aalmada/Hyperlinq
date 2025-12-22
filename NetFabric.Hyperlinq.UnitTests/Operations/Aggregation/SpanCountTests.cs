@@ -56,4 +56,36 @@ public class SpanCountTests
 
         _ = hyperlinqResult.Must().BeEqualTo(linqResult);
     }
+
+    // Direct predicate tests for optimized Count(predicate) method
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Span_Count_WithPredicate_ShouldMatchLinq(TestCase<int[]> testCase)
+    {
+        var array = testCase.Factory();
+        var span = array.AsSpan();
+
+        var hyperlinqResult = span.Count(x => x % 2 == 0);
+        var linqResult = Enumerable.Count(array, x => x % 2 == 0);
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(TestDataSources), nameof(TestDataSources.GetIntArraySources))]
+    public void Span_Count_WithValueDelegate_ShouldMatchLinq(TestCase<int[]> testCase)
+    {
+        var array = testCase.Factory();
+        var span = array.AsSpan();
+
+        var hyperlinqResult = span.Count(new IsEvenPredicate());
+        var linqResult = Enumerable.Count(array, x => x % 2 == 0);
+
+        _ = hyperlinqResult.Must().BeEqualTo(linqResult);
+    }
+}
+
+readonly struct IsEvenPredicate : IFunction<int, bool>
+{
+    public bool Invoke(int element) => element % 2 == 0;
 }
