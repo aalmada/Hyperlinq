@@ -154,7 +154,7 @@ public sealed class ContiguousMemoryAnalyzer : DiagnosticAnalyzer
         // HLQInternal010: Delegation
         if (IsContiguousMemoryType(receiverType))
         {
-            VerifyDelegationRef(context, methodSymbol, methodSymbol.Name, RuleConversionDelegation);
+            VerifyDelegationRef(context, methodSymbol, methodSymbol.Name, receiverType, RuleConversionDelegation);
         }
     }
 
@@ -437,7 +437,7 @@ public sealed class ContiguousMemoryAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private void VerifyDelegationRef(SymbolAnalysisContext context, IMethodSymbol overload, string targetName, DiagnosticDescriptor rule)
+    private void VerifyDelegationRef(SymbolAnalysisContext context, IMethodSymbol overload, string targetName, ITypeSymbol receiverType, DiagnosticDescriptor rule)
     {
         // Used by HLQInternal010
         var syntaxRef = overload.DeclaringSyntaxReferences.FirstOrDefault();
@@ -448,7 +448,7 @@ public sealed class ContiguousMemoryAnalyzer : DiagnosticAnalyzer
             if (node is MethodDeclarationSyntax methodDecl)
             {
                 var semanticModel = context.Compilation.GetSemanticModel(syntaxRef.SyntaxTree);
-                if (!CallsReadOnlySpanCounterpart(semanticModel, methodDecl, targetName))
+                if (!CallsCorrectCounterpart(semanticModel, methodDecl, targetName, receiverType))
                 {
                      context.ReportDiagnostic(Diagnostic.Create(rule, overload.Locations[0], overload.Name));
                 }
@@ -495,7 +495,7 @@ public sealed class ContiguousMemoryAnalyzer : DiagnosticAnalyzer
              name == "Skip" || name == "Take";
     }
 
-    private static bool CallsReadOnlySpanCounterpart(SemanticModel semanticModel, MethodDeclarationSyntax method, string methodName)
+    private static bool CallsCorrectCounterpart(SemanticModel semanticModel, MethodDeclarationSyntax method, string methodName, ITypeSymbol receiverType)
     {
         ExpressionSyntax? expression = null;
         if (method.ExpressionBody is not null) expression = method.ExpressionBody.Expression;
@@ -514,6 +514,14 @@ public sealed class ContiguousMemoryAnalyzer : DiagnosticAnalyzer
             var containingType = symbol.ContainingType;
             if (containingType is null) return false;
 
+            // For Memory<T>, check if it delegates to ReadOnlyMemory<T>
+            if (receiverType.Name == "Memory" && receiverType.ContainingNamespace.ToString() == "System")
+            {
+                // Should delegate to ReadOnlyMemory extensions
+                return MatchesHyperlinqReadOnlyMemoryExtensions(containingType);
+            }
+
+            // For other contiguous types, check if it delegates to ReadOnlySpan<T>
             if (containingType.ContainingNamespace.ToString() == "System")
             {
                 var name = containingType.Name;
@@ -522,6 +530,21 @@ public sealed class ContiguousMemoryAnalyzer : DiagnosticAnalyzer
             if (MatchesHyperlinqReadOnlySpanExtensions(containingType)) return true;
             if (containingType.ContainingType is not null && MatchesHyperlinqReadOnlySpanExtensions(containingType.ContainingType)) return true;
         }
+        return false;
+    }
+
+    private static bool MatchesHyperlinqReadOnlyMemoryExtensions(INamedTypeSymbol type)
+    {
+        // Check if this is ReadOnlyMemoryExtensions or nested within it
+        if (type.Name == "ReadOnlyMemoryExtensions" && type.ContainingNamespace.ToString() == "NetFabric.Hyperlinq")
+            return true;
+        
+        // Check if the containing type is ReadOnlyMemoryExtensions (for extension blocks)
+        if (type.ContainingType is INamedTypeSymbol containingType &&
+            containingType.Name == "ReadOnlyMemoryExtensions" && 
+            containingType.ContainingNamespace.ToString() == "NetFabric.Hyperlinq")
+            return true;
+            
         return false;
     }
 
